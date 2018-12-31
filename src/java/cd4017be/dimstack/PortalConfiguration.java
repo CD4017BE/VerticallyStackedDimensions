@@ -19,6 +19,11 @@ public class PortalConfiguration {
 	public PortalConfiguration neighbourUp;
 	/** the destination when traversing down (null for regular world border) */
 	public PortalConfiguration neighbourDown;
+	
+	public int LBedrockMin, LBedrockMax;
+	public IBlockState LBedrockRepl;
+	public int UBedrockMin, UBedrockMax;
+	public IBlockState UBedrockRepl;
 
 	private PortalConfiguration(int dimId) {
 		this.dimId = dimId;

@@ -1,8 +1,16 @@
-VERSION = 1;
+VERSION = 2;
 
 {
 	!Each array entry is a vector containing dimension IDs that should be stacked on top of each other via portals (order bottom to top).
 	linked_dimensions = [
 		[-1, 0]#
 	];
+}
+
+INIT() {
+	!replace bedrock layers
+	!add("bedrockRepl", <dimId>, it(<repBlock>), [<minY>, <maxY>]#);
+	add("bedrockRepl", 0, it("minecraft:stone"), [0, 5]#);
+	add("bedrockRepl", -1, it("minecraft:obsidian"), [123, 128]#);
+	
 }

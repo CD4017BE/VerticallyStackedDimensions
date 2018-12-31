@@ -2,6 +2,8 @@ package cd4017be.dimstack;
 
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
+import cd4017be.dimstack.worldgen.BedrockRemover;
+import cd4017be.dimstack.worldgen.PortalGen;
 import cd4017be.lib.TickRegistry;
 
 /**
@@ -10,9 +12,14 @@ import cd4017be.lib.TickRegistry;
  */
 public class CommonProxy {
 
+	PortalGen worldgenPortal;
+	BedrockRemover worldgenBedrock;
+
 	public void init() {
 		TickRegistry.register();
 		
+		worldgenPortal = new PortalGen();
+		worldgenBedrock = new BedrockRemover();
 		setConfig();
 	}
 
