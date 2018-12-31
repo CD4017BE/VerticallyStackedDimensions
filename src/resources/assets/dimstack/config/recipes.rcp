@@ -1,4 +1,4 @@
-VERSION = 2;
+VERSION = 3;
 
 {
 	!Each array entry is a vector containing dimension IDs that should be stacked on top of each other via portals (order bottom to top).
@@ -6,6 +6,7 @@ VERSION = 2;
 		[-1, 0]#
 	];
 }
+gen_topNether = true; !Whether the top half of the nether should be filled with a custom cave terrain
 
 INIT() {
 	!replace bedrock layers
