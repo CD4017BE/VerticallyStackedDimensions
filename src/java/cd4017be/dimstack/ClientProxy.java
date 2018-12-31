@@ -21,7 +21,7 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public void registerRenderers() {
 		super.registerRenderers();
-		
+		BlockItemRegistry.registerRender(Objects.PORTAL);
 	}
 
 }

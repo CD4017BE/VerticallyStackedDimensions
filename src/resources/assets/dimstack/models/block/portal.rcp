@@ -1,0 +1,21 @@
+{
+	textures = ["dimstack:block/portal"];
+}
+
+m(other1, other2) {
+	if(other1~=0) {
+		Loc Q = [0,0,0,16,16,16]#, T = [0,0,8,8]#;
+		for(F:["u+vT","UV-N","UV+S","-VUW","+VUE"]) {
+			add(rect(Q, T, F));
+		}
+	}
+	if(other2~=0) {
+		Loc Q = [0,-32,0,16,0,16]#, T = [8,0,16,16]#;
+		if(other1==0) {
+			add(rect(Q, [0,0,8,8]#, "u+vT"));
+		}
+		for(F:["UV-N","UV+S","-VUW","+VUE"]) {
+			add(rect(Q, T, F));
+		}
+	}
+}
