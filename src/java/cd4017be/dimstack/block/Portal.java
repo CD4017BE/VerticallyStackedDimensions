@@ -6,6 +6,8 @@ import cd4017be.lib.block.BaseBlock;
 import cd4017be.lib.util.MovedBlock;
 import cd4017be.lib.util.Utils;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockCommandBlock;
+import net.minecraft.block.BlockStructure;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -14,15 +16,22 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -86,6 +95,138 @@ public class Portal extends BaseBlock {
 	}
 
 	@Override
+	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		if (player.isCreative() && player.isSneaking() && player.getHeldItem(hand).isEmpty()) {
+			onBlockClicked(world, pos, player);
+			return true;
+		}
+		if (state.getValue(solidOther1)) return false;
+		if (!(world instanceof WorldServer)) return true;
+		if (player instanceof EntityPlayerMP && !(player instanceof FakePlayer)) {
+			ItemStack item = player.getHeldItem(hand);
+			if (!item.isEmpty()) {
+				WorldServer otherW = PortalConfiguration.getAdjacentWorld((WorldServer)world, pos);
+				if (otherW == null) return false;
+				syncStates(otherW, (WorldServer) world, pos, state);
+				BlockPos target = state.getValue(solidOther2) ? 
+					new BlockPos(pos.getX(), pos.getY() >= 128 ? 1 : 254, pos.getZ()) :
+					new BlockPos(pos.getX(), pos.getY() >= 128 ? 2 : 253, pos.getZ());
+				tryPlaceBlock(player, world, item, hand, target, facing, hitX, hitY, hitZ);
+				
+				player.addExhaustion(4.0F);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Picked together from PlayerInteractionManager, with unwanted code removed.
+	 */
+	public void tryPlaceBlock(EntityPlayer player, World world, ItemStack stack, EnumHand hand, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		Block block = world.getBlockState(pos).getBlock();
+		if (!block.isReplaceable(world, pos)) return;
+		
+		net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock event = net.minecraftforge.common.ForgeHooks
+				.onRightClickBlock(player, hand, pos, facing, new Vec3d(hitX, hitY, hitZ));
+		if (event.isCanceled()) return;
+		
+		if (stack.getItem() instanceof ItemBlock && !player.canUseCommandBlock()) {
+			Block block1 = ((ItemBlock)stack.getItem()).getBlock();
+			if (block1 instanceof BlockCommandBlock || block1 instanceof BlockStructure)
+				return;
+		}
+		
+		if (event.getUseItem() == net.minecraftforge.fml.common.eventhandler.Event.Result.DENY)
+			return;
+		
+		if (player.isCreative()) {
+			int j = stack.getMetadata();
+			int i = stack.getCount();
+			stack.onItemUse(player, world, pos, hand, facing, hitX, hitY, hitZ);
+			stack.setItemDamage(j);
+			stack.setCount(i);
+		} else {
+			ItemStack copyBeforeUse = stack.copy();
+			stack.onItemUse(player, world, pos, hand, facing, hitX, hitY, hitZ);
+			if (stack.isEmpty()) net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(player, copyBeforeUse, hand);
+		}
+		int y = pos.getY();
+		if (y <= 2) world.neighborChanged(pos.down(y), block, pos);
+		else if (y >= 253) world.neighborChanged(pos.up(255-y), block, pos);
+	}
+
+	@Override
+	public void onBlockClicked(World world, BlockPos pos, EntityPlayer player) {
+		if (world instanceof WorldServer && player instanceof EntityPlayerMP && !(player instanceof FakePlayer)) {
+			if (!player.isCreative() && player.getFoodStats().getFoodLevel() <= 1) return;
+			IBlockState state = world.getBlockState(pos);
+			BlockPos target;
+			if (state.getValue(solidOther1))
+				target = new BlockPos(pos.getX(), pos.getY() >= 128 ? 1 : 254, pos.getZ());
+			else if (state.getValue(solidOther2))
+				target = new BlockPos(pos.getX(), pos.getY() >= 128 ? 2 : 253, pos.getZ());
+			else return;
+			WorldServer otherW = PortalConfiguration.getAdjacentWorld((WorldServer)world, pos);
+			if (otherW == null) return;
+			syncStates(otherW, (WorldServer) world, pos, state);
+			tryHarvestBlock(otherW, target, (EntityPlayerMP) player, world, pos);
+			player.addExhaustion(4.0F);
+		}
+	}
+
+	/**
+	 * Picked together from PlayerInteractionManager and some Forge methods, with unwanted code removed
+	 * (such as sending data packets for wrong locations).
+	 */
+	private void tryHarvestBlock(WorldServer world, BlockPos pos, EntityPlayerMP player, World orWorld, BlockPos orPos) {
+		IBlockState state = world.getBlockState(pos);
+		if (!player.isCreative() && state.getPlayerRelativeBlockHardness(player, world, pos) <= 0) return;
+
+		// Logic from tryHarvestBlock for pre-canceling the event
+		ItemStack stack = player.getHeldItemMainhand();
+		boolean preCancelEvent = player.isSpectator() || !player.isAllowEdit() && (stack.isEmpty() || !stack.canDestroy(world.getBlockState(pos).getBlock()));
+
+		// Post the block break event
+		BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(world, pos, state, player);
+		event.setCanceled(preCancelEvent);
+		MinecraftForge.EVENT_BUS.post(event);
+		if (event.isCanceled()) return;
+
+		TileEntity tileentity = world.getTileEntity(pos);
+		Block block = state.getBlock();
+
+		if ((block instanceof BlockCommandBlock || block instanceof BlockStructure) && !player.canUseCommandBlock()) return;
+		if (!stack.isEmpty() && stack.getItem().onBlockStartBreak(stack, pos, player)) return;
+
+		//play sound where the player can hear it
+		orWorld.playEvent(player, 2001, orPos, Block.getStateId(state));
+
+		if (player.isCreative()) {
+			if (!block.removedByPlayer(state, world, pos, player, false)) return;
+			block.onBlockDestroyedByPlayer(world, pos, state);
+		} else {
+			ItemStack itemstack2 = stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
+			boolean flag = state.getBlock().canHarvestBlock(world, pos, player);
+			if (!stack.isEmpty()) {
+				stack.onBlockDestroyed(world, state, pos, player);
+				if (stack.isEmpty()) net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(player, itemstack2, EnumHand.MAIN_HAND);
+			}
+			if (!block.removedByPlayer(state, world, pos, player, flag)) return;
+			block.onBlockDestroyedByPlayer(world, pos, state);
+			if (flag)
+				block.harvestBlock(world, player, pos, state, tileentity, itemstack2);
+			// Drop experience
+			int exp = event.getExpToDrop();
+			if (exp > 0)
+				block.dropXpOnBlockBreak(world, pos, exp);
+		}
+		int y = pos.getY();
+		if (y <= 2) world.neighborChanged(pos.down(y), block, pos);
+		else if (y >= 253) world.neighborChanged(pos.up(255-y), block, pos);
+	}
+
+	@Override
 	public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity) {
 		if (world instanceof WorldServer && !state.getValue(solidOther1) && !state.getValue(solidOther2)) {
 			AxisAlignedBB box = entity.getEntityBoundingBox();
@@ -135,6 +276,22 @@ public class Portal extends BaseBlock {
 		} else if (TickRegistry.instance.updates.size() < 100) {
 			TickRegistry.instance.updates.add(()-> neighborChanged(state, world, pos, this, pos));
 		}
+	}
+
+	private void syncStates(WorldServer oWorld, WorldServer tWorld, BlockPos tPos, IBlockState tState) {
+		BlockPos oPos = PortalConfiguration.getAdjacentPos(tPos);
+		IBlockState oState = oWorld.getBlockState(oPos);
+		if (oState.getBlock() != this) return;
+		IBlockState ntState = tState
+				.withProperty(solidOther1, oState.getValue(solidThis1))
+				.withProperty(solidOther2, oState.getValue(solidThis2));
+		IBlockState noState = oState
+				.withProperty(solidOther1, tState.getValue(solidThis1))
+				.withProperty(solidOther2, tState.getValue(solidThis2));
+		if (ntState != tState)
+			tWorld.setBlockState(tPos, ntState);
+		if (noState != oState)
+			oWorld.setBlockState(oPos, noState);
 	}
 
 	private void syncStates(WorldServer world, BlockPos pos, IBlockState state, boolean this1, boolean this2) {
