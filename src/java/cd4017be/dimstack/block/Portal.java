@@ -104,7 +104,13 @@ public class Portal extends BaseBlock {
 				if (box.minY < 255.0) py -= box.minY - 255.0;
 			}
 			if (pc == null) return;
-			MovedBlock.moveEntity(entity, pc.dimId, entity.posX, py, entity.posZ);
+			int dim = pc.dimId;
+			double x = entity.posX, y = py, z = entity.posZ;
+			TickRegistry.instance.updates.add(()-> {
+				//only teleport if not already at destination (to avoid duplicate events)
+				if (entity.dimension != dim || Math.abs(entity.posY - y) > entity.height + 4.0)
+					MovedBlock.moveEntity(entity, dim, x, y, z);
+			});
 		}
 	}
 
