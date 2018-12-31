@@ -2,6 +2,7 @@ package cd4017be.dimstack.worldgen;
 
 import java.util.Random;
 
+import net.minecraft.block.BlockStone;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -10,11 +11,14 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.ChunkGeneratorHell;
 import net.minecraft.world.gen.NoiseGeneratorOctaves;
+import net.minecraft.world.gen.feature.WorldGenMinable;
 import net.minecraft.world.gen.feature.WorldGenerator;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.ChunkGeneratorEvent.ReplaceBiomeBlocks;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent.ContextHell;
+import net.minecraftforge.event.terraingen.OreGenEvent.GenerateMinable.EventType;
+import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import net.minecraftforge.event.terraingen.TerrainGen;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -41,6 +45,11 @@ public class NetherTop {
 		//GameRegistry.registerWorldGenerator(this, -2);
 		MinecraftForge.EVENT_BUS.register(this);
 		MinecraftForge.TERRAIN_GEN_BUS.register(this);
+		genDirt = new WorldGenMinable(DIRT, 33);
+		genGravel = new WorldGenMinable(GRAVEL, 33);
+		genGranite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE), 33);
+		genDiorite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE), 33);
+		genAndesite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE), 33);
 	}
 
 	@SubscribeEvent
@@ -65,6 +74,28 @@ public class NetherTop {
 		ChunkPrimer primer = event.getPrimer();
 		prepareHeights(cx, cz, primer);
 		buildSurfaces(cx, cz, primer);
+	}
+
+	@SubscribeEvent
+	public void populate(PopulateChunkEvent.Pre event) {
+		World world = event.getWorld();
+		Random rand = event.getRand();
+		BlockPos pos = new BlockPos(event.getChunkX() << 4, 128, event.getChunkZ() << 4);
+		if (TerrainGen.generateOre(world, rand, genDirt, pos, EventType.DIRT))
+			for (int i = 0; i < 10; i++)
+				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
+		if (TerrainGen.generateOre(world, rand, genGravel, pos, EventType.GRAVEL))
+			for (int i = 0; i < 8; i++)
+				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
+		if (TerrainGen.generateOre(world, rand, genGranite, pos, EventType.GRANITE))
+			for (int i = 0; i < 10; i++)
+				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
+		if (TerrainGen.generateOre(world, rand, genDiorite, pos, EventType.DIORITE))
+			for (int i = 0; i < 10; i++)
+				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
+		if (TerrainGen.generateOre(world, rand, genAndesite, pos, EventType.ANDESITE))
+			for (int i = 0; i < 10; i++)
+				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
 	}
 
 	public void prepareHeights(int chunkX, int chunkZ, ChunkPrimer primer) {
