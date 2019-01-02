@@ -3,6 +3,7 @@ package cd4017be.dimstack.block;
 import cd4017be.dimstack.PortalConfiguration;
 import cd4017be.lib.TickRegistry;
 import cd4017be.lib.block.BaseBlock;
+import cd4017be.lib.util.DimPos;
 import cd4017be.lib.util.MovedBlock;
 import cd4017be.lib.util.Utils;
 import net.minecraft.block.Block;
@@ -105,14 +106,13 @@ public class Portal extends BaseBlock {
 		if (player instanceof EntityPlayerMP && !(player instanceof FakePlayer)) {
 			ItemStack item = player.getHeldItem(hand);
 			if (!item.isEmpty()) {
-				WorldServer otherW = PortalConfiguration.getAdjacentWorld((WorldServer)world, pos);
-				if (otherW == null) return false;
-				syncStates(otherW, (WorldServer) world, pos, state);
-				BlockPos target = state.getValue(solidOther2) ? 
-					new BlockPos(pos.getX(), pos.getY() >= 128 ? 1 : 254, pos.getZ()) :
-					new BlockPos(pos.getX(), pos.getY() >= 128 ? 2 : 253, pos.getZ());
-				tryPlaceBlock(player, world, item, hand, target, facing, hitX, hitY, hitZ);
-				
+				DimPos posT = new DimPos(pos, world);
+				DimPos posO = PortalConfiguration.getAdjacentPos(posT);
+				if (posO == null) return false;
+				syncStates(posO, posT);
+				boolean ceil = pos.getY() < 128;
+				posO = posO.add(0, (posT.getBlock().getValue(solidOther2) ? 1 : 2) * (ceil ? -1 : 1), 0);
+				tryPlaceBlock(posO, player, item, hand, facing, hitX, hitY, hitZ);
 				player.addExhaustion(4.0F);
 				return true;
 			}
@@ -123,8 +123,9 @@ public class Portal extends BaseBlock {
 	/**
 	 * Picked together from PlayerInteractionManager, with unwanted code removed.
 	 */
-	public void tryPlaceBlock(EntityPlayer player, World world, ItemStack stack, EnumHand hand, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		Block block = world.getBlockState(pos).getBlock();
+	public void tryPlaceBlock(DimPos pos, EntityPlayer player, ItemStack stack, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		Block block = pos.getBlock().getBlock();
+		WorldServer world = pos.getWorldServer();
 		if (!block.isReplaceable(world, pos)) return;
 		
 		net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock event = net.minecraftforge.common.ForgeHooks
@@ -160,17 +161,18 @@ public class Portal extends BaseBlock {
 	public void onBlockClicked(World world, BlockPos pos, EntityPlayer player) {
 		if (world instanceof WorldServer && player instanceof EntityPlayerMP && !(player instanceof FakePlayer)) {
 			if (!player.isCreative() && player.getFoodStats().getFoodLevel() <= 1) return;
-			IBlockState state = world.getBlockState(pos);
-			BlockPos target;
+			DimPos posT = new DimPos(pos, world);
+			DimPos posO = PortalConfiguration.getAdjacentPos(posT);
+			if (posO == null) return;
+			syncStates(posO, posT);
+			boolean ceil = pos.getY() < 128;
+			IBlockState state = posT.getBlock();
 			if (state.getValue(solidOther1))
-				target = new BlockPos(pos.getX(), pos.getY() >= 128 ? 1 : 254, pos.getZ());
+				posO = posO.add(0, ceil ? -1 : 1, 0);
 			else if (state.getValue(solidOther2))
-				target = new BlockPos(pos.getX(), pos.getY() >= 128 ? 2 : 253, pos.getZ());
+				posO = posO.add(0, ceil ? -2 : 2, 0);
 			else return;
-			WorldServer otherW = PortalConfiguration.getAdjacentWorld((WorldServer)world, pos);
-			if (otherW == null) return;
-			syncStates(otherW, (WorldServer) world, pos, state);
-			tryHarvestBlock(otherW, target, (EntityPlayerMP) player, world, pos);
+			tryHarvestBlock(posO, (EntityPlayerMP) player, posT);
 			player.addExhaustion(4.0F);
 		}
 	}
@@ -179,13 +181,15 @@ public class Portal extends BaseBlock {
 	 * Picked together from PlayerInteractionManager and some Forge methods, with unwanted code removed
 	 * (such as sending data packets for wrong locations).
 	 */
-	private void tryHarvestBlock(WorldServer world, BlockPos pos, EntityPlayerMP player, World orWorld, BlockPos orPos) {
-		IBlockState state = world.getBlockState(pos);
+	private void tryHarvestBlock(DimPos pos, EntityPlayerMP player, DimPos orPos) {
+		IBlockState state = pos.getBlock();
+		WorldServer world = pos.getWorldServer();
 		if (!player.isCreative() && state.getPlayerRelativeBlockHardness(player, world, pos) <= 0) return;
 
 		// Logic from tryHarvestBlock for pre-canceling the event
 		ItemStack stack = player.getHeldItemMainhand();
-		boolean preCancelEvent = player.isSpectator() || !player.isAllowEdit() && (stack.isEmpty() || !stack.canDestroy(world.getBlockState(pos).getBlock()));
+		Block block = state.getBlock();
+		boolean preCancelEvent = player.isSpectator() || !player.isAllowEdit() && (stack.isEmpty() || !stack.canDestroy(block));
 
 		// Post the block break event
 		BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(world, pos, state, player);
@@ -193,14 +197,13 @@ public class Portal extends BaseBlock {
 		MinecraftForge.EVENT_BUS.post(event);
 		if (event.isCanceled()) return;
 
-		TileEntity tileentity = world.getTileEntity(pos);
-		Block block = state.getBlock();
+		TileEntity tileentity = pos.getTileEntity();
 
 		if ((block instanceof BlockCommandBlock || block instanceof BlockStructure) && !player.canUseCommandBlock()) return;
 		if (!stack.isEmpty() && stack.getItem().onBlockStartBreak(stack, pos, player)) return;
 
 		//play sound where the player can hear it
-		orWorld.playEvent(player, 2001, orPos, Block.getStateId(state));
+		orPos.getWorld().playEvent(player, 2001, orPos, Block.getStateId(state));
 
 		if (player.isCreative()) {
 			if (!block.removedByPlayer(state, world, pos, player, false)) return;
@@ -230,29 +233,49 @@ public class Portal extends BaseBlock {
 	public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity) {
 		if (world instanceof WorldServer && !state.getValue(solidOther1) && !state.getValue(solidOther2)) {
 			AxisAlignedBB box = entity.getEntityBoundingBox();
-			PortalConfiguration pc = PortalConfiguration.get((WorldServer) world);
 			boolean floor = pos.getY() < 128;
 			double py = entity.motionY;
 			if (floor) {
 				if (box.maxY + py >= 1.0) return;
-				pc = pc.neighbourDown;
 				py = entity.posY + 254.0;
 				if (box.maxY > 1.0) py -= box.maxY - 1.0;
 			} else {
 				if (box.minY + py <= 255.0) return;
-				pc = pc.neighbourUp;
 				py = entity.posY - 254.0;
 				if (box.minY < 255.0) py -= box.minY - 255.0;
 			}
-			if (pc == null) return;
-			int dim = pc.dimId;
+			DimPos posT = new DimPos(pos, world);
+			DimPos posO = PortalConfiguration.getAdjacentPos(posT);
+			if (posO == null) return;
+			syncStates(posT, posO);
+			int dim = posO.dimId;
 			double x = entity.posX, y = py, z = entity.posZ;
 			TickRegistry.instance.updates.add(()-> {
 				//only teleport if not already at destination (to avoid duplicate events)
-				if (entity.dimension != dim || Math.abs(entity.posY - y) > entity.height + 4.0)
+				if (entity.dimension != dim || Math.abs(entity.posY - y) > entity.height + 4.0) {
 					MovedBlock.moveEntity(entity, dim, x, y, z);
+				}
 			});
 		}
+	}
+
+	private void syncStates(DimPos oPos, DimPos tPos) {
+		IBlockState oState = oPos.getBlock();
+		IBlockState tState = tPos.getBlock();
+		if (oState.getBlock() != this) return;
+		int ofs = tPos.getY() < 128 ? 2 : -2;
+		boolean sT = isSolid(tPos.getWorld(), tPos.up(ofs)),
+				sO = isSolid(oPos.getWorld(), oPos.down(ofs));
+		IBlockState ntState = tState.withProperty(solidThis2, sT);
+		IBlockState noState = oState.withProperty(solidThis2, sO);
+		ntState = tState.withProperty(solidOther2, sO)
+				.withProperty(solidOther1, oState.getValue(solidThis1));
+		noState = oState.withProperty(solidOther2, sT)
+				.withProperty(solidOther1, tState.getValue(solidThis1));
+		if (ntState != tState)
+			tPos.setBlock(ntState);
+		if (noState != oState)
+			oPos.setBlock(noState);
 	}
 
 	@Override
@@ -272,44 +295,26 @@ public class Portal extends BaseBlock {
 			int ceil = pos.getY() >= 128 ? -1 : 1;
 			boolean this1 = isSolid(world, pos.up(ceil)), this2 = isSolid(world, pos.up(ceil<<1));
 			if ((state.getValue(solidThis1) ^ this1) || (state.getValue(solidThis2) ^ this2))
-				syncStates((WorldServer) world, pos, state, this1, this2);
+				syncStates(new DimPos(pos, world), state, this1, this2);
 		} else if (TickRegistry.instance.updates.size() < 100) {
 			TickRegistry.instance.updates.add(()-> neighborChanged(state, world, pos, this, pos));
 		}
 	}
 
-	private void syncStates(WorldServer oWorld, WorldServer tWorld, BlockPos tPos, IBlockState tState) {
-		BlockPos oPos = PortalConfiguration.getAdjacentPos(tPos);
-		IBlockState oState = oWorld.getBlockState(oPos);
-		if (oState.getBlock() != this) return;
-		IBlockState ntState = tState
-				.withProperty(solidOther1, oState.getValue(solidThis1))
-				.withProperty(solidOther2, oState.getValue(solidThis2));
-		IBlockState noState = oState
-				.withProperty(solidOther1, tState.getValue(solidThis1))
-				.withProperty(solidOther2, tState.getValue(solidThis2));
-		if (ntState != tState)
-			tWorld.setBlockState(tPos, ntState);
-		if (noState != oState)
-			oWorld.setBlockState(oPos, noState);
-	}
-
-	private void syncStates(WorldServer world, BlockPos pos, IBlockState state, boolean this1, boolean this2) {
-		if (!Utils.neighboursLoaded(world, pos)) return;
-		WorldServer otherW = PortalConfiguration.getAdjacentWorld(world, pos);
-		if (otherW == null) return;
-		BlockPos otherP = PortalConfiguration.getAdjacentPos(pos);
-		IBlockState otherS = otherW.getBlockState(otherP);
-		if (otherS.getBlock() != this) otherS = getDefaultState().withProperty(onCeiling, otherP.getY() >= 128);
-		int ceil = otherP.getY() >= 128 ? -1 : 1;
-		boolean other1 = isSolid(otherW, otherP.up(ceil)), other2 = isSolid(otherW, otherP.up(ceil<<1));
-		world.setBlockState(pos, state.withProperty(solidThis1, this1).withProperty(solidThis2, this2).withProperty(solidOther1, other1).withProperty(solidOther2, other2));
-		otherW.setBlockState(otherP, otherS.withProperty(solidThis1, other1).withProperty(solidThis2, other2).withProperty(solidOther1, this1).withProperty(solidOther2, this2));
+	private void syncStates(DimPos posT, IBlockState stateT, boolean this1, boolean this2) {
+		if (!Utils.neighboursLoaded(posT.getWorld(), posT)) return;
+		DimPos posO = PortalConfiguration.getAdjacentPos(posT);
+		if (posO == null) return;
+		IBlockState stateO = posO.getBlock();
+		if (stateO.getBlock() != this) stateO = getDefaultState().withProperty(onCeiling, posO.getY() >= 128);
+		int ceil = posO.getY() >= 128 ? -1 : 1;
+		boolean other1 = isSolid(posO.getWorld(), posO.up(ceil)), other2 = isSolid(posO.getWorld(), posO.up(ceil<<1));
+		posT.setBlock(stateT.withProperty(solidThis1, this1).withProperty(solidThis2, this2).withProperty(solidOther1, other1).withProperty(solidOther2, other2));
+		posO.setBlock(stateO.withProperty(solidThis1, other1).withProperty(solidThis2, other2).withProperty(solidOther1, this1).withProperty(solidOther2, this2));
 	}
 
 	public static boolean isSolid(IBlockAccess world, BlockPos pos) {
-		IBlockState state = world.getBlockState(pos);
-		return state.getMaterial().blocksMovement();
+		return world.getBlockState(pos).getMaterial().blocksMovement();
 	}
 
 	@Override

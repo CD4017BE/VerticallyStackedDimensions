@@ -2,6 +2,8 @@ package cd4017be.dimstack;
 
 import java.util.HashMap;
 
+import cd4017be.lib.util.DimPos;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -30,15 +32,17 @@ public class PortalConfiguration {
 	}
 
 	/**
-	 * @param world current (server) world
 	 * @param pos current portal location
-	 * @return the destination world the given portal leads to (or null if there is none or it can't be loaded)
+	 * @return the destination position and world the given portal leads to (or null if there is none or it can't be loaded)
 	 */
-	public static WorldServer getAdjacentWorld(WorldServer world, BlockPos pos) {
-		PortalConfiguration pc = get(world.provider.getDimension());
+	public static DimPos getAdjacentPos(DimPos pos) {
+		PortalConfiguration pc = get(pos.dimId);
 		int y = pos.getY();
 		pc = y == 255 ? pc.neighbourUp : y == 0 ? pc.neighbourDown : null;
-		return pc == null ? null : world.getMinecraftServer().getWorld(pc.dimId);
+		if (pc == null) return null;
+		WorldServer world = pos.getWorldServer().getMinecraftServer().getWorld(pc.dimId);
+		if (world == null) return null;
+		return new DimPos(pos.getX(), 255 - pos.getY(), pos.getZ(), world);
 	}
 
 	/**
@@ -49,7 +53,7 @@ public class PortalConfiguration {
 		return new BlockPos(pos.getX(), 255 - pos.getY(), pos.getZ());
 	}
 
-	private static final HashMap<Integer, PortalConfiguration> dimensions = new HashMap<Integer, PortalConfiguration>();
+	static final Int2ObjectOpenHashMap<PortalConfiguration> dimensions = new Int2ObjectOpenHashMap<>();
 
 	/**
 	 * @param world current world
