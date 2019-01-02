@@ -1,5 +1,7 @@
 package cd4017be.dimstack;
 
+import org.apache.logging.log4j.Logger;
+
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.lib.script.ScriptFiles.Version;
 import net.minecraftforge.fml.common.Mod;
@@ -25,12 +27,15 @@ public class Main {
 	@SidedProxy(serverSide = "cd4017be." + ID + ".CommonProxy", clientSide = "cd4017be." + ID + ".ClientProxy")
 	public static CommonProxy proxy;
 
+	public static Logger LOG;
+
 	public Main() {
 		RecipeScriptContext.scriptRegistry.add(new Version(ConfigName, "/assets/" + ID + "/config/recipes.rcp"));
 	}
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
+		LOG = event.getModLog();
 		Objects.init();
 		RecipeScriptContext.instance.run(ConfigName + ".PRE_INIT");
 		proxy.init();

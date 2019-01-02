@@ -25,6 +25,7 @@ public class CommonProxy {
 
 	private void setConfig() {
 		ConfigConstants cfg = new ConfigConstants(RecipeScriptContext.instance.modules.get(Main.ConfigName));
+		ChunkLoader.init(cfg);
 		Object[] arr = cfg.get("linked_dimensions", Object[].class, new Object[0]);
 		for (Object o : arr)
 			if (o instanceof double[]) {

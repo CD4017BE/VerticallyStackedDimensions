@@ -1,4 +1,4 @@
-VERSION = 2;
+VERSION = 6;
 
 {
 	!Each array entry is a vector containing dimension IDs that should be stacked on top of each other via portals (order bottom to top).
@@ -6,6 +6,13 @@ VERSION = 2;
 		[-1, 0]#
 	];
 }
+
+!Time in seconds to keep a chunk loaded after it was requested by a portal (set to 0 to disable chunk persistence).
+!This is to avoid lagg by chunks being frequently loaded and unloaded again.
+chunk_load_time = 30.0;
+!maximum time in seconds a chunk can be kept continously loaded via portal requests without a player, spawnarea or modded chunkloader nearby.
+!This is to prevent players from buiding exploit contraptions to keep chunks loaded indefinitely
+cont_load_time = 300.0;
 
 INIT() {
 	!replace bedrock layers
