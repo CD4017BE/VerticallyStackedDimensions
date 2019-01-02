@@ -21,6 +21,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -335,7 +336,7 @@ public class Portal extends BaseBlock {
 
 	@Override
 	public int getLightOpacity(IBlockState state) {
-		return state.getValue(solidOther1) ? 255 : state.getValue(solidOther2) ? 1 : 0;
+		return state.getValue(solidOther1) ? state.getValue(solidOther2) ? 255 : 3 : state.getValue(solidOther2) ? 1 : 0;
 	}
 
 	@Override
@@ -349,8 +350,8 @@ public class Portal extends BaseBlock {
 		BlockPos pos1 = pos.offset(side);
 		boolean ceil = pos.getY() >= 128;
 		switch(side) {
-		case UP: return ceil || !world.getBlockState(pos1).doesSideBlockRendering(world, pos1, EnumFacing.DOWN);
-		case DOWN: return !ceil || !world.getBlockState(pos1).doesSideBlockRendering(world, pos1, EnumFacing.UP);
+		case UP: return ceil || !(state.getValue(solidOther1) && world.getBlockState(pos1).doesSideBlockRendering(world, pos1, EnumFacing.DOWN));
+		case DOWN: return !ceil || !(state.getValue(solidOther1) && world.getBlockState(pos1).doesSideBlockRendering(world, pos1, EnumFacing.UP));
 		default:
 			IBlockState other = world.getBlockState(pos1);
 			if (other.getBlock() != this) return !other.doesSideBlockRendering(world, pos1, side.getOpposite());
@@ -384,6 +385,12 @@ public class Portal extends BaseBlock {
 	@Override
 	public boolean causesSuffocation(IBlockState state) {
 		return state.getValue(solidOther1);
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public BlockRenderLayer getBlockLayer() {
+		return BlockRenderLayer.CUTOUT;
 	}
 
 }
