@@ -1,10 +1,15 @@
 package cd4017be.dimstack;
 
 import cd4017be.dimstack.block.Portal;
+import cd4017be.dimstack.item.ItemPortalAugment;
+import cd4017be.dimstack.tileentity.DimensionalPipe;
+import cd4017be.lib.block.AdvancedBlock;
 import cd4017be.lib.item.BaseItemBlock;
 import cd4017be.lib.templates.TabMaterials;
 import cd4017be.lib.util.TooltipUtil;
 import net.minecraft.block.Block;
+import net.minecraft.block.SoundType;
+import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -25,9 +30,11 @@ public class Objects {
 
 	//Blocks
 	public static final Portal PORTAL = null;
+	public static final AdvancedBlock DIM_PIPE = null;
 
 	//ItemBlocks
 	public static final BaseItemBlock portal = null;
+	public static final ItemPortalAugment dim_pipe = null;
 
 	//Items
 
@@ -39,7 +46,8 @@ public class Objects {
 	public static void registerBlocks(RegistryEvent.Register<Block> ev) {
 		TooltipUtil.CURRENT_DOMAIN = Main.ID;
 		ev.getRegistry().registerAll(
-			new Portal("portal")
+			new Portal("portal"),
+			new AdvancedBlock("dim_pipe", Material.IRON, SoundType.METAL, 0, DimensionalPipe.class).setBlockUnbreakable().setResistance(Float.POSITIVE_INFINITY)
 		);
 	}
 
@@ -47,7 +55,8 @@ public class Objects {
 	public static void registerItems(RegistryEvent.Register<Item> ev) {
 		TooltipUtil.CURRENT_DOMAIN = Main.ID;
 		ev.getRegistry().registerAll(
-			new BaseItemBlock(PORTAL).setCreativeTab(tabDimStack)
+			new BaseItemBlock(PORTAL).setCreativeTab(tabDimStack),
+			new ItemPortalAugment(DIM_PIPE).setCreativeTab(tabDimStack)
 		);
 	}
 

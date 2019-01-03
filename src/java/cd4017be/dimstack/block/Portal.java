@@ -295,15 +295,14 @@ public class Portal extends BaseBlock {
 		if (fromPos.getX() == pos.getX() && fromPos.getZ() == pos.getZ()) {
 			int ceil = pos.getY() >= 128 ? -1 : 1;
 			boolean this1 = isSolid(world, pos.up(ceil)), this2 = isSolid(world, pos.up(ceil<<1));
-			if ((state.getValue(solidThis1) ^ this1) || (state.getValue(solidThis2) ^ this2))
+			if ((state.getValue(solidThis1) ^ this1) || (state.getValue(solidThis2) ^ this2) && Utils.neighboursLoaded(world, pos))
 				syncStates(new DimPos(pos, world), state, this1, this2);
 		} else if (TickRegistry.instance.updates.size() < 100) {
 			TickRegistry.instance.updates.add(()-> neighborChanged(state, world, pos, this, pos));
 		}
 	}
 
-	private void syncStates(DimPos posT, IBlockState stateT, boolean this1, boolean this2) {
-		if (!Utils.neighboursLoaded(posT.getWorld(), posT)) return;
+	public void syncStates(DimPos posT, IBlockState stateT, boolean this1, boolean this2) {
 		DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 		if (posO == null) return;
 		IBlockState stateO = posO.getBlock();
