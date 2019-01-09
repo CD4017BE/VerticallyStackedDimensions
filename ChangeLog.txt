@@ -1,0 +1,10 @@
+v0.0.1
+Changes:
+- added Transition Portals being generated at top/bottom of dimensions to link them together
+- added Portal augmentation: Interdimensional Pipe for interdimensional resource transfer
+- added automatic chunkload enforcement to avoid chunk hot-load lag
+- added terrain generation for top half of the nether
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.2.8
