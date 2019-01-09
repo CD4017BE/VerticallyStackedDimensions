@@ -24,6 +24,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class NetherTop {
 
+	private static final int
+			M_MIRROR_NETHER = 1,
+			M_STONE_VAR = 2,
+			M_CAVES = 4; //TODO implement caves
 	private static final IBlockState
 			NETHERRACK = Blocks.NETHERRACK.getDefaultState(),
 			STONE = Blocks.STONE.getDefaultState(),
@@ -36,20 +40,24 @@ public class NetherTop {
 			OBSIDIAN = Blocks.OBSIDIAN.getDefaultState();
 	private WorldGenerator genDirt, genGravel, genGranite, genDiorite, genAndesite;
 	private NoiseGeneratorOctaves depth, scale, perlin1, perlin2, perlin3, Lperlin1, Lperlin2;
-	double[] dr, sr, pr, ssr, gvr, p3r, ar, br;
+	private double[] dr, sr, pr, ssr, gvr, p3r, ar, br;
 	private double[] buffer;
-	Random rand;
+	private int cfg;
+	private Random rand;
 
-	public NetherTop() {
+	public NetherTop(int mode) {
+		this.cfg = mode;
 		//mods commonly use 0 for their ore-gen, so this runs just before.
 		//GameRegistry.registerWorldGenerator(this, -2);
 		MinecraftForge.EVENT_BUS.register(this);
 		MinecraftForge.TERRAIN_GEN_BUS.register(this);
-		genDirt = new WorldGenMinable(DIRT, 33);
-		genGravel = new WorldGenMinable(GRAVEL, 33);
-		genGranite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE), 33);
-		genDiorite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE), 33);
-		genAndesite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE), 33);
+		if ((mode & M_STONE_VAR) != 0) {
+			genDirt = new WorldGenMinable(DIRT, 33);
+			genGravel = new WorldGenMinable(GRAVEL, 33);
+			genGranite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE), 33);
+			genDiorite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE), 33);
+			genAndesite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE), 33);
+		}
 	}
 
 	@SubscribeEvent
@@ -72,12 +80,17 @@ public class NetherTop {
 		if (!(event.getGen() instanceof ChunkGeneratorHell)) return;
 		int cx = event.getX(), cz = event.getZ();
 		ChunkPrimer primer = event.getPrimer();
-		prepareHeights(cx, cz, primer);
-		buildSurfaces(cx, cz, primer);
+		if ((cfg & M_MIRROR_NETHER) != 0) {
+			prepareHeights(cx, cz, primer);
+			buildSurfaces(cx, cz, primer);
+		} else {
+			fill(cx, cz, primer);
+		}
 	}
 
 	@SubscribeEvent
 	public void populate(PopulateChunkEvent.Pre event) {
+		if ((cfg & M_STONE_VAR) == 0) return;
 		World world = event.getWorld();
 		Random rand = event.getRand();
 		BlockPos pos = new BlockPos(event.getChunkX() << 4, 128, event.getChunkZ() << 4);
@@ -186,9 +199,9 @@ public class NetherTop {
 	public void buildSurfaces(int chunkX, int chunkZ, ChunkPrimer primer) {
 		final int msl = 192;
 		final double scale = 0.03125D;
-		this.ssr = this.perlin2.generateNoiseOctaves(this.ssr, chunkX * 16, chunkZ * 16, 128, 16, 16, 1, scale, scale, 1.0D);
-		this.gvr = this.perlin2.generateNoiseOctaves(this.gvr, chunkX * 16, 237, chunkZ * 16, 16, 1, 16, scale, 1.0D, scale);
-		this.p3r = this.perlin3.generateNoiseOctaves(this.p3r, chunkX * 16, chunkZ * 16, 0, 16, 16, 1, 0.0625D, 0.0625D, 0.0625D);
+			this.ssr = this.perlin2.generateNoiseOctaves(this.ssr, chunkX * 16, chunkZ * 16, 128, 16, 16, 1, scale, scale, 1.0D);
+			this.gvr = this.perlin2.generateNoiseOctaves(this.gvr, chunkX * 16, 237, chunkZ * 16, 16, 1, 16, scale, 1.0D, scale);
+			this.p3r = this.perlin3.generateNoiseOctaves(this.p3r, chunkX * 16, chunkZ * 16, 0, 16, 16, 1, 0.0625D, 0.0625D, 0.0625D);
 		for (int z = 0; z < 16; ++z) {
 			for (int x = 0; x < 16; ++x) {
 				boolean genSs = ssr[z + x * 16] + this.rand.nextDouble() * 0.2D > 0.0D;
@@ -235,6 +248,16 @@ public class NetherTop {
 				}
 			}
 		}
+	}
+
+	public void fill(int chunkX, int chunkZ, ChunkPrimer primer) {
+		for (int z = 0; z < 16; ++z)
+			for (int x = 0; x < 16; ++x)
+				for (int y = 255; y >= 128; --y)
+					if (y > 127 + this.rand.nextInt(5))
+						primer.setBlockState(x, y, z, STONE);
+					else
+						primer.setBlockState(x, y, z, OBSIDIAN);
 	}
 
 }

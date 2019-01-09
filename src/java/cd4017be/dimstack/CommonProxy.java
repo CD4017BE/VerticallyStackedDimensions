@@ -39,8 +39,8 @@ public class CommonProxy {
 					dims[i] = (int)vec[i];
 				PortalConfiguration.link(dims);
 			}
-		if (cfg.get("gen_topNether", Boolean.class, false))
-			worldgenNether = new NetherTop();
+		int n = (int)cfg.getNumber("gen_topNether", Double.NEGATIVE_INFINITY);
+		if (n >= 0) worldgenNether = new NetherTop(n);
 		worldgenOres.initConfig(cfg);
 	}
 
