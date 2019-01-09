@@ -1,10 +1,18 @@
-VERSION = 6;
+VERSION = 9;
 
 {
-	!Each array entry is a vector containing dimension IDs that should be stacked on top of each other via portals (order bottom to top).
+	!Each array entry is a vector [a, b, ...]# containing dimension IDs that should be stacked on top of each other via portals (order bottom to top).
 	linked_dimensions = [
 		[-1, 0]#
 	];
+	
+	!Custom terrain generation for the top half of the nether.
+	Loc empty = -/0,		!ENUM: leave it empty (disable terrain gen).
+		solidRock = 0,		!ENUM: fill it with nothing but solid stone.
+		mirroredNether = 1,	!ENUM: fill it with a mirrored version of the regular nether that replaces netherrack with stone and lava with water.
+		stoneVariation = 2;	!ENUM: include dirt, gravel and different stone variants.
+	!The actual generation setting (may consist of multiple of the above values added together).
+	gen_topNether = mirroredNether + stoneVariation; 
 }
 
 !Time in seconds to keep a chunk loaded after it was requested by a portal (set to 0 to disable chunk persistence).
@@ -14,10 +22,30 @@ chunk_load_time = 30.0;
 !This is to prevent players from buiding exploit contraptions to keep chunks loaded indefinitely
 cont_load_time = 300.0;
 
+!set these to true to disable vanilla ore-generation in overworld and nether. 
+disable_coal = false;
+disable_diamond = true;!<-
+disable_emerald = false;
+disable_gold = false;
+disable_iron = false;
+disable_lapis = false;
+disable_redstone = false;
+disable_quartz = false;
+
 INIT() {
 	!replace bedrock layers
 	!add("bedrockRepl", <dimId>, it(<repBlock>), [<minY>, <maxY>]#);
 	add("bedrockRepl", 0, it("minecraft:stone"), [0, 5]#);
 	add("bedrockRepl", -1, it("minecraft:obsidian"), [123, 128]#);
 	
+	if (gen_topNether >= 0) {
+		!top nether ores
+		!add("worldgen", <rockType>, it(<oreType>, <numPerVein>), <veinPerChunk>, [<minY>, <mainY>, <maxY>]#, <dimId>);
+		add("worldgen", "minecraft:stone", it("minecraft:diamond_ore", 8), [3,4]:disable_diamond, [128, 144, 240]#, -1);
+		add("worldgen", "minecraft:stone", it("minecraft:redstone_ore", 8), 24, [144, 160, 256]#, -1);
+		add("worldgen", "minecraft:stone", it("minecraft:lapis_ore", 7), 4, [144, 240, 256]#, -1);
+		add("worldgen", "minecraft:stone", it("minecraft:gold_ore", 9), 6, [128, 176, 256]#, -1);
+		add("worldgen", "minecraft:stone", it("minecraft:iron_ore", 9), 40, [128, 208, 256]#, -1);
+		add("worldgen", "minecraft:stone", it("minecraft:coal_ore", 17), 50, [96, 192, 288]#, -1);
+	}
 }

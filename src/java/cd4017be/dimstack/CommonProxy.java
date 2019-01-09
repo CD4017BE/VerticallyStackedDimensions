@@ -3,6 +3,8 @@ package cd4017be.dimstack;
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.worldgen.BedrockRemover;
+import cd4017be.dimstack.worldgen.NetherTop;
+import cd4017be.dimstack.worldgen.OreGen;
 import cd4017be.dimstack.worldgen.PortalGen;
 import cd4017be.lib.TickRegistry;
 
@@ -14,12 +16,15 @@ public class CommonProxy {
 
 	PortalGen worldgenPortal;
 	BedrockRemover worldgenBedrock;
+	NetherTop worldgenNether;
+	OreGen worldgenOres;
 
 	public void init() {
 		TickRegistry.register();
 		
 		worldgenPortal = new PortalGen();
 		worldgenBedrock = new BedrockRemover();
+		worldgenOres = new OreGen();
 		setConfig();
 	}
 
@@ -35,6 +40,9 @@ public class CommonProxy {
 					dims[i] = (int)vec[i];
 				PortalConfiguration.link(dims);
 			}
+		int n = (int)cfg.getNumber("gen_topNether", Double.NEGATIVE_INFINITY);
+		if (n >= 0) worldgenNether = new NetherTop(n);
+		worldgenOres.initConfig(cfg);
 	}
 
 	public void registerRenderers() {
