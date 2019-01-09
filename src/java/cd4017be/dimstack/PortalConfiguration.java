@@ -108,6 +108,17 @@ public class PortalConfiguration {
 	}
 
 	/**
+	 * unforce all chunks
+	 */
+	public static void cleanup() {
+		for (PortalConfiguration pc : dimensions.values()) {
+			pc.loadedChunks.clear();
+			if (pc.loadingTicket != null)
+				ForgeChunkManager.releaseTicket(pc.loadingTicket);
+		}
+	}
+
+	/**
 	 * reduce the amount of loaded chunks down to the given value by unforcing the least relevant ones.
 	 * @param n maximum number of chunks to leave forced
 	 */
