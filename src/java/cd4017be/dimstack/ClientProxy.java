@@ -3,6 +3,10 @@ package cd4017be.dimstack;
 import cd4017be.lib.BlockItemRegistry;
 import cd4017be.lib.ClientInputHandler;
 import cd4017be.lib.render.SpecialModelLoader;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import static cd4017be.dimstack.Objects.*;
 
 /**
  * 
@@ -14,14 +18,23 @@ public class ClientProxy extends CommonProxy {
 	public void init() {
 		super.init();
 		ClientInputHandler.init();
-		SpecialModelLoader.setMod(Main.ID);
 		
 	}
 
 	@Override
 	public void registerRenderers() {
 		super.registerRenderers();
-		BlockItemRegistry.registerRender(Objects.PORTAL);
+		
+	}
+
+	@SubscribeEvent
+	public void registerModels(ModelRegistryEvent ev) {
+		SpecialModelLoader.setMod(Main.ID);
+		
+		DIM_PIPE.setBlockLayer(BlockRenderLayer.CUTOUT);
+		
+		BlockItemRegistry.registerRender(PORTAL);
+		BlockItemRegistry.registerRender(DIM_PIPE);
 	}
 
 }

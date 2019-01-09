@@ -1,0 +1,6 @@
+{
+	"variants": {
+		"normal": { "model": "dimstack:_portal.aug(1)" },
+		"inventory": { "model": "dimstack:_portal.aug(1)" }
+	}
+}

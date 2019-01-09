@@ -1,0 +1,7 @@
+itemGroup.dimstack=Vertically Stacked Dimensions
+
+#Blocks
+tile.dimstack.portal.name=Transition Portal
+tile.dimstack.portal.tip=§4Not craftable, automatically generated in the world!\nFalling or jumping into it will teleport you to the other side.\nHitting this block with a tool or right-clicking it with a block in hand will break / place blocks on the other side.
+tile.dimstack.dim_pipe.name=Interdimensional Pipe
+tile.dimstack.dim_pipe.tip=§asneak-right-click§7 on portal to attach.\nAllows adjacent inventories, fluid tanks and energy devices to be accessed through the portal.

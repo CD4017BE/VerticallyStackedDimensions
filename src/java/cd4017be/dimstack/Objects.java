@@ -46,8 +46,8 @@ public class Objects {
 	public static void registerBlocks(RegistryEvent.Register<Block> ev) {
 		TooltipUtil.CURRENT_DOMAIN = Main.ID;
 		ev.getRegistry().registerAll(
-			new Portal("portal"),
-			new AdvancedBlock("dim_pipe", Material.IRON, SoundType.METAL, 0, DimensionalPipe.class).setBlockUnbreakable().setResistance(Float.POSITIVE_INFINITY)
+			new Portal("portal").setCreativeTab(tabDimStack),
+			new AdvancedBlock("dim_pipe", Material.IRON, SoundType.METAL, 0, DimensionalPipe.class).setBlockUnbreakable().setResistance(Float.POSITIVE_INFINITY).setCreativeTab(tabDimStack)
 		);
 	}
 
@@ -55,8 +55,8 @@ public class Objects {
 	public static void registerItems(RegistryEvent.Register<Item> ev) {
 		TooltipUtil.CURRENT_DOMAIN = Main.ID;
 		ev.getRegistry().registerAll(
-			new BaseItemBlock(PORTAL).setCreativeTab(tabDimStack),
-			new ItemPortalAugment(DIM_PIPE).setCreativeTab(tabDimStack)
+			new BaseItemBlock(PORTAL),
+			new ItemPortalAugment(DIM_PIPE)
 		);
 	}
 

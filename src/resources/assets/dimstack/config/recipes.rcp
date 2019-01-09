@@ -1,4 +1,4 @@
-VERSION = 9;
+VERSION = 10;
 
 {
 	!Each array entry is a vector [a, b, ...]# containing dimension IDs that should be stacked on top of each other via portals (order bottom to top).
@@ -48,4 +48,8 @@ INIT() {
 		add("worldgen", "minecraft:stone", it("minecraft:iron_ore", 9), 40, [128, 208, 256]#, -1);
 		add("worldgen", "minecraft:stone", it("minecraft:coal_ore", 17), 50, [96, 192, 288]#, -1);
 	}
+	
+	!shaped crafting recipes
+	!add("shaped", <result>, <pattern>, <ingredients>...);
+	add("shaped", it("tile.dim_pipe", 1), "010/020/010", "obsidian", "gemQuartz", it("minecraft:hopper"));
 }

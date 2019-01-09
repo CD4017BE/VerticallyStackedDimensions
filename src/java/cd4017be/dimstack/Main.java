@@ -4,6 +4,7 @@ import org.apache.logging.log4j.Logger;
 
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.lib.script.ScriptFiles.Version;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -37,9 +38,10 @@ public class Main {
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		LOG = event.getModLog();
+		MinecraftForge.EVENT_BUS.register(proxy);
 		Objects.init();
-		RecipeScriptContext.instance.run(ConfigName + ".PRE_INIT");
 		proxy.init();
+		RecipeScriptContext.instance.run(ConfigName + ".PRE_INIT");
 	}
 
 	@Mod.EventHandler

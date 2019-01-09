@@ -1,5 +1,8 @@
 {
-	textures = ["dimstack:block/portal"];
+	textures = [
+		"dimstack:block/portal",
+		"dimstack:block/dim_pipe"
+	];
 }
 
 m(other1, other2) {
@@ -18,4 +21,17 @@ m(other1, other2) {
 			add(rect(Q, T, F));
 		}
 	}
+}
+
+aug(tex) {
+	Loc Q = [0,0,0,16,16,16]#, T = [0,0,8,8]#;
+	add(rect(Q, [0,0,16,16]#, "u+vT", tex));
+	add(rect(Q, [0,0,16,16]#, "u-vB", tex));
+	for(F:["UV-N","UV+S","-VUW","+VUE"]) {
+		add(rect(Q, T, F));
+	}
+	!Q = [0,-32,0,16,0,16]#; T = [8,0,16,16]#;
+	!for(F:["UV-N","UV+S","-VUW","+VUE"]) {
+	!	add(rect(Q, T, F));
+	!}
 }
