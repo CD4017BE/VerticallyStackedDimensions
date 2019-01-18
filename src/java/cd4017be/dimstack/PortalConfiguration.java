@@ -113,8 +113,10 @@ public class PortalConfiguration {
 	public static void cleanup() {
 		for (PortalConfiguration pc : dimensions.values()) {
 			pc.loadedChunks.clear();
-			if (pc.loadingTicket != null)
+			if (pc.loadingTicket != null) {
 				ForgeChunkManager.releaseTicket(pc.loadingTicket);
+				pc.loadingTicket = null;
+			}
 		}
 	}
 
