@@ -9,6 +9,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.IChunkGenerator;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.fml.common.IWorldGenerator;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -34,21 +35,25 @@ public class PortalGen implements IWorldGenerator {
 	}
 
 	private void placePortals(World world, int cx, int cz, int y) {
+		Chunk chunk = world.getChunkFromChunkCoords(cx, cz);
 		IBlockState state = Objects.PORTAL.getDefaultState();
-		boolean s0 = false, s1 = false, s2 = false;
+		boolean s0 = state.getValue(Portal.solidOther1),
+				s1 = state.getValue(Portal.solidThis1),
+				s2 = state.getValue(Portal.solidThis2);
 		MutableBlockPos pos = new MutableBlockPos();
 		int y1 = y < 128 ? y+1 : y-1, y2 = y1 + y1 - y;
 		int x0 = cx << 4, x1 = x0 + 16;
 		for (int z = cz << 4, z1 = z + 16; z < z1; z++)
-			for (int x = x0; x < x1; x++) {
-				if (s2 ^ Portal.isSolid(world, pos.setPos(x, y2, z)))
-					state = state.withProperty(Portal.solidThis2, s2 = !s2);
-				if (s1 ^ Portal.isSolid(world, pos.setPos(x, y1, z)))
-					state = state.withProperty(Portal.solidThis1, s1 = !s1);
-				if (s0 ^ Portal.isSolid(world, pos.setPos(x, y, z)))
-					state = state.withProperty(Portal.solidOther1, s0 = !s0).withProperty(Portal.solidOther2, s0);
-				world.setBlockState(pos, state, 16);
-			}
+			for (int x = x0; x < x1; x++)
+				if (chunk.getBlockState(x, y, z).getMaterial() != Objects.M_PORTAL) {
+					if (s2 ^ Portal.isSolid(world, pos.setPos(x, y2, z)))
+						state = state.withProperty(Portal.solidThis2, s2 = !s2);
+					if (s1 ^ Portal.isSolid(world, pos.setPos(x, y1, z)))
+						state = state.withProperty(Portal.solidThis1, s1 = !s1);
+					if (s0 ^ Portal.isSolid(world, pos.setPos(x, y, z)))
+						state = state.withProperty(Portal.solidOther1, s0 = !s0).withProperty(Portal.solidOther2, s0);
+					chunk.setBlockState(pos, state);
+				}
 	}
 
 }

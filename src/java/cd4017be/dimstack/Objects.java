@@ -9,8 +9,8 @@ import cd4017be.lib.templates.TabMaterials;
 import cd4017be.lib.util.TooltipUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
+import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.RegistryEvent;
@@ -27,6 +27,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 public class Objects {
 
 	public static TabMaterials tabDimStack = new TabMaterials(Main.ID);
+	public static Material M_PORTAL = new Material(MapColor.AIR);
 
 	//Blocks
 	public static final Portal PORTAL = null;
@@ -39,15 +40,15 @@ public class Objects {
 	//Items
 
 	static void init() {
-		tabDimStack.item = new ItemStack(Blocks.OBSIDIAN);
+		tabDimStack.item = new ItemStack(portal);
 	}
 
 	@SubscribeEvent
 	public static void registerBlocks(RegistryEvent.Register<Block> ev) {
 		TooltipUtil.CURRENT_DOMAIN = Main.ID;
 		ev.getRegistry().registerAll(
-			new Portal("portal").setCreativeTab(tabDimStack),
-			new AdvancedBlock("dim_pipe", Material.IRON, SoundType.METAL, 0, DimensionalPipe.class).setBlockUnbreakable().setResistance(Float.POSITIVE_INFINITY).setCreativeTab(tabDimStack)
+			new Portal("portal", M_PORTAL).setCreativeTab(tabDimStack),
+			new AdvancedBlock("dim_pipe", M_PORTAL, SoundType.METAL, 0, DimensionalPipe.class).setBlockUnbreakable().setResistance(Float.POSITIVE_INFINITY).setCreativeTab(tabDimStack)
 		);
 	}
 

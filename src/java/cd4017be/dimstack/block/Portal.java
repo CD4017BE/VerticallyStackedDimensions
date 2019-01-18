@@ -58,8 +58,8 @@ public class Portal extends BaseBlock {
 		halfFloor = new AxisAlignedBB(0, -1, 0, 1, 0, 1),
 		emptyFloor = new AxisAlignedBB(0, -1, 0, 1, -0.9375, 1);
 
-	public Portal(String id) {
-		super(id, Material.ROCK);
+	public Portal(String id, Material m) {
+		super(id, m);
 		this.setBlockUnbreakable();
 		this.setResistance(Float.POSITIVE_INFINITY);
 	}
