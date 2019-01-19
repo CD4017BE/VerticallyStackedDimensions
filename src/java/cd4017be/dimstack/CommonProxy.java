@@ -16,10 +16,10 @@ import cd4017be.lib.TickRegistry;
  */
 public class CommonProxy {
 
-	PortalGen worldgenPortal;
-	BlockReplacer worldgenBedrock;
-	NetherTop worldgenNether;
-	OreGen worldgenOres;
+	public PortalGen worldgenPortal;
+	public BlockReplacer worldgenBedrock;
+	public NetherTop worldgenNether;
+	public OreGen worldgenOres;
 
 	public void init() {
 		TickRegistry.register();

@@ -1,8 +1,13 @@
 package cd4017be.dimstack.worldgen;
 
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
+import cd4017be.dimstack.Main;
+import cd4017be.dimstack.core.IDimensionSettings;
+import cd4017be.dimstack.core.PortalConfiguration;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.OreGenEvent;
+import net.minecraftforge.event.terraingen.OreGenEvent.GenerateMinable.EventType;
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -12,37 +17,66 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  */
 public class OreGen {
 
-	public boolean noCoal, noDiamond, noEmerald, noGold, noIron, noLapis, noRedstone, noQuartz;
+	private static boolean registered;
 
 	@SubscribeEvent
 	public void onGenerate(OreGenEvent.GenerateMinable event) {
-		int dim = event.getWorld().provider.getDimension();
-		if (dim != 0 && dim != 1) return;
-		switch(event.getType()) {
-		case COAL: if (noCoal) break; else return;
-		case DIAMOND: if (noDiamond) break; else return;
-		case EMERALD: if (noEmerald) break; else return;
-		case GOLD: if (noGold) break; else return;
-		case IRON: if (noIron) break; else return;
-		case LAPIS: if (noLapis) break; else return;
-		case REDSTONE: if (noRedstone) break; else return;
-		case QUARTZ: if (noQuartz) break; else return;
-		default: return;
-		}
-		event.setResult(Result.DENY);
+		DisableVanillaOres cfg = PortalConfiguration.get(event.getWorld()).getSettings(DisableVanillaOres.class, false);
+		if (cfg == null) return;
+		if (cfg.disabled(event.getType()))
+			event.setResult(Result.DENY);
 	}
 
 	public void initConfig(ConfigConstants cfg) {
-		boolean reg = false;
-		reg |= noCoal = cfg.get("disable_coal", Boolean.class, noCoal);
-		reg |= noDiamond = cfg.get("disable_diamond", Boolean.class, noDiamond);
-		reg |= noEmerald = cfg.get("disable_emerald", Boolean.class, noEmerald);
-		reg |= noGold = cfg.get("disable_gold", Boolean.class, noGold);
-		reg |= noIron = cfg.get("disable_iron", Boolean.class, noIron);
-		reg |= noLapis = cfg.get("disable_lapis", Boolean.class, noLapis);
-		reg |= noRedstone = cfg.get("disable_redstone", Boolean.class, noRedstone);
-		reg |= noQuartz = cfg.get("disable_quartz", Boolean.class, noQuartz);
-		if (reg) MinecraftForge.ORE_GEN_BUS.register(this);
+		DisableVanillaOres d = PortalConfiguration.get(0).getSettings(DisableVanillaOres.class, true);
+		for (EventType t : EventType.values())
+			if (cfg.get("disable_" + t.name().toLowerCase(), Boolean.class, Boolean.FALSE))
+				d.disable(t);
+		if (d.disabled(EventType.QUARTZ))
+			PortalConfiguration.get(-1).getSettings(DisableVanillaOres.class, true).disable(EventType.QUARTZ);
+	}
+
+	public static class DisableVanillaOres implements IDimensionSettings {
+
+		private short disabled;
+
+		public void reset() {
+			disabled = 0;
+		}
+
+		public boolean disabled(EventType ore) {
+			return (disabled & 1 << ore.ordinal()) != 0;
+		}
+
+		public void disable(EventType ore) {
+			disabled |= 1 << ore.ordinal();
+		}
+
+		@Override
+		public NBTTagCompound serializeNBT() {
+			NBTTagCompound nbt = new NBTTagCompound();
+			for (EventType t : EventType.values())
+				if (disabled(t))
+					nbt.setBoolean(t.name().toLowerCase(), true);
+			checkReg();
+			return nbt;
+		}
+
+		@Override
+		public void deserializeNBT(NBTTagCompound nbt) {
+			reset();
+			for (EventType t : EventType.values())
+				if (nbt.getBoolean(t.name().toLowerCase()))
+					disable(t);
+			checkReg();
+		}
+
+		private void checkReg() {
+			if (registered || disabled == 0) return;
+			registered = true;
+			MinecraftForge.ORE_GEN_BUS.register(Main.proxy.worldgenOres);
+		}
+
 	}
 
 }
