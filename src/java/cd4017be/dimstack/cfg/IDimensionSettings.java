@@ -1,4 +1,4 @@
-package cd4017be.dimstack.core;
+package cd4017be.dimstack.cfg;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.INBTSerializable;

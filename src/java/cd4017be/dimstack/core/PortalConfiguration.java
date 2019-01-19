@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import cd4017be.dimstack.Main;
+import cd4017be.dimstack.cfg.IDimensionSettings;
 import cd4017be.lib.util.DimPos;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;

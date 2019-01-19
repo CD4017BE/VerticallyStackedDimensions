@@ -36,6 +36,8 @@ public class PortalGen implements IWorldGenerator {
 
 	private void placePortals(World world, int cx, int cz, int y) {
 		Chunk chunk = world.getChunkFromChunkCoords(cx, cz);
+		if (y >= (chunk.getTopFilledSegment() + 1) << 4)
+			return;//TODO mark dimension
 		IBlockState state = Objects.PORTAL.getDefaultState();
 		boolean s0 = state.getValue(Portal.solidOther1),
 				s1 = state.getValue(Portal.solidThis1),
