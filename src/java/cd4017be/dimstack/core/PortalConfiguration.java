@@ -1,5 +1,7 @@
 package cd4017be.dimstack.core;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 import cd4017be.dimstack.Main;
@@ -7,6 +9,7 @@ import cd4017be.lib.util.DimPos;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagIntArray;
@@ -249,6 +252,31 @@ public class PortalConfiguration {
 			stack.clear();
 		}
 		nbt.setTag("stacks", stacks);
+	}
+
+	private static NBTTagCompound defaultCfg;
+
+	/**
+	 * load or initialize dimension settings for a specific world
+	 * @param dir world save directory
+	 */
+	public static void loadWorldSettings(File dir) {
+		boolean reload = true;
+		if (defaultCfg == null) {
+			defaultCfg = new NBTTagCompound();
+			save(defaultCfg);
+			reload = false;
+		}
+		File file = new File(dir, "dimensionstack.dat");
+		try {
+			if (file.exists()) {
+				load(CompressedStreamTools.read(file));
+				reload = false;
+			} else CompressedStreamTools.write(defaultCfg, file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		if (reload) load(defaultCfg);
 	}
 
 	/**
