@@ -3,8 +3,8 @@ package cd4017be.dimstack.worldgen;
 import java.util.Random;
 
 import cd4017be.dimstack.Objects;
-import cd4017be.dimstack.PortalConfiguration;
 import cd4017be.dimstack.block.Portal;
+import cd4017be.dimstack.core.PortalConfiguration;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.World;
@@ -28,9 +28,9 @@ public class PortalGen implements IWorldGenerator {
 	@Override
 	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator, IChunkProvider chunkProvider) {
 		PortalConfiguration pc = PortalConfiguration.get(world);
-		if (pc.neighbourDown != null)
+		if (pc.down() != null)
 			placePortals(world, chunkX, chunkZ, 0);
-		if (pc.neighbourUp != null)
+		if (pc.up() != null)
 			placePortals(world, chunkX, chunkZ, 255);
 	}
 

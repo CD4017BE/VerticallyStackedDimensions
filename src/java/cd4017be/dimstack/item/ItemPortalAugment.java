@@ -1,13 +1,12 @@
 package cd4017be.dimstack.item;
 
 import cd4017be.dimstack.Objects;
-import cd4017be.dimstack.PortalConfiguration;
+import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.item.BaseItemBlock;
 import cd4017be.lib.util.DimPos;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumActionResult;

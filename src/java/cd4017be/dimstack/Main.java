@@ -3,6 +3,7 @@ package cd4017be.dimstack;
 import org.apache.logging.log4j.Logger;
 
 import cd4017be.api.recipes.RecipeScriptContext;
+import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.ScriptFiles.Version;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;

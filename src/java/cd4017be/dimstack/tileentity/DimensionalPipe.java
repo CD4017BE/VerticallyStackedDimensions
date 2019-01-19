@@ -1,8 +1,8 @@
 package cd4017be.dimstack.tileentity;
 
 import cd4017be.dimstack.Objects;
-import cd4017be.dimstack.PortalConfiguration;
 import cd4017be.dimstack.block.Portal;
+import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.TickRegistry;
 import cd4017be.lib.TickRegistry.IUpdatable;
 import cd4017be.lib.block.AdvancedBlock.IInteractiveTile;
@@ -56,7 +56,7 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 		if (updateLink) {
 			updateLink = false;
 			PortalConfiguration pc = PortalConfiguration.get(world);
-			pc = pos.getY() < 128 ? pc.neighbourDown : pc.neighbourUp;
+			pc = pos.getY() < 128 ? pc.down() : pc.up();
 			if (pc == null) return;
 			World world = pc.getWorld();
 			BlockPos linkPos = PortalConfiguration.getAdjacentPos(pos);

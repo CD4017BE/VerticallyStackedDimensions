@@ -2,6 +2,8 @@ package cd4017be.dimstack;
 
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
+import cd4017be.dimstack.core.ChunkLoader;
+import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.dimstack.worldgen.BedrockRemover;
 import cd4017be.dimstack.worldgen.NetherTop;
 import cd4017be.dimstack.worldgen.OreGen;

@@ -1,11 +1,11 @@
-package cd4017be.dimstack;
+package cd4017be.dimstack.core;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
-import cd4017be.dimstack.PortalConfiguration.LoadingInfo;
+import cd4017be.dimstack.Main;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -65,10 +65,10 @@ public class ChunkLoader implements OrderedLoadingCallback {
 		if (pc == null || pc.loadingTicket == null) return;
 		LoadingInfo ti;
 		ChunkPos pos = event.getChunk().getPos();
-		if ((pc1 = pc.neighbourUp) != null && (ti = pc1.loadedChunks.get(pos)) != null &&
+		if ((pc1 = pc.up()) != null && (ti = pc1.loadedChunks.get(pos)) != null &&
 				ti.onUnload(false).checkExpired(System.currentTimeMillis() - EXPIRE_TIME))
 			pc1.loadedChunks.remove(pos);
-		if ((pc1 = pc.neighbourDown) != null && (ti = pc1.loadedChunks.get(pos)) != null &&
+		if ((pc1 = pc.down()) != null && (ti = pc1.loadedChunks.get(pos)) != null &&
 				ti.onUnload(true).checkExpired(System.currentTimeMillis() - EXPIRE_TIME))
 			pc1.loadedChunks.remove(pos);
 	}
@@ -80,7 +80,7 @@ public class ChunkLoader implements OrderedLoadingCallback {
 			long t = System.currentTimeMillis() - EXPIRE_TIME;
 			for (PortalConfiguration pc : PortalConfiguration.dimensions.values())
 				if (pc.loadingTicket != null) {
-					PortalConfiguration up = pc.neighbourUp, down = pc.neighbourDown;
+					PortalConfiguration up = pc.up(), down = pc.down();
 					for (Iterator<LoadingInfo> it = pc.loadedChunks.values().iterator(); it.hasNext();) {
 						LoadingInfo li = it.next();
 						if (t > li.startTime) {

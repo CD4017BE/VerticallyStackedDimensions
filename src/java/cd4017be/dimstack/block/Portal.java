@@ -1,6 +1,6 @@
 package cd4017be.dimstack.block;
 
-import cd4017be.dimstack.PortalConfiguration;
+import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.TickRegistry;
 import cd4017be.lib.block.BaseBlock;
 import cd4017be.lib.util.DimPos;
