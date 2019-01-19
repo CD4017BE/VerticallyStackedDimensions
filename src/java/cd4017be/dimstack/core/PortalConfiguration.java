@@ -5,7 +5,6 @@ import java.util.HashMap;
 import cd4017be.dimstack.Main;
 import cd4017be.lib.util.DimPos;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.block.state.IBlockState;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.nbt.NBTBase;
@@ -41,11 +40,6 @@ public class PortalConfiguration {
 	Ticket loadingTicket;
 	/** list of temporary loaded chunks for this dimension */
 	HashMap<ChunkPos, LoadingInfo> loadedChunks = new HashMap<>();
-	
-	public int LBedrockMin, LBedrockMax;
-	public IBlockState LBedrockRepl;
-	public int UBedrockMin, UBedrockMax;
-	public IBlockState UBedrockRepl;
 
 	private PortalConfiguration(int dimId) {
 		this.dimId = dimId;
