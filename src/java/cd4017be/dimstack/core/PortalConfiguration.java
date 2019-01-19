@@ -272,8 +272,12 @@ public class PortalConfiguration {
 		try {
 			if (file.exists()) {
 				load(CompressedStreamTools.read(file));
+				Main.LOG.info("Dimension stack configuration file for world {} sucessfully loaded.", dir.getName());
 				reload = false;
-			} else CompressedStreamTools.write(defaultCfg, file);
+			} else {
+				CompressedStreamTools.write(defaultCfg, file);
+				Main.LOG.info("new dimension stack configuration file for world {} sucessfully created.", dir.getName());
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

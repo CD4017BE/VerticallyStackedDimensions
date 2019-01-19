@@ -248,7 +248,7 @@ public class Portal extends BaseBlock {
 			DimPos posT = new DimPos(pos, world);
 			DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 			if (posO == null) return;
-			syncStates(posT, posO);
+			syncStates(posO, posT);
 			int dim = posO.dimId;
 			double x = entity.posX, y = py, z = entity.posZ;
 			TickRegistry.instance.updates.add(()-> {

@@ -76,6 +76,7 @@ public class NetherTop {
 			this.Lperlin1 = c.getLPerlin1(); //+-65535
 			this.Lperlin2 = c.getLPerlin2(); //+-65535
 			this.rand = event.getRandom();
+			this.cfg = PortalConfiguration.get(-1).getSettings(NetherGen.class, true);
 		}
 	}
 

@@ -15,7 +15,7 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 
 /**
@@ -59,7 +59,7 @@ public class Main {
 	}
 
 	@Mod.EventHandler
-	public void serverStart(FMLServerStartingEvent event) {
+	public void serverStart(FMLServerAboutToStartEvent event) {
 		PortalConfiguration.loadWorldSettings(
 			new File(FMLCommonHandler.instance().getSavesDirectory(), event.getServer().getFolderName())
 		);
