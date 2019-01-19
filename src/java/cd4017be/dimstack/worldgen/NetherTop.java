@@ -2,6 +2,9 @@ package cd4017be.dimstack.worldgen;
 
 import java.util.Random;
 
+import cd4017be.dimstack.cfg.NetherGen;
+import cd4017be.dimstack.cfg.NetherGen.Type;
+import cd4017be.dimstack.core.PortalConfiguration;
 import net.minecraft.block.BlockStone;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -42,16 +45,17 @@ public class NetherTop {
 	private NoiseGeneratorOctaves depth, scale, perlin1, perlin2, perlin3, Lperlin1, Lperlin2;
 	private double[] dr, sr, pr, ssr, gvr, p3r, ar, br;
 	private double[] buffer;
-	private int cfg;
+	private NetherGen cfg;
 	private Random rand;
 
 	public NetherTop(int mode) {
-		this.cfg = mode;
+		this.cfg = PortalConfiguration.get(-1).getSettings(NetherGen.class, true);
+		cfg.genMode = (mode & M_MIRROR_NETHER) != 0 ? Type.MIRROR_NETHER : Type.SOLID_ROCK;
 		//mods commonly use 0 for their ore-gen, so this runs just before.
 		//GameRegistry.registerWorldGenerator(this, -2);
 		MinecraftForge.EVENT_BUS.register(this);
 		MinecraftForge.TERRAIN_GEN_BUS.register(this);
-		if ((mode & M_STONE_VAR) != 0) {
+		if (cfg.stoneVariants = (mode & M_STONE_VAR) != 0) {
 			genDirt = new WorldGenMinable(DIRT, 33);
 			genGravel = new WorldGenMinable(GRAVEL, 33);
 			genGranite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE), 33);
@@ -80,17 +84,20 @@ public class NetherTop {
 		if (!(event.getGen() instanceof ChunkGeneratorHell)) return;
 		int cx = event.getX(), cz = event.getZ();
 		ChunkPrimer primer = event.getPrimer();
-		if ((cfg & M_MIRROR_NETHER) != 0) {
+		switch(cfg.genMode) {
+		case MIRROR_NETHER:
 			prepareHeights(cx, cz, primer);
 			buildSurfaces(cx, cz, primer);
-		} else {
+			break;
+		case SOLID_ROCK:
 			fill(cx, cz, primer);
+			break;
 		}
 	}
 
 	@SubscribeEvent
 	public void populate(PopulateChunkEvent.Pre event) {
-		if ((cfg & M_STONE_VAR) == 0) return;
+		if (!cfg.stoneVariants) return;
 		World world = event.getWorld();
 		Random rand = event.getRand();
 		BlockPos pos = new BlockPos(event.getChunkX() << 4, 128, event.getChunkZ() << 4);
