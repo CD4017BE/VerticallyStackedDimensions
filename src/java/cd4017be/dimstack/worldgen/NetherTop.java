@@ -12,7 +12,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.ChunkGeneratorHell;
 import net.minecraft.world.gen.NoiseGeneratorOctaves;
 import net.minecraft.world.gen.feature.WorldGenMinable;
 import net.minecraft.world.gen.feature.WorldGenerator;
@@ -23,6 +22,7 @@ import net.minecraftforge.event.terraingen.InitNoiseGensEvent.ContextHell;
 import net.minecraftforge.event.terraingen.OreGenEvent.GenerateMinable.EventType;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import net.minecraftforge.event.terraingen.TerrainGen;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class NetherTop {
@@ -80,9 +80,9 @@ public class NetherTop {
 		}
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void generate(ReplaceBiomeBlocks event) {
-		if (!(event.getGen() instanceof ChunkGeneratorHell)) return;
+		if (event.getWorld().provider.getDimension() != -1) return;
 		int cx = event.getX(), cz = event.getZ();
 		ChunkPrimer primer = event.getPrimer();
 		switch(cfg.genMode) {
