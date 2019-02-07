@@ -2,7 +2,6 @@ package cd4017be.dimstack.cfg;
 
 import java.util.ArrayList;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -28,10 +27,8 @@ public class BlockReplacements implements IDimensionSettings {
 			NBTTagCompound tag = new NBTTagCompound();
 			tag.setShort("minY", (short)r.minY);
 			tag.setShort("maxY", (short)r.maxY);
-			tag.setString("target", r.target.getRegistryName().toString());
-			Block block = r.repl.getBlock();
-			tag.setString("block", block.getRegistryName().toString());
-			tag.setByte("meta", (byte)block.getMetaFromState(r.repl));
+			tag.setTag("target", r.target.writeNBT());
+			tag.setString("block", BlockPredicate.serialize(r.repl));
 			list.appendTag(tag);
 		}
 		NBTTagCompound nbt = new NBTTagCompound();
@@ -39,7 +36,6 @@ public class BlockReplacements implements IDimensionSettings {
 		return nbt;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void deserializeNBT(NBTTagCompound nbt) {
 		NBTTagList list = nbt.getTagList("entries", NBT.TAG_COMPOUND);
@@ -47,8 +43,8 @@ public class BlockReplacements implements IDimensionSettings {
 			NBTTagCompound ctag = (NBTTagCompound)tag;
 			try {
 				Replacement r = new Replacement(
-					Block.getBlockFromName(ctag.getString("target")),
-					Block.getBlockFromName(ctag.getString("block")).getStateFromMeta(ctag.getByte("meta")),
+					BlockPredicate.loadNBT(ctag.getTagList("target", NBT.TAG_STRING)),
+					BlockPredicate.parse(ctag.getString("block")),
 					ctag.getShort("minY"),
 					ctag.getShort("maxY")
 				);
@@ -60,13 +56,13 @@ public class BlockReplacements implements IDimensionSettings {
 	public static class Replacement {
 
 		/** Block to search for */
-		public final Block target;
+		public final BlockPredicate target;
 		/** BlockState to replace with */
 		public final IBlockState repl;
 		/** where to search */
 		public final int minY, maxY;
 
-		public Replacement(Block target, IBlockState repl, int minY, int maxY) {
+		public Replacement(BlockPredicate target, IBlockState repl, int minY, int maxY) {
 			this.target = target;
 			this.repl = repl;
 			this.minY = Math.max(0, minY);
@@ -76,14 +72,14 @@ public class BlockReplacements implements IDimensionSettings {
 		public void doReplace(World world, int cx, int cz) {
 			Chunk chunk = world.getChunkFromChunkCoords(cx, cz);
 			MutableBlockPos pos = new MutableBlockPos();
-			Block target = this.target;
+			BlockPredicate target = this.target;
 			IBlockState repl = this.repl;
 			int x0 = cx << 4, x1 = x0 + 16,
 				y0 = this.minY, y1 = this.maxY;
 			for (int z = cz << 4, z1 = z + 16; z < z1; z++)
 				for (int x = x0; x < x1; x++)
 					for (int y = y0; y < y1; y++)
-						if (chunk.getBlockState(pos.setPos(x, y, z)).getBlock() == target)
+						if (target.test(chunk.getBlockState(pos.setPos(x, y, z))))
 							chunk.setBlockState(pos, repl);
 		}
 

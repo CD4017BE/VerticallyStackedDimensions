@@ -1,4 +1,4 @@
-VERSION = 10;
+VERSION = 12;
 
 {
 	!Each array entry is a vector [a, b, ...]# containing dimension IDs that should be stacked on top of each other via portals (order bottom to top).
@@ -40,13 +40,27 @@ INIT() {
 	
 	if (gen_topNether >= 0) {
 		!top nether ores
-		!add("worldgen", <rockType>, it(<oreType>, <numPerVein>), <veinPerChunk>, [<minY>, <mainY>, <maxY>]#, <dimId>);
-		add("worldgen", "minecraft:stone", it("minecraft:diamond_ore", 8), [3,4]:disable_diamond, [128, 144, 240]#, -1);
-		add("worldgen", "minecraft:stone", it("minecraft:redstone_ore", 8), 24, [144, 160, 256]#, -1);
-		add("worldgen", "minecraft:stone", it("minecraft:lapis_ore", 7), 4, [144, 240, 256]#, -1);
-		add("worldgen", "minecraft:stone", it("minecraft:gold_ore", 9), 6, [128, 176, 256]#, -1);
-		add("worldgen", "minecraft:stone", it("minecraft:iron_ore", 9), 40, [128, 208, 256]#, -1);
-		add("worldgen", "minecraft:stone", it("minecraft:coal_ore", 17), 50, [96, 192, 288]#, -1);
+		!add("oregen", <dimId>, <repBlocks>, <veinsPerChunk>, <blocksPerVein> * it(<oreBlock>), <mode>, <heights>...);
+		!The "even" mode takes a minimum and a maximum height and distributes ore veins evenly between them.
+		!The "centered" mode takes a minimum, a center and a maximum height and distributes ore veins between minimum and maximum but with higher concentration towards the center height.
+		!The "gaussian" mode takes a center height and a deviation distance and spreads ore veins with a Gaussian distribution.
+		Loc stone = "minecraft:stone";
+		add("oregen", -1, stone,  3,  8 * it("minecraft:diamond_ore"),  "centered", [128, 144, 240]#);
+		add("oregen", -1, stone, 24,  8 * it("minecraft:redstone_ore"), "centered", [144, 160, 256]#);
+		add("oregen", -1, stone,  4,  7 * it("minecraft:lapis_ore"),    "centered", [144, 240, 256]#);
+		add("oregen", -1, stone,  6,  9 * it("minecraft:gold_ore"),     "centered", [128, 176, 256]#);
+		add("oregen", -1, stone, 40,  9 * it("minecraft:iron_ore"),     "even", [128, 256]#);
+		add("oregen", -1, stone, 50, 17 * it("minecraft:coal_ore"),     "even", [128, 256]#);
+		
+		!modded ores: these are generated only if other mods have added ore blocks for them into OreDictionary
+		if (ore("oreCopper"))    {add("oregen", -1, stone, 20, 9 * it("ore:oreCopper"),    "centered", [192, 216, 256]#);}
+		if (ore("oreTin"))       {add("oregen", -1, stone, 16, 9 * it("ore:oreTin"),       "centered", [192, 232, 256]#);}
+		if (ore("oreAluminium")) {add("oregen", -1, stone, 16, 8 * it("ore:oreAluminium"), "centered", [176, 192, 256]#);}
+		if (ore("oreNickel"))    {add("oregen", -1, stone,  6, 9 * it("ore:oreNickel"),    "centered", [144, 160, 256]#);}
+		if (ore("oreSilver"))    {add("oregen", -1, stone,  8, 9 * it("ore:oreSilver"),    "centered", [128, 176, 256]#);}
+		if (ore("oreLead"))      {add("oregen", -1, stone,  8, 9 * it("ore:oreLead"),      "centered", [128, 144, 192]#);}
+		if (ore("orePlatinum"))  {add("oregen", -1, stone,  4, 7 * it("ore:orePlatinum"),  "centered", [128, 136, 144]#);}
+		if (ore("oreUranium"))   {add("oregen", -1, stone,  6, 7 * it("ore:oreUranium"),   "centered", [128, 140, 160]#);}
 	}
 	
 	!shaped crafting recipes

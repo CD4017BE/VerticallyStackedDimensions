@@ -4,15 +4,13 @@ import java.util.Random;
 
 import cd4017be.api.recipes.RecipeAPI;
 import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
+import cd4017be.dimstack.cfg.BlockPredicate;
 import cd4017be.dimstack.cfg.BlockReplacements;
 import cd4017be.dimstack.cfg.BlockReplacements.Replacement;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -35,18 +33,14 @@ public class BlockReplacer implements IWorldGenerator, IRecipeHandler {
 		GameRegistry.registerWorldGenerator(this, -1);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void addRecipe(Parameters param) {
 		String key = param.getString(0);
 		int n = 2;
-		Block target;
-		if (key.equals(BEDROCK_REPL)) target = Blocks.BEDROCK;
-		else target = Block.getBlockFromName(param.getString(n++));
-		ItemStack is = param.get(n++, ItemStack.class);
-		Item i = is.getItem();
-		if (!(i instanceof ItemBlock)) throw new IllegalArgumentException("supplied item has no registered block equivalent");
-		IBlockState repl = ((ItemBlock)i).getBlock().getStateFromMeta(i.getMetadata(is.getMetadata()));
+		BlockPredicate target;
+		if (key.equals(BEDROCK_REPL)) target = new BlockPredicate(Blocks.BEDROCK.getRegistryName().toString());
+		else target = BlockPredicate.parse(param.get(n++));
+		IBlockState repl = BlockPredicate.parse(param.get(n++, ItemStack.class));
 		double[] vec = param.getVector(n);
 		if (vec.length != 2) throw new IllegalArgumentException("height parameter must have 2 elements");
 		Replacement r = new Replacement(target, repl, (int)vec[0], (int)vec[1]);
