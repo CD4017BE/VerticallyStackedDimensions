@@ -1,3 +1,18 @@
+v0.0.2
+Changes:
+- fixed #2 portals not synchronizing properly when force generating chunk on the other side
+- fixed a crash after switching single-player worlds
+- made dimension stack and world generation settings persistent with world save (so changes in config won't affect already generated worlds)
+- made bedrock replacement also support replacement of other blocks than bredrock
+- fixed nether worldgen not working if mods inject their own ChunkProvider
+- added  "even", "centered" and "gaussian" distribution modes for custom ore generation
+- added ore generation for common modded ores in default config
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.3.0
+
 v0.0.1
 Changes:
 - added Transition Portals being generated at top/bottom of dimensions to link them together
