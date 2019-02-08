@@ -1,7 +1,6 @@
 package cd4017be.dimstack.tileentity;
 
 import cd4017be.dimstack.Objects;
-import cd4017be.dimstack.block.Portal;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.TickRegistry;
 import cd4017be.lib.TickRegistry.IUpdatable;
@@ -148,10 +147,7 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 	@Override
 	public boolean onActivated(EntityPlayer player, EnumHand hand, ItemStack item, EnumFacing s, float X, float Y, float Z) {
 		if (!player.isSneaking() || !item.isEmpty()) return false;
-		Objects.PORTAL.syncStates(new DimPos(this),
-				Objects.PORTAL.getDefaultState(),
-				Portal.isSolid(world, pos.offset(side, 1)),
-				Portal.isSolid(world, pos.offset(side, 2)));
+		Objects.PORTAL.syncStates(new DimPos(this), Objects.PORTAL.getDefaultState());
 		player.addItemStackToInventory(new ItemStack(Objects.dim_pipe));
 		return true;
 	}

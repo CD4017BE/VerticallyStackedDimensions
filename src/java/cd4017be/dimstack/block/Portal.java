@@ -5,7 +5,6 @@ import cd4017be.lib.TickRegistry;
 import cd4017be.lib.block.BaseBlock;
 import cd4017be.lib.util.DimPos;
 import cd4017be.lib.util.MovedBlock;
-import cd4017be.lib.util.Utils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCommandBlock;
 import net.minecraft.block.BlockStructure;
@@ -264,19 +263,14 @@ public class Portal extends BaseBlock {
 		IBlockState oState = oPos.getBlock();
 		IBlockState tState = tPos.getBlock();
 		if (oState.getBlock() != this) return;
-		int ofs = tPos.getY() < 128 ? 2 : -2;
-		boolean sT = isSolid(tPos.getWorld(), tPos.up(ofs)),
-				sO = isSolid(oPos.getWorld(), oPos.down(ofs));
-		IBlockState ntState = tState.withProperty(solidThis2, sT);
-		IBlockState noState = oState.withProperty(solidThis2, sO);
-		ntState = tState.withProperty(solidOther2, sO)
+		IBlockState ntState = tState
+				.withProperty(solidOther2, oState.getValue(solidThis2))
 				.withProperty(solidOther1, oState.getValue(solidThis1));
-		noState = oState.withProperty(solidOther2, sT)
+		IBlockState noState = oState
+				.withProperty(solidOther2, tState.getValue(solidThis2))
 				.withProperty(solidOther1, tState.getValue(solidThis1));
-		if (ntState != tState)
-			tPos.setBlock(ntState);
-		if (noState != oState)
-			oPos.setBlock(noState);
+		if (ntState != tState) tPos.setBlock(ntState);
+		if (noState != oState) oPos.setBlock(noState);
 	}
 
 	@Override
@@ -293,28 +287,22 @@ public class Portal extends BaseBlock {
 	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		if (!(world instanceof WorldServer)) return;
 		if (fromPos.getX() == pos.getX() && fromPos.getZ() == pos.getZ()) {
-			int ceil = pos.getY() >= 128 ? -1 : 1;
-			boolean this1 = isSolid(world, pos.up(ceil)), this2 = isSolid(world, pos.up(ceil<<1));
-			if ((state.getValue(solidThis1) ^ this1) || (state.getValue(solidThis2) ^ this2) && Utils.neighboursLoaded(world, pos))
-				syncStates(new DimPos(pos, world), state, this1, this2);
-		} else if (TickRegistry.instance.updates.size() < 100) {
-			TickRegistry.instance.updates.add(()-> neighborChanged(state, world, pos, this, pos));
+			int dy = fromPos.getY() - pos.getY();
+			if (isSolid(world.getBlockState(fromPos)) ^ state.getValue(dy >= -1 && dy <= 1 ? solidThis1 : solidThis2))
+				syncStates(new DimPos(pos, world), state);
 		}
 	}
 
-	public void syncStates(DimPos posT, IBlockState stateT, boolean this1, boolean this2) {
+	public void syncStates(DimPos posT, IBlockState stateT) {
 		DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 		if (posO == null) return;
 		IBlockState stateO = posO.getBlock();
 		if (stateO.getBlock() != this) stateO = getDefaultState().withProperty(onCeiling, posO.getY() >= 128);
 		int ceil = posO.getY() >= 128 ? -1 : 1;
-		boolean other1 = isSolid(posO.getWorld(), posO.up(ceil)), other2 = isSolid(posO.getWorld(), posO.up(ceil<<1));
+		boolean this1 = isSolid(((DimPos)posT.down(ceil)).getBlock()), this2 = isSolid(((DimPos)posT.down(ceil<<1)).getBlock());
+		boolean other1 = isSolid(((DimPos)posO.up(ceil)).getBlock()), other2 = isSolid(((DimPos)posO.up(ceil<<1)).getBlock());
 		posT.setBlock(stateT.withProperty(solidThis1, this1).withProperty(solidThis2, this2).withProperty(solidOther1, other1).withProperty(solidOther2, other2));
 		posO.setBlock(stateO.withProperty(solidThis1, other1).withProperty(solidThis2, other2).withProperty(solidOther1, this1).withProperty(solidOther2, this2));
-	}
-
-	public static boolean isSolid(IBlockAccess world, BlockPos pos) {
-		return isSolid(world.getBlockState(pos));
 	}
 
 	public static boolean isSolid(IBlockState state) {

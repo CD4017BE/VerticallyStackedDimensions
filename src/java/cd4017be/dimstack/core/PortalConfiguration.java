@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import cd4017be.dimstack.Main;
+import cd4017be.dimstack.block.Portal;
 import cd4017be.dimstack.cfg.IDimensionSettings;
 import cd4017be.dimstack.worldgen.PortalGen;
 import cd4017be.lib.util.DimPos;
@@ -171,6 +172,17 @@ public class PortalConfiguration implements IWorldEventListener {
 		int y = pos.getY();
 		if (y >= 252 && topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR)
 			PortalGen.fixCeil(world, pos);
+		if (y == 2) {
+			BlockPos posP = pos.down(2);
+			IBlockState stateP = world.getBlockState(posP);
+			if (stateP.getBlock() instanceof Portal)
+				stateP.neighborChanged(world, posP, newState.getBlock(), pos);
+		} else if (y == 253) {
+			BlockPos posP = pos.up(2);
+			IBlockState stateP = world.getBlockState(posP);
+			if (stateP.getBlock() instanceof Portal)
+				stateP.neighborChanged(world, posP, newState.getBlock(), pos);
+		}
 	}
 
 	@Override
