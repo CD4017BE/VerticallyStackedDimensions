@@ -15,6 +15,7 @@ import net.minecraftforge.common.ForgeChunkManager.OrderedLoadingCallback;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -56,6 +57,16 @@ public class ChunkLoader implements OrderedLoadingCallback {
 
 	@Override
 	public void ticketsLoaded(List<Ticket> tickets, World world) {
+	}
+
+	@SubscribeEvent
+	public void onWorldLoad(WorldEvent.Load event) {
+		World world = event.getWorld();
+		if (world instanceof WorldServer) {
+			PortalConfiguration pc = PortalConfiguration.get(world);
+			if (pc.up() != null || pc.down() != null)
+				world.addEventListener(pc);
+		}
 	}
 
 	@SubscribeEvent

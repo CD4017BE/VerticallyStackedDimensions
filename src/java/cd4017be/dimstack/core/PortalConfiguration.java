@@ -6,17 +6,25 @@ import java.util.HashMap;
 
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.cfg.IDimensionSettings;
+import cd4017be.dimstack.worldgen.PortalGen;
 import cd4017be.lib.util.DimPos;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -29,7 +37,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
  * 
  * @author cd4017be
  */
-public class PortalConfiguration {
+public class PortalConfiguration implements IWorldEventListener {
 
 	/** the dimension id this refers to */
 	public final int dimId;
@@ -39,6 +47,8 @@ public class PortalConfiguration {
 	private PortalConfiguration neighbourDown;
 	/** additional dimension settings mapped by type */
 	private HashMap<Class<?extends IDimensionSettings>, IDimensionSettings> settings = new HashMap<>();
+	/** this dimension has chunks with missing portal top layer */
+	private boolean topOpen = false;
 
 	/** chunk loading ticket for this dimension */
 	Ticket loadingTicket;
@@ -146,8 +156,50 @@ public class PortalConfiguration {
 		return Integer.toString(dimId);
 	}
 
+	/**
+	 * states that this dimension has chunks with missing portal top layer
+	 */
+	public void setTopOpen() {
+		if (topOpen || neighbourUp == null) return;
+		topOpen = true;
+		cfgModified = true;
+	}
+
+	@Override
+	public void notifyBlockUpdate(World world, BlockPos pos, IBlockState oldState, IBlockState newState, int flags) {
+		if ((flags & 1) == 0) return;
+		int y = pos.getY();
+		if (y >= 252 && topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR)
+			PortalGen.fixCeil(world, pos);
+	}
+
+	@Override
+	public void notifyLightSet(BlockPos pos) {}
+	@Override
+	public void markBlockRangeForRenderUpdate(int x1, int y1, int z1, int x2, int y2, int z2) {}
+	@Override
+	public void playSoundToAllNearExcept(EntityPlayer player, SoundEvent soundIn, SoundCategory category, double x, double y, double z, float volume, float pitch) {}
+	@Override
+	public void playRecord(SoundEvent soundIn, BlockPos pos) {}
+	@Override
+	public void spawnParticle(int particleID, boolean ignoreRange, double xCoord, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int... parameters) {}
+	@Override
+	public void spawnParticle(int id, boolean ignoreRange, boolean p_190570_3_, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, int... parameters) {}
+	@Override
+	public void onEntityAdded(Entity entityIn) {}
+	@Override
+	public void onEntityRemoved(Entity entityIn) {}
+	@Override
+	public void broadcastSound(int soundID, BlockPos pos, int data) {}
+	@Override
+	public void playEvent(EntityPlayer player, int type, BlockPos blockPosIn, int data) {}
+	@Override
+	public void sendBlockBreakProgress(int breakerId, BlockPos pos, int progress) {}
+
 	//static features:
 	static final Int2ObjectOpenHashMap<PortalConfiguration> dimensions = new Int2ObjectOpenHashMap<>();
+	static File cfgFile;
+	static boolean cfgModified;
 
 	/**
 	 * @param world current world
@@ -189,13 +241,24 @@ public class PortalConfiguration {
 	 * unforce all chunks
 	 */
 	public static void cleanup() {
+		IntArrayList open = new IntArrayList();
 		for (PortalConfiguration pc : dimensions.values()) {
 			pc.loadedChunks.clear();
 			if (pc.loadingTicket != null) {
 				ForgeChunkManager.releaseTicket(pc.loadingTicket);
 				pc.loadingTicket = null;
 			}
+			if (pc.topOpen) open.add(pc.dimId);
 		}
+		if (cfgModified && cfgFile != null)
+			try {
+				NBTTagCompound data = CompressedStreamTools.read(cfgFile);
+				data.setIntArray("topOpen", open.toIntArray());
+				CompressedStreamTools.write(data, cfgFile);
+				Main.LOG.info("updated dimension stack configuration file");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 	}
 
 	/**
@@ -207,6 +270,10 @@ public class PortalConfiguration {
 		NBTTagList stacks = nbt.getTagList("stacks", NBT.TAG_INT_ARRAY);
 		for (NBTBase tag : stacks)
 			link(((NBTTagIntArray)tag).getIntArray());
+		for (int dim : nbt.getIntArray("topOpen")) {
+			PortalConfiguration pc = get(dim);
+			if (pc.neighbourUp != null) pc.topOpen = true;
+		}
 		for (String key : nbt.getKeySet())
 			try {
 				int dim = Integer.parseInt(key);
@@ -214,6 +281,7 @@ public class PortalConfiguration {
 				if (!cfg.hasNoTags())
 					get(dim).loadSettings(cfg);
 			} catch(NumberFormatException e) {}
+		cfgModified = false;
 	}
 
 	/**
@@ -278,7 +346,9 @@ public class PortalConfiguration {
 				CompressedStreamTools.write(defaultCfg, file);
 				Main.LOG.info("new dimension stack configuration file for world {} sucessfully created.", dir.getName());
 			}
+			cfgFile = file;
 		} catch (IOException e) {
+			cfgFile = null;
 			e.printStackTrace();
 		}
 		if (reload) load(defaultCfg);

@@ -314,7 +314,11 @@ public class Portal extends BaseBlock {
 	}
 
 	public static boolean isSolid(IBlockAccess world, BlockPos pos) {
-		return world.getBlockState(pos).getMaterial().blocksMovement();
+		return isSolid(world.getBlockState(pos));
+	}
+
+	public static boolean isSolid(IBlockState state) {
+		return state.getMaterial().blocksMovement();
 	}
 
 	@Override
