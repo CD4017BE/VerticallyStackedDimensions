@@ -7,6 +7,7 @@ import cd4017be.dimstack.worldgen.BlockReplacer;
 import cd4017be.dimstack.worldgen.NetherTop;
 import cd4017be.dimstack.worldgen.OreGenHandler;
 import cd4017be.dimstack.worldgen.PortalGen;
+import cd4017be.dimstack.worldgen.TerrainGenHandler;
 import cd4017be.lib.TickRegistry;
 
 /**
@@ -17,12 +18,14 @@ public class CommonProxy {
 
 	public PortalGen worldgenPortal;
 	public BlockReplacer worldgenBedrock;
+	public TerrainGenHandler worldgenTerrain;
 	public NetherTop worldgenNether;
 	public OreGenHandler worldgenOres;
 
 	public void init() {
 		TickRegistry.register();
 		
+		worldgenTerrain = new TerrainGenHandler();
 		worldgenPortal = new PortalGen();
 		worldgenBedrock = new BlockReplacer();
 		worldgenOres = new OreGenHandler();
