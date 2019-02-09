@@ -28,6 +28,6 @@ public abstract class API {
 	}
 
 	/**@deprecated internal function */
-	abstract void registerOreDisable();
+	public abstract void registerOreDisable();
 
 }

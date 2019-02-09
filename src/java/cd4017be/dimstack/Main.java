@@ -5,7 +5,7 @@ import java.io.File;
 import org.apache.logging.log4j.Logger;
 
 import cd4017be.api.recipes.RecipeScriptContext;
-import cd4017be.dimstack.core.PortalConfiguration;
+import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.lib.script.ScriptFiles.Version;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -34,6 +34,8 @@ public class Main {
 	@SidedProxy(serverSide = "cd4017be." + ID + ".CommonProxy", clientSide = "cd4017be." + ID + ".ClientProxy")
 	public static CommonProxy proxy;
 
+	public static final Dimensionstack dimstack = new Dimensionstack();
+
 	public static Logger LOG;
 
 	public Main() {
@@ -60,14 +62,14 @@ public class Main {
 
 	@Mod.EventHandler
 	public void serverStart(FMLServerAboutToStartEvent event) {
-		PortalConfiguration.loadWorldSettings(
+		dimstack.loadWorldSettings(
 			new File(FMLCommonHandler.instance().getSavesDirectory(), event.getServer().getFolderName())
 		);
 	}
 
 	@Mod.EventHandler
 	public void serverStop(FMLServerStoppingEvent event) {
-		PortalConfiguration.cleanup();
+		dimstack.cleanup();
 	}
 
 }

@@ -1,25 +1,20 @@
 package cd4017be.dimstack.core;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 
 import cd4017be.dimstack.Main;
+import cd4017be.dimstack.api.IDimension;
+import cd4017be.dimstack.api.IDimensionSettings;
 import cd4017be.dimstack.block.Portal;
-import cd4017be.dimstack.cfg.IDimensionSettings;
 import cd4017be.dimstack.worldgen.PortalGen;
 import cd4017be.lib.util.DimPos;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -31,14 +26,13 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
-import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
 /**
  * 
  * @author cd4017be
  */
-public class PortalConfiguration implements IWorldEventListener {
+public class PortalConfiguration implements IDimension, IWorldEventListener {
 
 	/** the dimension id this refers to */
 	public final int dimId;
@@ -49,7 +43,7 @@ public class PortalConfiguration implements IWorldEventListener {
 	/** additional dimension settings mapped by type */
 	private HashMap<Class<?extends IDimensionSettings>, IDimensionSettings> settings = new HashMap<>();
 	/** this dimension has chunks with missing portal top layer */
-	private boolean topOpen = false;
+	boolean topOpen = false;
 
 	/** chunk loading ticket for this dimension */
 	Ticket loadingTicket;
@@ -60,14 +54,17 @@ public class PortalConfiguration implements IWorldEventListener {
 		this.dimId = dimId;
 	}
 
-	/**@return the destination when traversing up (null for regular world border) */
+	@Override
+	public int id() {return dimId;}
+
+	@Override
 	public PortalConfiguration up() {return neighbourUp;}
 
-	/**@return the destination when traversing down (null for regular world border) */
+	@Override
 	public PortalConfiguration down() {return neighbourDown;}
 
-	/**@return the lowest dimension in current stack or null if looped */
-	public PortalConfiguration findBottomEnd() {
+	@Override
+	public PortalConfiguration bottom() {
 		PortalConfiguration pc, pc1;
 		for (pc = this; (pc1 = pc.neighbourDown) != null; pc = pc1)
 			if (pc1 == this)
@@ -75,8 +72,8 @@ public class PortalConfiguration implements IWorldEventListener {
 		return pc;
 	}
 
-	/**@return the highest dimension in current stack or null if looped */
-	public PortalConfiguration findTopEnd() {
+	@Override
+	public PortalConfiguration top() {
 		PortalConfiguration pc, pc1;
 		for (pc = this; (pc1 = pc.neighbourUp) != null; pc = pc1)
 			if (pc1 == this)
@@ -84,16 +81,42 @@ public class PortalConfiguration implements IWorldEventListener {
 		return pc;
 	}
 
-	/**@return the server world for this dimension */
+	private void unlink() {
+		PortalConfiguration u = neighbourUp, d = neighbourDown;
+		if (u != null) u.neighbourDown = d;
+		if (d != null) d.neighbourUp = u;
+	}
+
+	@Override
+	public void insertTop(IDimension dim) {
+		if (dim == neighbourUp) return;
+		PortalConfiguration pc = (PortalConfiguration)dim, u = neighbourUp;
+		pc.unlink();
+		neighbourUp = pc;
+		if (u != null) {
+			pc.neighbourUp = u;
+			u.neighbourDown = pc;
+		}
+	}
+
+	@Override
+	public void insertBottom(IDimension dim) {
+		if (dim == neighbourDown) return;
+		PortalConfiguration pc = (PortalConfiguration)dim, d = neighbourDown;
+		pc.unlink();
+		neighbourDown = pc;
+		if (d != null) {
+			pc.neighbourDown = d;
+			d.neighbourUp = pc;
+		}
+	}
+
+	@Override
 	public WorldServer getWorld() {
 		return FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(dimId);
 	}
 
-	/**
-	 * @param type setting type
-	 * @param create whether to create a new settings instance if absent
-	 * @return the settings of given type.
-	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T extends IDimensionSettings> T getSettings(Class<T> type, boolean create) {
 		return (T)(create ?
@@ -101,7 +124,7 @@ public class PortalConfiguration implements IWorldEventListener {
 			: settings.get(type));
 	}
 
-	private void loadSettings(NBTTagList nbt) {
+	void loadSettings(NBTTagList nbt) {
 		for (NBTBase tag : nbt) {
 			NBTTagCompound ctag = (NBTTagCompound)tag;
 			String cname = ctag.getString("class");
@@ -118,7 +141,7 @@ public class PortalConfiguration implements IWorldEventListener {
 		}
 	}
 
-	private NBTTagList saveSettings() {
+	NBTTagList saveSettings() {
 		NBTTagList cfg = new NBTTagList();
 		for (IDimensionSettings s : settings.values()) {
 			NBTTagCompound tag = s.serializeNBT();
@@ -210,7 +233,6 @@ public class PortalConfiguration implements IWorldEventListener {
 
 	//static features:
 	static final Int2ObjectOpenHashMap<PortalConfiguration> dimensions = new Int2ObjectOpenHashMap<>();
-	static File cfgFile;
 	static boolean cfgModified;
 
 	/**
@@ -247,123 +269,6 @@ public class PortalConfiguration implements IWorldEventListener {
 			A.neighbourUp = B;
 			B.neighbourDown = A;
 		}
-	}
-
-	/**
-	 * unforce all chunks
-	 */
-	public static void cleanup() {
-		IntArrayList open = new IntArrayList();
-		for (PortalConfiguration pc : dimensions.values()) {
-			pc.loadedChunks.clear();
-			if (pc.loadingTicket != null) {
-				ForgeChunkManager.releaseTicket(pc.loadingTicket);
-				pc.loadingTicket = null;
-			}
-			if (pc.topOpen) open.add(pc.dimId);
-		}
-		if (cfgModified && cfgFile != null)
-			try {
-				NBTTagCompound data = CompressedStreamTools.read(cfgFile);
-				data.setIntArray("topOpen", open.toIntArray());
-				CompressedStreamTools.write(data, cfgFile);
-				Main.LOG.info("updated dimension stack configuration file");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-	}
-
-	/**
-	 * reload all dimension stack info and settings
-	 * @param nbt data to load from
-	 */
-	public static void load(NBTTagCompound nbt) {
-		dimensions.clear();
-		NBTTagList stacks = nbt.getTagList("stacks", NBT.TAG_INT_ARRAY);
-		for (NBTBase tag : stacks)
-			link(((NBTTagIntArray)tag).getIntArray());
-		for (int dim : nbt.getIntArray("topOpen")) {
-			PortalConfiguration pc = get(dim);
-			if (pc.neighbourUp != null) pc.topOpen = true;
-		}
-		for (String key : nbt.getKeySet())
-			try {
-				int dim = Integer.parseInt(key);
-				NBTTagList cfg = nbt.getTagList(key, NBT.TAG_COMPOUND);
-				if (!cfg.hasNoTags())
-					get(dim).loadSettings(cfg);
-			} catch(NumberFormatException e) {}
-		cfgModified = false;
-	}
-
-	/**
-	 * save all dimension stack info and settings
-	 * @param nbt data to save in
-	 */
-	public static void save(NBTTagCompound nbt) {
-		IntOpenHashSet bottoms = new IntOpenHashSet(), loops = new IntOpenHashSet();
-		for (PortalConfiguration pc : dimensions.values()) {
-			PortalConfiguration bot = pc.findBottomEnd();
-			if (bot == null) loops.add(pc.dimId);
-			else if (bot != pc) bottoms.add(bot.dimId);
-			NBTTagList cfg = pc.saveSettings();
-			if (!cfg.hasNoTags())
-				nbt.setTag(pc.toString(), cfg);
-		}
-		NBTTagList stacks = new NBTTagList();
-		IntArrayList stack = new IntArrayList();
-		for (int d : bottoms) {
-			stack.add(d);
-			for (PortalConfiguration pc = get(d), pc1; (pc1 = pc.neighbourUp) != null; pc = pc1)
-				stack.add(pc1.dimId);
-			stacks.appendTag(new NBTTagIntArray(stack.toIntArray()));
-			stack.clear();
-		}
-		while(!loops.isEmpty()) {
-			int d = loops.iterator().nextInt();
-			loops.rem(d);
-			stack.add(d);
-			for (PortalConfiguration pc = get(d), pc1 = pc.neighbourUp; pc1 != pc; pc1 = pc1.neighbourUp) {
-				int d1 = pc1.dimId;
-				loops.rem(d1);
-				stack.add(d1);
-			}
-			stack.add(d);
-			stacks.appendTag(new NBTTagIntArray(stack.toIntArray()));
-			stack.clear();
-		}
-		nbt.setTag("stacks", stacks);
-	}
-
-	private static NBTTagCompound defaultCfg;
-
-	/**
-	 * load or initialize dimension settings for a specific world
-	 * @param dir world save directory
-	 */
-	public static void loadWorldSettings(File dir) {
-		boolean reload = true;
-		if (defaultCfg == null) {
-			defaultCfg = new NBTTagCompound();
-			save(defaultCfg);
-			reload = false;
-		}
-		File file = new File(dir, "dimensionstack.dat");
-		try {
-			if (file.exists()) {
-				load(CompressedStreamTools.read(file));
-				Main.LOG.info("Dimension stack configuration file for world {} sucessfully loaded.", dir.getName());
-				reload = false;
-			} else {
-				CompressedStreamTools.write(defaultCfg, file);
-				Main.LOG.info("new dimension stack configuration file for world {} sucessfully created.", dir.getName());
-			}
-			cfgFile = file;
-		} catch (IOException e) {
-			cfgFile = null;
-			e.printStackTrace();
-		}
-		if (reload) load(defaultCfg);
 	}
 
 	/**
