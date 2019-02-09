@@ -3,10 +3,11 @@ package cd4017be.dimstack.core;
 import java.io.File;
 import java.io.IOException;
 
+import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.API;
 import cd4017be.dimstack.api.IDimension;
-import cd4017be.dimstack.worldgen.OreGen;
+import cd4017be.dimstack.worldgen.OreGenHandler;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -29,6 +30,18 @@ public class Dimensionstack extends API {
 
 	public Dimensionstack() {
 		API.INSTANCE = this;
+	}
+
+	public void init(ConfigConstants cfg) {
+		Object[] arr = cfg.get("linked_dimensions", Object[].class, new Object[0]);
+		for (Object o : arr)
+			if (o instanceof double[]) {
+				double[] vec = (double[])o;
+				int[] dims = new int[vec.length];
+				for (int i = 0; i < vec.length; i++)
+					dims[i] = (int)vec[i];
+				link(dims);
+			}
 	}
 
 	@Override
@@ -154,7 +167,7 @@ public class Dimensionstack extends API {
 
 	@Override
 	public void registerOreDisable() {
-		OreGen.register();
+		OreGenHandler.register();
 	}
 
 }

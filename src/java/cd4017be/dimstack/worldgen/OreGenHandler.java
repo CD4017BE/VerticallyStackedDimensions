@@ -8,10 +8,7 @@ import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.DisableVanillaOres;
 import cd4017be.dimstack.api.OreGeneration;
-import cd4017be.dimstack.api.OreGenerator;
-import cd4017be.dimstack.api.oregen.OreGenCentered;
-import cd4017be.dimstack.api.oregen.OreGenEven;
-import cd4017be.dimstack.api.oregen.OreGenGaussian;
+import cd4017be.dimstack.api.gen.IOreGenerator;
 import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
@@ -33,7 +30,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * 
  * @author cd4017be
  */
-public class OreGen implements IWorldGenerator, IRecipeHandler {
+public class OreGenHandler implements IWorldGenerator, IRecipeHandler {
 
 	private static final String OREGEN = "oregen";
 	static boolean registered;
@@ -44,9 +41,12 @@ public class OreGen implements IWorldGenerator, IRecipeHandler {
 		MinecraftForge.ORE_GEN_BUS.register(Main.proxy.worldgenOres);
 	}
 
-	public OreGen() {
+	public OreGenHandler() {
 		GameRegistry.registerWorldGenerator(this, 0);
 		RecipeAPI.Handlers.put(OREGEN, this);
+		OreGeneration.REGISTRY.put("even", OreGenEven::new);
+		OreGeneration.REGISTRY.put("center", OreGenCentered::new);
+		OreGeneration.REGISTRY.put("gauss", OreGenGaussian::new);
 	}
 
 	@SubscribeEvent
@@ -71,7 +71,7 @@ public class OreGen implements IWorldGenerator, IRecipeHandler {
 		OreGeneration cfg = PortalConfiguration.get(world).getSettings(OreGeneration.class, false);
 		if (cfg == null) return;
 		Chunk chunk = chunkProvider.provideChunk(cx, cy);
-		for (OreGenerator og : cfg.entries)
+		for (IOreGenerator og : cfg.entries)
 			og.generate(chunk, random);
 	}
 

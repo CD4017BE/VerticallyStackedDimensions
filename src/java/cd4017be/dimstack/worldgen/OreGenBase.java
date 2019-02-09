@@ -1,22 +1,21 @@
-package cd4017be.dimstack.api;
+package cd4017be.dimstack.worldgen;
 
 import java.util.Random;
 
+import cd4017be.dimstack.api.gen.IOreGenerator;
 import cd4017be.dimstack.api.util.BlockPredicate;
-import cd4017be.dimstack.api.util.ICfgListEntry;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.Constants.NBT;
 
 /**
- * Super type of {@link OreGeneration} entries. Generates a specific ore type in a dimension.
+ * Template for generating ore veins.
  * @author CD4017BE
  */
-public abstract class OreGenerator implements ICfgListEntry {
+public abstract class OreGenBase implements IOreGenerator {
 
 	private final float veins;
 	/** number of blocks per vein */
@@ -26,14 +25,14 @@ public abstract class OreGenerator implements ICfgListEntry {
 	/** filter for which blocks to generate in */
 	protected final BlockPredicate target;
 
-	protected OreGenerator(NBTTagCompound tag) {
+	protected OreGenBase(NBTTagCompound tag) {
 		this.veins = tag.getFloat("vpc");
 		this.size = tag.getShort("bpv");
 		this.target = BlockPredicate.loadNBT(tag.getTagList("target", NBT.TAG_STRING));
 		this.ore = BlockPredicate.parse(tag.getString("ore"));
 	}
 
-	protected OreGenerator(IBlockState ore, int size, float veins, BlockPredicate target) {
+	protected OreGenBase(IBlockState ore, int size, float veins, BlockPredicate target) {
 		this.size = size;
 		this.ore = ore;
 		this.target = target;
@@ -53,13 +52,6 @@ public abstract class OreGenerator implements ICfgListEntry {
 	protected int veins(Random rand) {
 		return MathHelper.floor(veins + rand.nextFloat());
 	}
-
-	/**
-	 * called during chunk population to generates the ores in the world
-	 * @param chunk world and chunk position to generate for
-	 * @param rand world gen random
-	 */
-	public abstract void generate(Chunk chunk, Random rand);
 
 	/**
 	 * generates a basic ore vein of this generator's ore block, vein size, and target block filter

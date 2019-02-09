@@ -1,8 +1,7 @@
-package cd4017be.dimstack.api.oregen;
+package cd4017be.dimstack.worldgen;
 
 import java.util.Random;
 
-import cd4017be.dimstack.api.OreGenerator;
 import cd4017be.dimstack.api.util.BlockPredicate;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -13,7 +12,7 @@ import net.minecraft.world.chunk.Chunk;
  * 
  * @author CD4017BE
  */
-public class OreGenCentered extends OreGenerator {
+public class OreGenCentered extends OreGenBase {
 
 	final int baseY;
 	final float min, max;
