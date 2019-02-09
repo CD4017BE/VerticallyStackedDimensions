@@ -9,9 +9,9 @@ import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.DisableVanillaOres;
 import cd4017be.dimstack.api.OreGeneration;
 import cd4017be.dimstack.api.OreGenerator;
-import cd4017be.dimstack.api.OreGeneration.OreGenCentered;
-import cd4017be.dimstack.api.OreGeneration.OreGenEven;
-import cd4017be.dimstack.api.OreGeneration.OreGenGaussian;
+import cd4017be.dimstack.api.oregen.OreGenCentered;
+import cd4017be.dimstack.api.oregen.OreGenEven;
+import cd4017be.dimstack.api.oregen.OreGenGaussian;
 import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
@@ -71,7 +71,7 @@ public class OreGen implements IWorldGenerator, IRecipeHandler {
 		OreGeneration cfg = PortalConfiguration.get(world).getSettings(OreGeneration.class, false);
 		if (cfg == null) return;
 		Chunk chunk = chunkProvider.provideChunk(cx, cy);
-		for (OreGenerator og : cfg.generators)
+		for (OreGenerator og : cfg.entries)
 			og.generate(chunk, random);
 	}
 
@@ -84,20 +84,14 @@ public class OreGen implements IWorldGenerator, IRecipeHandler {
 		IBlockState ore = BlockPredicate.parse(stack);
 		double[] heights = param.getVectorOrAll(6);
 		
-		switch(OreGeneration.getType(param.getString(5))) {
-		case OreGenEven.ID:
-			cfg.generators.add(
-				new OreGenEven(ore, stack.getCount(), veins, target, (int)heights[0], (int)heights[1])
-			); break;
-		case OreGenCentered.ID:
-			cfg.generators.add(
-				new OreGenCentered(ore, stack.getCount(), veins, target, (int)heights[0], (int)heights[1], (int)heights[2])
-			); break;
-		case OreGenGaussian.ID:
-			cfg.generators.add(
-				new OreGenGaussian(ore, stack.getCount(), veins, target, (float)heights[0], (float)heights[1])
-			); break;
-		}
+		String type = param.getString(5);
+		if (type.startsWith("even"))
+			cfg.entries.add(new OreGenEven(ore, stack.getCount(), veins, target, (int)heights[0], (int)heights[1]));
+		else if (type.startsWith("center"))
+			cfg.entries.add(new OreGenCentered(ore, stack.getCount(), veins, target, (int)heights[0], (int)heights[1], (int)heights[2]));
+		else if (type.startsWith("gauss"))
+			cfg.entries.add(new OreGenGaussian(ore, stack.getCount(), veins, target, (float)heights[0], (float)heights[1]));
+		else throw new IllegalArgumentException("invalid ore distribution mode: " + type);
 	}
 
 }
