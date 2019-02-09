@@ -25,6 +25,7 @@ import static cd4017be.dimstack.core.PortalConfiguration.*;
  */
 public class Dimensionstack extends API {
 
+	private static final int FILE_VERSION = 1;
 	private NBTTagCompound defaultCfg;
 	private File cfgFile;
 
@@ -133,6 +134,7 @@ public class Dimensionstack extends API {
 			stack.clear();
 		}
 		nbt.setTag("stacks", stacks);
+		nbt.setByte("version", (byte)FILE_VERSION);
 	}
 
 
@@ -148,15 +150,23 @@ public class Dimensionstack extends API {
 			reload = false;
 		}
 		File file = new File(dir, "dimensionstack.dat");
-		try {
-			if (file.exists()) {
-				load(CompressedStreamTools.read(file));
-				Main.LOG.info("Dimension stack configuration file for world {} sucessfully loaded.", dir.getName());
-				reload = false;
-			} else {
+		try { 
+			do {
+				if (file.exists()) {
+					NBTTagCompound nbt = CompressedStreamTools.read(file);
+					int v = nbt.getByte("version") & 0xff;
+					if (v >= FILE_VERSION) {
+						load(nbt);
+						Main.LOG.info("Dimension stack configuration file for world {} sucessfully loaded.", dir.getName());
+						reload = false;
+						break;//skip
+					}
+					Main.LOG.warn("Dimension stack configuration file has outdated format!");
+					file.renameTo(new File(dir, "dimensionstack.dat.old"));
+				}
 				CompressedStreamTools.write(defaultCfg, file);
 				Main.LOG.info("new dimension stack configuration file for world {} sucessfully created.", dir.getName());
-			}
+			} while(false);//end skip
 			cfgFile = file;
 		} catch (IOException e) {
 			cfgFile = null;
