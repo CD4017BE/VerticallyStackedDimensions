@@ -1,10 +1,13 @@
 package cd4017be.dimstack.worldgen;
 
+import cd4017be.api.recipes.RecipeAPI;
 import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
 import cd4017be.dimstack.api.TerrainGeneration;
 import cd4017be.dimstack.api.gen.ITerrainGenerator;
+import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
@@ -23,6 +26,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 	public TerrainGenHandler() {
 		MinecraftForge.TERRAIN_GEN_BUS.register(this);
 		MinecraftForge.EVENT_BUS.register(this);
+		RecipeAPI.Handlers.put(SimpleLayerGen.ID, this);
 	}
 
 	@SubscribeEvent
@@ -32,7 +36,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 			cfg.setupNoiseGens(event.getNewValues(), event.getRandom());
 	}
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	@SubscribeEvent(priority = EventPriority.HIGH)
 	public void generate(ReplaceBiomeBlocks event) {
 		TerrainGeneration cfg = PortalConfiguration.get(event.getWorld()).getSettings(TerrainGeneration.class, false);
 		if (cfg == null) return;
@@ -45,8 +49,25 @@ public class TerrainGenHandler implements IRecipeHandler {
 
 	@Override
 	public void addRecipe(Parameters param) {
-		// TODO Auto-generated method stub
-		
+		ITerrainGenerator gen;
+		String key = param.getString(0);
+		if (key.equals(SimpleLayerGen.ID)) {
+			double[] vec = param.getVectorOrAll(3);
+			int l = vec.length;
+			int y0, y1, eb = 0, et = 0;
+			if (l == 2) {
+				y0 = (int)vec[0];
+				y1 = (int)vec[1];
+			} else if (l == 4) {
+				y0 = (int)vec[1];
+				y1 = (int)vec[2];
+				eb = y0 - (int)vec[0];
+				et = (int)vec[3] - y1;
+			} else throw new IllegalArgumentException("expected 2 or 4 height values @ " + 3);
+			gen = new SimpleLayerGen(BlockPredicate.parse(param.get(2, ItemStack.class)), y0, y1, eb, et);
+		} else return;
+		TerrainGeneration cfg = PortalConfiguration.get(param.getIndex(1)).getSettings(TerrainGeneration.class, true);
+		cfg.entries.add(gen);
 	}
 
 }

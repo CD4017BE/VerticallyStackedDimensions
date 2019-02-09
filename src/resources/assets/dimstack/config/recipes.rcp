@@ -1,4 +1,4 @@
-VERSION = 12;
+VERSION = 13;
 
 {
 	!Each array entry is a vector [a, b, ...]# containing dimension IDs that should be stacked on top of each other via portals (order bottom to top).
@@ -39,6 +39,11 @@ INIT() {
 	add("bedrockRepl", -1, it("minecraft:obsidian"), [123, 128]#);
 	
 	if (gen_topNether >= 0) {
+		!obsidian layer between top and bottom nether
+		add("basicLayer", -1, it("minecraft:obsidian"), [128, 128, 129, 133]#);
+		!just for fun
+		add("basicLayer", -1, it("minecraft:cobblestone"), [240, 244, 246, 250]#);
+		
 		!top nether ores
 		!add("oregen", <dimId>, <repBlocks>, <veinsPerChunk>, <blocksPerVein> * it(<oreBlock>), <mode>, <heights>...);
 		!The "even" mode takes a minimum and a maximum height and distributes ore veins evenly between them.

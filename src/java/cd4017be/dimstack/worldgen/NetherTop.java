@@ -4,6 +4,7 @@ import java.util.Random;
 
 import cd4017be.dimstack.api.NetherGen;
 import cd4017be.dimstack.api.NetherGen.Type;
+import cd4017be.dimstack.api.TerrainGeneration;
 import cd4017be.dimstack.core.PortalConfiguration;
 import net.minecraft.block.BlockStone;
 import net.minecraft.block.material.Material;
@@ -39,8 +40,7 @@ public class NetherTop {
 			GRAVEL = Blocks.GRAVEL.getDefaultState(),
 			AIR = Blocks.AIR.getDefaultState(),
 			SAND = Blocks.SAND.getDefaultState(),
-			SANDSTONE = Blocks.SANDSTONE.getDefaultState(),
-			OBSIDIAN = Blocks.OBSIDIAN.getDefaultState();
+			SANDSTONE = Blocks.SANDSTONE.getDefaultState();
 	private WorldGenerator genDirt, genGravel, genGranite, genDiorite, genAndesite;
 	private NoiseGeneratorOctaves depth, scale, perlin1, perlin2, perlin3, Lperlin1, Lperlin2;
 	private double[] dr, sr, pr, ssr, gvr, p3r, ar, br;
@@ -61,6 +61,10 @@ public class NetherTop {
 			genGranite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE), 33);
 			genDiorite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE), 33);
 			genAndesite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE), 33);
+		}
+		if (cfg.genMode == Type.SOLID_ROCK) {
+			TerrainGeneration tg = PortalConfiguration.get(-1).getSettings(TerrainGeneration.class, true);
+			tg.entries.add(new SimpleLayerGen(STONE, 128, 256, 0, 0));
 		}
 	}
 
@@ -89,9 +93,6 @@ public class NetherTop {
 		case MIRROR_NETHER:
 			prepareHeights(cx, cz, primer);
 			buildSurfaces(cx, cz, primer);
-			break;
-		case SOLID_ROCK:
-			fill(cx, cz, primer);
 			break;
 		}
 	}
@@ -219,53 +220,41 @@ public class NetherTop {
 				IBlockState stateT = STONE;
 				IBlockState stateB = STONE;
 				for (int y = 255; y >= 128; --y) {
-					if (y > 127 + this.rand.nextInt(5)) {
-						IBlockState state = primer.getBlockState(x, y, z);
-						if (state.getBlock() != null && state.getMaterial() != Material.AIR) {
-							if (state.getBlock() == Blocks.STONE) {
-								if (str == -1) {
-									if (thick <= 0) {
-										stateT = AIR;
+					IBlockState state = primer.getBlockState(x, y, z);
+					if (state.getBlock() != null && state.getMaterial() != Material.AIR) {
+						if (state.getBlock() == Blocks.STONE) {
+							if (str == -1) {
+								if (thick <= 0) {
+									stateT = AIR;
+									stateB = STONE;
+								} else if (y >= msl - 4 && y <= msl + 1) {//around msl
+									stateT = STONE;
+									stateB = STONE;
+									if (genGv) {
+										stateT = GRAVEL;
 										stateB = STONE;
-									} else if (y >= msl - 4 && y <= msl + 1) {//around msl
-										stateT = STONE;
-										stateB = STONE;
-										if (genGv) {
-											stateT = GRAVEL;
-											stateB = STONE;
-										}
-										if (genSs) {
-											stateT = SAND;
-											stateB = SANDSTONE;
-										}
 									}
-									if (y < msl && (stateT == null || stateT.getMaterial() == Material.AIR))
-										stateT = WATER;
-									str = thick;
-									if (y >= msl - 1)
-										primer.setBlockState(x, y, z, stateT);
-									else
-										primer.setBlockState(x, y, z, stateB);
-								} else if (str > 0) {
-									--str;
-									primer.setBlockState(x, y, z, stateB);
+									if (genSs) {
+										stateT = SAND;
+										stateB = SANDSTONE;
+									}
 								}
+								if (y < msl && (stateT == null || stateT.getMaterial() == Material.AIR))
+									stateT = WATER;
+								str = thick;
+								if (y >= msl - 1)
+									primer.setBlockState(x, y, z, stateT);
+								else
+									primer.setBlockState(x, y, z, stateB);
+							} else if (str > 0) {
+								--str;
+								primer.setBlockState(x, y, z, stateB);
 							}
-						} else str = -1;
-					} else primer.setBlockState(x, y, z, OBSIDIAN);
+						}
+					} else str = -1;
 				}
 			}
 		}
-	}
-
-	public void fill(int chunkX, int chunkZ, ChunkPrimer primer) {
-		for (int z = 0; z < 16; ++z)
-			for (int x = 0; x < 16; ++x)
-				for (int y = 255; y >= 128; --y)
-					if (y > 127 + this.rand.nextInt(5))
-						primer.setBlockState(x, y, z, STONE);
-					else
-						primer.setBlockState(x, y, z, OBSIDIAN);
 	}
 
 }
