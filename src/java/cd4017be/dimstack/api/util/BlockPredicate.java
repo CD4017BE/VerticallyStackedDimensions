@@ -1,4 +1,4 @@
-package cd4017be.dimstack.cfg;
+package cd4017be.dimstack.api.util;
 
 import java.util.Arrays;
 import java.util.Random;

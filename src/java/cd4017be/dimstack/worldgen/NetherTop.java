@@ -2,8 +2,8 @@ package cd4017be.dimstack.worldgen;
 
 import java.util.Random;
 
-import cd4017be.dimstack.cfg.NetherGen;
-import cd4017be.dimstack.cfg.NetherGen.Type;
+import cd4017be.dimstack.api.NetherGen;
+import cd4017be.dimstack.api.NetherGen.Type;
 import cd4017be.dimstack.core.PortalConfiguration;
 import net.minecraft.block.BlockStone;
 import net.minecraft.block.material.Material;

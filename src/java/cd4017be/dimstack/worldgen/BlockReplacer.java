@@ -4,9 +4,9 @@ import java.util.Random;
 
 import cd4017be.api.recipes.RecipeAPI;
 import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
-import cd4017be.dimstack.cfg.BlockPredicate;
-import cd4017be.dimstack.cfg.BlockReplacements;
-import cd4017be.dimstack.cfg.BlockReplacements.Replacement;
+import cd4017be.dimstack.api.BlockReplacements;
+import cd4017be.dimstack.api.BlockReplacements.Replacement;
+import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
 import net.minecraft.block.state.IBlockState;

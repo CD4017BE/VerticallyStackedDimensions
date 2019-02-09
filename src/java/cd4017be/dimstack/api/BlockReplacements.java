@@ -1,7 +1,8 @@
-package cd4017be.dimstack.cfg;
+package cd4017be.dimstack.api;
 
 import java.util.ArrayList;
 
+import cd4017be.dimstack.api.util.BlockPredicate;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
