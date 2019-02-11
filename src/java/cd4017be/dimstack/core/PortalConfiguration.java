@@ -44,6 +44,8 @@ public class PortalConfiguration implements IDimension, IWorldEventListener {
 	private HashMap<Class<?extends IDimensionSettings>, IDimensionSettings> settings = new HashMap<>();
 	/** this dimension has chunks with missing portal top layer */
 	boolean topOpen = false;
+	/** the dimension height level */
+	private int height = Integer.MIN_VALUE;
 
 	/** chunk loading ticket for this dimension */
 	Ticket loadingTicket;
@@ -79,6 +81,36 @@ public class PortalConfiguration implements IDimension, IWorldEventListener {
 			if (pc1 == this)
 				return null;
 		return pc;
+	}
+
+	@Override
+	public int height() {
+		if (height == Integer.MIN_VALUE)
+			computeHeights();
+		return height;
+	}
+
+	private void computeHeights() {
+		PortalConfiguration pc = bottom(), end;
+		if (pc == null) {
+			pc = neighbourUp;
+			end = this;
+		} else end = null;
+		int base = dimId, abs = Math.abs(dimId);
+		for (; pc != end; pc = pc.neighbourUp) {
+			int d = pc.dimId, a = Math.abs(d);
+			if (a < abs || a == abs && d < base) {
+				abs = a;
+				base = d;
+			}
+		}
+		pc = get(base);
+		for (int h = 0; pc != null; pc = pc.neighbourUp, h++)
+			if (h > 0 && pc.dimId == base) return;
+			else pc.height = h;
+		pc = get(base).neighbourDown;
+		for (int h = -1; pc != null; pc = pc.neighbourDown, h--)
+			pc.height = h;
 	}
 
 	private void unlink() {

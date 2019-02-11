@@ -14,6 +14,11 @@ public interface IDimension {
 	int id();
 
 	/**
+	 * @return the height of this dimension in the stack (relative to an arbitrary "ground level" dimension)
+	 */
+	int height();
+
+	/**
 	 * @return the destination when traversing up (null for regular world border)
 	 */
 	IDimension up();
@@ -22,6 +27,17 @@ public interface IDimension {
 	 * @return the destination when traversing down (null for regular world border)
 	 */
 	IDimension down();
+
+	/**
+	 * @param n number of dimension to move up (negative to move down)
+	 * @return the destination when traversing n dimensions up (null if end of stack is reached)
+	 */
+	default IDimension move(int n) {
+		IDimension d = this;
+		if (n > 0) while(--n >= 0 && d != null) d = d.up();
+		else while(++n <= 0 && d != null) d = d.down();
+		return d;
+	}
 
 	/**
 	 * @return the highest dimension in current stack or null if looped
