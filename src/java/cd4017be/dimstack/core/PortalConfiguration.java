@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.IDimension;
-import cd4017be.dimstack.api.IDimensionSettings;
+import cd4017be.dimstack.api.util.SettingProvider;
 import cd4017be.dimstack.block.Portal;
 import cd4017be.dimstack.worldgen.PortalGen;
 import cd4017be.lib.util.DimPos;
@@ -13,9 +13,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -32,7 +29,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
  * 
  * @author cd4017be
  */
-public class PortalConfiguration implements IDimension, IWorldEventListener {
+public class PortalConfiguration extends SettingProvider implements IDimension, IWorldEventListener {
 
 	/** the dimension id this refers to */
 	public final int dimId;
@@ -40,8 +37,6 @@ public class PortalConfiguration implements IDimension, IWorldEventListener {
 	private PortalConfiguration neighbourUp;
 	/** the destination when traversing down (null for regular world border) */
 	private PortalConfiguration neighbourDown;
-	/** additional dimension settings mapped by type */
-	private HashMap<Class<?extends IDimensionSettings>, IDimensionSettings> settings = new HashMap<>();
 	/** this dimension has chunks with missing portal top layer */
 	boolean topOpen = false;
 	/** the dimension height level */
@@ -146,43 +141,6 @@ public class PortalConfiguration implements IDimension, IWorldEventListener {
 	@Override
 	public WorldServer getWorld() {
 		return FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(dimId);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T extends IDimensionSettings> T getSettings(Class<T> type, boolean create) {
-		return (T)(create ?
-			settings.computeIfAbsent(type, IDimensionSettings::newInstance)
-			: settings.get(type));
-	}
-
-	void loadSettings(NBTTagList nbt) {
-		for (NBTBase tag : nbt) {
-			NBTTagCompound ctag = (NBTTagCompound)tag;
-			String cname = ctag.getString("class");
-			try {
-				Class<?> c = Class.forName(cname);
-				if (IDimensionSettings.class.isAssignableFrom(c)) {
-					@SuppressWarnings("unchecked")
-					IDimensionSettings setting = getSettings((Class<? extends IDimensionSettings>)c, true);
-					if (setting != null) setting.deserializeNBT(ctag);
-				} else Main.LOG.warn("Can't load entry for dimension {}: Invalid class {} doesn't implement IDimensionSettings", this, cname);
-			} catch (ClassNotFoundException e) {
-				Main.LOG.warn("Can't load entry for dimension {}: Class {} not found!", this, cname);
-			}
-		}
-	}
-
-	NBTTagList saveSettings() {
-		NBTTagList cfg = new NBTTagList();
-		for (IDimensionSettings s : settings.values()) {
-			NBTTagCompound tag = s.serializeNBT();
-			if (tag != null && !tag.hasNoTags()) {
-				tag.setString("class", s.getClass().getName());
-				cfg.appendTag(tag);
-			}
-		}
-		return cfg;
 	}
 
 	/**

@@ -2,11 +2,12 @@ package cd4017be.dimstack.core;
 
 import java.io.File;
 import java.io.IOException;
-
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.API;
 import cd4017be.dimstack.api.IDimension;
+import cd4017be.dimstack.api.IDimensionSettings;
+import cd4017be.dimstack.api.util.SettingProvider;
 import cd4017be.dimstack.worldgen.OreGenHandler;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -74,6 +75,35 @@ public class Dimensionstack extends API {
 			}
 	}
 
+	private static void loadSettings(SettingProvider sp, NBTTagList nbt) {
+		for (NBTBase tag : nbt) {
+			NBTTagCompound ctag = (NBTTagCompound)tag;
+			String cname = ctag.getString("class");
+			try {
+				Class<?> c = Class.forName(cname);
+				if (IDimensionSettings.class.isAssignableFrom(c)) {
+					@SuppressWarnings("unchecked")
+					IDimensionSettings setting = sp.getSettings((Class<? extends IDimensionSettings>)c, true);
+					if (setting != null) setting.deserializeNBT(ctag);
+				} else Main.LOG.warn("Can't load entry for dimension {}: Invalid class {} doesn't implement IDimensionSettings", sp, cname);
+			} catch (ClassNotFoundException e) {
+				Main.LOG.warn("Can't load entry for dimension {}: Class {} not found!", sp, cname);
+			}
+		}
+	}
+
+	private static NBTTagList saveSettings(SettingProvider sp) {
+		NBTTagList cfg = new NBTTagList();
+		for (IDimensionSettings s : sp.getAllSettings()) {
+			NBTTagCompound tag = s.serializeNBT();
+			if (tag != null && !tag.hasNoTags()) {
+				tag.setString("class", s.getClass().getName());
+				cfg.appendTag(tag);
+			}
+		}
+		return cfg;
+	}
+
 	/**
 	 * reload all dimension stack info and settings
 	 * @param nbt data to load from
@@ -87,12 +117,13 @@ public class Dimensionstack extends API {
 			PortalConfiguration pc = get(dim);
 			if (pc.up() != null) pc.topOpen = true;
 		}
+		getAllSettings().clear();
 		for (String key : nbt.getKeySet())
 			try {
-				int dim = Integer.parseInt(key);
+				SettingProvider sp = key.equals("global") ? this : get(Integer.parseInt(key));
 				NBTTagList cfg = nbt.getTagList(key, NBT.TAG_COMPOUND);
 				if (!cfg.hasNoTags())
-					get(dim).loadSettings(cfg);
+					loadSettings(sp, cfg);
 			} catch(NumberFormatException e) {}
 		cfgModified = false;
 	}
@@ -103,12 +134,14 @@ public class Dimensionstack extends API {
 	 */
 	public void save(NBTTagCompound nbt) {
 		IntOpenHashSet bottoms = new IntOpenHashSet(), loops = new IntOpenHashSet();
+		NBTTagList cfg = saveSettings(this);
+		if (!cfg.hasNoTags())
+			nbt.setTag("global", cfg);
 		for (PortalConfiguration pc : dimensions.values()) {
 			PortalConfiguration bot = pc.bottom();
 			if (bot == null) loops.add(pc.dimId);
 			else if (bot != pc) bottoms.add(bot.dimId);
-			NBTTagList cfg = pc.saveSettings();
-			if (!cfg.hasNoTags())
+			if (!(cfg = saveSettings(pc)).hasNoTags())
 				nbt.setTag(pc.toString(), cfg);
 		}
 		NBTTagList stacks = new NBTTagList();

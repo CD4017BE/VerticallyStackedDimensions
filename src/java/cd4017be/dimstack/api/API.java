@@ -1,12 +1,13 @@
 package cd4017be.dimstack.api;
 
+import cd4017be.dimstack.api.util.SettingProvider;
 import net.minecraft.world.World;
 
 /**
  * The central dimension stack API.
  * @author CD4017BE
  */
-public abstract class API {
+public abstract class API extends SettingProvider {
 
 	/**
 	 * the API implementation which gets set during PRE_INIT phase

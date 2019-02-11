@@ -55,13 +55,6 @@ public interface IDimension {
 	WorldServer getWorld();
 
 	/**
-	 * @param type setting type
-	 * @param create whether to create a new settings instance if absent
-	 * @return the settings of given type
-	 */
-	<T extends IDimensionSettings> T getSettings(Class<T> type, boolean create);
-
-	/**
 	 * attempts to add the given dimension into an dimension stack by placing it between this dimension and this.{@link #up()}.<dl>
 	 * Note: this method should not be used anymore after the server has started loading a world
 	 * @param dim the dimension to insert on top
