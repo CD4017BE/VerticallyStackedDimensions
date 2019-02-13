@@ -21,4 +21,10 @@ public interface ITerrainGenerator extends ICfgListEntry {
 	 */
 	void generate(IChunkGenerator gen, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg);
 
+	/**
+	 * called during noise generator initialization event
+	 * @param cfg Terrain generation settings
+	 */
+	default void initNoise(TerrainGeneration cfg) {}
+
 }

@@ -2,14 +2,15 @@ package cd4017be.dimstack.worldgen;
 
 import cd4017be.api.recipes.RecipeAPI;
 import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
+import cd4017be.dimstack.api.SharedNoiseFields;
 import cd4017be.dimstack.api.TerrainGeneration;
 import cd4017be.dimstack.api.gen.ITerrainGenerator;
 import cd4017be.dimstack.api.util.BlockPredicate;
+import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.IChunkGenerator;
+import net.minecraft.world.World;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.ChunkGeneratorEvent.ReplaceBiomeBlocks;
@@ -31,20 +32,20 @@ public class TerrainGenHandler implements IRecipeHandler {
 
 	@SubscribeEvent
 	public void init(InitNoiseGensEvent<Context> event) {
-		TerrainGeneration cfg = PortalConfiguration.get(event.getWorld()).getSettings(TerrainGeneration.class, false);
-		if (cfg != null)
-			cfg.setupNoiseGens(event.getNewValues(), event.getRandom());
+		World world = event.getWorld();
+		SharedNoiseFields snf = Dimensionstack.INSTANCE.getSettings(SharedNoiseFields.class, false);
+		if (snf != null) snf.init(world.getSeed());
+		
+		PortalConfiguration pc = PortalConfiguration.get(world);
+		TerrainGeneration cfg = pc.getSettings(TerrainGeneration.class, false);
+		if (cfg != null) cfg.setupNoiseGens(pc, event.getNewValues(), event.getRandom());
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public void generate(ReplaceBiomeBlocks event) {
 		TerrainGeneration cfg = PortalConfiguration.get(event.getWorld()).getSettings(TerrainGeneration.class, false);
-		if (cfg == null) return;
-		IChunkGenerator gen = event.getGen();
-		ChunkPrimer cp = event.getPrimer();
-		int cx = event.getX(), cz = event.getZ();
-		for (ITerrainGenerator tg : cfg.entries)
-			tg.generate(gen, cp, cx, cz, cfg);
+		if (cfg != null)
+			cfg.generate(event.getGen(), event.getPrimer(), event.getX(), event.getZ());
 	}
 
 	@Override
