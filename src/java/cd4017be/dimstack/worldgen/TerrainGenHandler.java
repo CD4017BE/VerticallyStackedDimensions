@@ -1,5 +1,6 @@
 package cd4017be.dimstack.worldgen;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -15,7 +16,9 @@ import cd4017be.dimstack.api.util.NoiseField;
 import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.NoiseGenerator;
@@ -40,6 +43,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 		MinecraftForge.EVENT_BUS.register(this);
 		RecipeAPI.Handlers.put(NOISE_FIELD, this);
 		RecipeAPI.Handlers.put(SimpleLayerGen.ID, this);
+		RecipeAPI.Handlers.put(NoiseLayerGen.ID, this);
 	}
 
 	@SubscribeEvent
@@ -94,6 +98,28 @@ public class TerrainGenHandler implements IRecipeHandler {
 				et = (int)vec[3] - y1;
 			} else throw new IllegalArgumentException("expected 2 or 4 height values @ " + 3);
 			gen = new SimpleLayerGen(BlockPredicate.parse(param.get(2, ItemStack.class)), y0, y1, eb, et);
+		} else if (key.equals(NoiseLayerGen.ID)) {
+			Object[] layers = param.getArray(2);
+			ArrayList<IBlockState> blocks = new ArrayList<>();
+			FloatArrayList levels = new FloatArrayList();
+			boolean lastB = false;
+			for (Object o : layers) {
+				if (o instanceof ItemStack) {
+					if (lastB) throw new IllegalArgumentException("Blocks must have discriminator values in between!");
+					lastB = true;
+					blocks.add(BlockPredicate.parse((ItemStack)o));
+				} else if (o instanceof Number) {
+					if (!lastB) blocks.add(null);
+					lastB = false;
+					levels.add(((Number)o).floatValue());
+				}
+			}
+			if (!lastB) blocks.add(null);
+			NoiseFieldCfg cfg = NoiseFieldCfg.REGISTRY.get(param.getString(4));
+			double gradient = param.getNumber(3) / (double)((1 << cfg.octaves) - 1);
+			double[] vec = param.getVectorOrAll(5);
+			int idx = cfg.getIndex(param.getIndex(1));
+			gen = new NoiseLayerGen(blocks.toArray(new IBlockState[blocks.size()]), levels.toFloatArray(), (float)gradient, (int)vec[0], (int)vec[1], idx);
 		} else return;
 		TerrainGeneration cfg = PortalConfiguration.get(param.getIndex(1)).getSettings(TerrainGeneration.class, true);
 		cfg.entries.add(gen);
