@@ -2,202 +2,120 @@ package cd4017be.dimstack.worldgen;
 
 import java.util.Random;
 
-import cd4017be.dimstack.api.NetherGen;
-import cd4017be.dimstack.api.NetherGen.Type;
 import cd4017be.dimstack.api.TerrainGeneration;
-import cd4017be.dimstack.core.PortalConfiguration;
-import net.minecraft.block.BlockStone;
+import cd4017be.dimstack.api.gen.ITerrainGenerator;
+import cd4017be.dimstack.api.util.BlockPredicate;
+import cd4017be.dimstack.api.util.NoiseField;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.NoiseGeneratorOctaves;
-import net.minecraft.world.gen.feature.WorldGenMinable;
-import net.minecraft.world.gen.feature.WorldGenerator;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.terraingen.ChunkGeneratorEvent.ReplaceBiomeBlocks;
-import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
-import net.minecraftforge.event.terraingen.InitNoiseGensEvent.ContextHell;
-import net.minecraftforge.event.terraingen.OreGenEvent.GenerateMinable.EventType;
-import net.minecraftforge.event.terraingen.PopulateChunkEvent;
-import net.minecraftforge.event.terraingen.TerrainGen;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraft.world.gen.IChunkGenerator;
 
-public class NetherTop {
+public class NetherTop implements ITerrainGenerator {
 
-	private static final int
-			M_MIRROR_NETHER = 1,
-			M_STONE_VAR = 2,
-			M_CAVES = 4; //TODO implement caves
-	private static final IBlockState
-			NETHERRACK = Blocks.NETHERRACK.getDefaultState(),
-			STONE = Blocks.STONE.getDefaultState(),
-			WATER = Blocks.WATER.getDefaultState(),
-			DIRT = Blocks.DIRT.getDefaultState(),
-			GRAVEL = Blocks.GRAVEL.getDefaultState(),
-			AIR = Blocks.AIR.getDefaultState(),
-			SAND = Blocks.SAND.getDefaultState(),
-			SANDSTONE = Blocks.SANDSTONE.getDefaultState();
-	private WorldGenerator genDirt, genGravel, genGranite, genDiorite, genAndesite;
-	private NoiseGeneratorOctaves depth, scale, perlin1, perlin2, perlin3, Lperlin1, Lperlin2;
-	private double[] dr, sr, pr, ssr, gvr, p3r, ar, br;
-	private double[] buffer;
-	private NetherGen cfg;
-	private Random rand;
+	public static final String ID = "nether";
 
-	public NetherTop(int mode) {
-		this.cfg = PortalConfiguration.get(-1).getSettings(NetherGen.class, true);
-		cfg.genMode = (mode & M_MIRROR_NETHER) != 0 ? Type.MIRROR_NETHER : Type.SOLID_ROCK;
-		//mods commonly use 0 for their ore-gen, so this runs just before.
-		//GameRegistry.registerWorldGenerator(this, -2);
-		MinecraftForge.EVENT_BUS.register(this);
-		MinecraftForge.TERRAIN_GEN_BUS.register(this);
-		if (cfg.stoneVariants = (mode & M_STONE_VAR) != 0) {
-			genDirt = new WorldGenMinable(DIRT, 33);
-			genGravel = new WorldGenMinable(GRAVEL, 33);
-			genGranite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.GRANITE), 33);
-			genDiorite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.DIORITE), 33);
-			genAndesite = new WorldGenMinable(STONE.withProperty(BlockStone.VARIANT, BlockStone.EnumType.ANDESITE), 33);
-		}
-		if (cfg.genMode == Type.SOLID_ROCK) {
-			TerrainGeneration tg = PortalConfiguration.get(-1).getSettings(TerrainGeneration.class, true);
-			tg.entries.add(new SimpleLayerGen(STONE, 128, 256, 0, 0));
-		}
+	private double[] pr, ssr, gvr, p3r, ar, br;
+	private double[] buffer, vWaves;
+	private final IBlockState main, liquid, sand1B, sand1, sand2B, sand2;
+	private final int minY, maxY, lakeLvl, sandLvl, border;
+	private int fieldSize = 17, fieldOfs = 0;
+
+
+	public NetherTop(int minY, int maxY, int border, int lakeLvl, int sandLvl, IBlockState main, IBlockState liquid, IBlockState sand1b, IBlockState sand1, IBlockState sand2b, IBlockState sand2) {
+		this.main = main;
+		this.liquid = liquid;
+		this.sand1B = sand1b;
+		this.sand1 = sand1;
+		this.sand2B = sand2b;
+		this.sand2 = sand2;
+		this.minY = minY;
+		this.maxY = maxY;
+		this.lakeLvl = lakeLvl;
+		this.sandLvl = sandLvl;
+		this.border = border;
+		initVertTerrain();
 	}
 
-	@SubscribeEvent
-	public void init(InitNoiseGensEvent<ContextHell> event) {
-		if (event.getWorld().provider.isNether()) {
-			ContextHell c = event.getNewValues();
-			this.depth = c.getDepth();
-			this.scale = c.getScale();
-			this.perlin1 = c.getPerlin(); //+-255
-			this.perlin2 = c.getPerlin2();
-			this.perlin3 = c.getPerlin3();
-			this.Lperlin1 = c.getLPerlin1(); //+-65535
-			this.Lperlin2 = c.getLPerlin2(); //+-65535
-			this.rand = event.getRandom();
-			this.cfg = PortalConfiguration.get(-1).getSettings(NetherGen.class, true);
-		}
+	public NetherTop(NBTTagCompound nbt) {
+		this.main = BlockPredicate.parse(nbt.getString("main"));
+		this.liquid = BlockPredicate.parse(nbt.getString("liquid"));
+		this.sand1B = BlockPredicate.parse(nbt.getString("sand1B"));
+		this.sand1 = BlockPredicate.parse(nbt.getString("sand1"));
+		this.sand2B = BlockPredicate.parse(nbt.getString("sand2B"));
+		this.sand2 = BlockPredicate.parse(nbt.getString("sand2"));
+		this.lakeLvl = nbt.getByte("lakeY") & 0xff;
+		this.sandLvl = nbt.getByte("sandY") & 0xff;
+		this.minY = nbt.getByte("minY") & 0xff;
+		this.maxY = (nbt.getByte("maxY") & 0xff) + 1;
+		this.border = nbt.getByte("border");
+		initVertTerrain();
 	}
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
-	public void generate(ReplaceBiomeBlocks event) {
-		if (event.getWorld().provider.getDimension() != -1) return;
-		int cx = event.getX(), cz = event.getZ();
-		ChunkPrimer primer = event.getPrimer();
-		switch(cfg.genMode) {
-		case MIRROR_NETHER:
-			prepareHeights(cx, cz, primer);
-			buildSurfaces(cx, cz, primer);
-			break;
-		}
-	}
-
-	@SubscribeEvent
-	public void populate(PopulateChunkEvent.Pre event) {
-		if (!cfg.stoneVariants) return;
-		World world = event.getWorld();
-		Random rand = event.getRand();
-		BlockPos pos = new BlockPos(event.getChunkX() << 4, 128, event.getChunkZ() << 4);
-		if (TerrainGen.generateOre(world, rand, genDirt, pos, EventType.DIRT))
-			for (int i = 0; i < 10; i++)
-				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
-		if (TerrainGen.generateOre(world, rand, genGravel, pos, EventType.GRAVEL))
-			for (int i = 0; i < 8; i++)
-				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
-		if (TerrainGen.generateOre(world, rand, genGranite, pos, EventType.GRANITE))
-			for (int i = 0; i < 10; i++)
-				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
-		if (TerrainGen.generateOre(world, rand, genDiorite, pos, EventType.DIORITE))
-			for (int i = 0; i < 10; i++)
-				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
-		if (TerrainGen.generateOre(world, rand, genAndesite, pos, EventType.ANDESITE))
-			for (int i = 0; i < 10; i++)
-				genDirt.generate(world, rand, pos.add(rand.nextInt(16), rand.nextInt(128), rand.nextInt(16)));
-	}
-
-	public void prepareHeights(int chunkX, int chunkZ, ChunkPrimer primer) {
-		int msl = 160;
-		final int sx = 4, sy = 8, sz = 4;
-		final int nx = 5, ny = 17, nz = 5;
-		this.buffer = this.getHeights(this.buffer, chunkX * 4, 16, chunkZ * 4, nx, ny, nz);
-		for (int X = 0; X < 4; ++X) {
-			for (int Z = 0; Z < 4; ++Z) {
-				for (int Y = 0; Y < 16; ++Y) {
-					double f00 = this.buffer[((X + 0) * nx + Z + 0) * ny + Y + 0];
-					double f01 = this.buffer[((X + 0) * nx + Z + 1) * ny + Y + 0];
-					double f10 = this.buffer[((X + 1) * nx + Z + 0) * ny + Y + 0];
-					double f11 = this.buffer[((X + 1) * nx + Z + 1) * ny + Y + 0];
-					double d00 = (this.buffer[((X + 0) * nx + Z + 0) * ny + Y + 1] - f00) / (double)sy;
-					double d01 = (this.buffer[((X + 0) * nx + Z + 1) * ny + Y + 1] - f01) / (double)sy;
-					double d10 = (this.buffer[((X + 1) * nx + Z + 0) * ny + Y + 1] - f10) / (double)sy;
-					double d11 = (this.buffer[((X + 1) * nx + Z + 1) * ny + Y + 1] - f11) / (double)sy;
-					for (int y = 0; y < sy; ++y) {
-						double f0 = f00;
-						double f1 = f01;
-						double d0 = (f10 - f00) / (double)sx;
-						double d1 = (f11 - f01) / (double)sx;
-						for (int x = 0; x < sx; ++x) {
-							double f = f0;
-							double d = (f1 - f0) / (double)sz;
-							for (int z = 0; z < sz; ++z) {
-								int bx = x + X * 4;
-								int by = y + Y * 8 + 128;
-								int bz = z + Z * 4;
-								IBlockState state = null;
-								if (by < msl) state = WATER;
-								if (f > 0.0D) state = STONE;
-								primer.setBlockState(bx, by, bz, state);
-								f += d;
-							}
-							f0 += d0;
-							f1 += d1;
-						}
-						f00 += d00;
-						f01 += d01;
-						f10 += d10;
-						f11 += d11;
-					}
-				}
-			}
-		}
-	}
-
-	private double[] getHeights(double[] data, int ox, int oy, int oz, int nx, int ny, int nz) {
-		if (data == null) data = new double[nx * ny * nz];
-		double dh = 684.412D;
-		double dv = 2053.236D;
-		//this.dr = this.depth.generateNoiseOctaves(this.dr, ox, oy, oz, nx, 1, nz, 100.0D, 0.0D, 100.0D);
-		this.pr = this.perlin1.generateNoiseOctaves(this.pr, ox, oy, oz, nx, ny, nz, dh / 80.0, dv / 60.0, dh / 80.0);
-		this.ar = this.Lperlin1.generateNoiseOctaves(this.ar, ox, oy, oz, nx, ny, nz, dh, dv, dh);
-		this.br = this.Lperlin2.generateNoiseOctaves(this.br, ox, oy, oz, nx, ny, nz, dh, dv, dh);
+	private void initVertTerrain() {
+		int y0 = minY / 8, y1 = (maxY - 1) / 8 + 1;
+		int ny = y1 - y0 + 1;
+		this.fieldSize = ny;
+		this.fieldOfs = y0 * 8;
 		double[] vWaves = new double[ny];
+		double b = (double)this.border / 8.0;
 		for (int y = 0; y < ny; ++y) {
-			vWaves[y] = Math.cos((double)y * Math.PI * 6.0D / (double)ny) * 2.0D; //3 vollkreise (2, 0, -2, 0, 2, 0, -2, 0, 2, 0, -2, 0, 2)
+			vWaves[y] = Math.cos((double)(y + y0) * Math.PI * 6.0D / 16.0) * 2.0D; //6 full circles over 256 blocks
 			double yEdge = (double)y;
 			if (y > ny / 2) yEdge = (double)(ny - 1 - y);
-			if (yEdge < 4.0D) {
-				yEdge = 4.0D - yEdge;
-				vWaves[y] -= yEdge * yEdge * yEdge * 10.0D; //dämpfung an rändern (-10(4-y)³)
+			if (yEdge < b) {
+				yEdge = 1.0 - yEdge / b;
+				vWaves[y] -= yEdge * yEdge * yEdge * 640.0D; //dampening on edge
 			}
 		}
+		this.vWaves = vWaves;
+	}
+
+	@Override
+	public String getRegistryName() {
+		return ID;
+	}
+
+	@Override
+	public NBTTagCompound writeNBT() {
+		return new NBTTagCompound();
+	}
+
+	@Override
+	public void generate(IChunkGenerator gen, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg) {
+		this.buffer = getHeights(this.buffer, cx * 4, fieldOfs, cz * 4, 5, fieldSize, 5, cfg);
+		final IBlockState main = this.main, liquid = this.liquid;
+		final int msl = this.lakeLvl;
+		NoiseField.interpolate3D(buffer, 4, 8, fieldOfs * 8, minY, maxY, (x, y, z, f)->
+			cp.setBlockState(x, y, z, f > 0.0 ? main : y < msl ? liquid : null));
+		
+		buildSurfaces(cx, cz, cp, cfg);
+	}
+
+	private double[] getHeights(double[] data, int ox, int oy, int oz, int nx, int ny, int nz, TerrainGeneration cfg) {
+		if (data == null) data = new double[nx * ny * nz];
+		final double dh = 684.412D;
+		final double dv = 2053.236D;
+		final double[] pr = this.pr = cfg.perlin.generateNoiseOctaves(this.pr, ox, oy, oz, nx, ny, nz, dh / 80.0, dv / 60.0, dh / 80.0);
+		final double[] ar = this.ar = cfg.l_perlin1.generateNoiseOctaves(this.ar, ox, oy, oz, nx, ny, nz, dh, dv, dh);
+		final double[] br = this.br = cfg.l_perlin2.generateNoiseOctaves(this.br, ox, oy, oz, nx, ny, nz, dh, dv, dh);
+		final double[] vWaves = this.vWaves;
 		int i = 0;
+		double border = (double)this.border / 8.0;
 		for (int x = 0; x < nx; ++x)
 			for (int z = 0; z < nz; ++z)
 				for (int y = 0; y < ny; ++y) {
-					double a = this.ar[i] / 512.0D;
-					double b = this.br[i] / 512.0D;
-					double weight = (this.pr[i] / 10.0D + 1.0D) / 2.0D;
+					double a = ar[i] / 512.0D;
+					double b = br[i] / 512.0D;
+					double weight = (pr[i] / 10.0D + 1.0D) / 2.0D;
 					double val = weight < 0.0D ? a
 							: weight > 1.0D ? b
 							: a + (b - a) * weight;
 					val -= vWaves[y];
-					if (y > ny - 4) {
-						double edge = (double)(y - (ny - 4)) / 3.0; //edge 3 ... 0 -> 0.0 ... 1.0
+					if (ny - y < border) {
+						double edge = (border - (double)(ny - y)) / (border - 1.0); //edge 3 ... 0 -> 0.0 ... 1.0
 						val = val * (1.0D - edge) + -10.0D * edge; //interpolate edge 3 ... 0 -> val ... -10
 					}
 					data[i++] = val;
@@ -205,42 +123,48 @@ public class NetherTop {
 		return data;
 	}
 
-	public void buildSurfaces(int chunkX, int chunkZ, ChunkPrimer primer) {
-		final int msl = 192;
+	public void buildSurfaces(int chunkX, int chunkZ, ChunkPrimer primer, TerrainGeneration cfg) {
+		final int msl = this.sandLvl;
 		final double scale = 0.03125D;
-			this.ssr = this.perlin2.generateNoiseOctaves(this.ssr, chunkX * 16, chunkZ * 16, 128, 16, 16, 1, scale, scale, 1.0D);
-			this.gvr = this.perlin2.generateNoiseOctaves(this.gvr, chunkX * 16, 237, chunkZ * 16, 16, 1, 16, scale, 1.0D, scale);
-			this.p3r = this.perlin3.generateNoiseOctaves(this.p3r, chunkX * 16, chunkZ * 16, 0, 16, 16, 1, 0.0625D, 0.0625D, 0.0625D);
+		final double[] ssr = this.ssr = cfg.perlin2.generateNoiseOctaves(this.ssr, chunkX * 16, chunkZ * 16, 128, 16, 16, 1, scale, scale, 1.0D);
+		final double[] gvr = this.gvr = cfg.perlin2.generateNoiseOctaves(this.gvr, chunkX * 16, 237, chunkZ * 16, 16, 1, 16, scale, 1.0D, scale);
+		final double[] p3r = this.p3r = cfg.perlin3.generateNoiseOctaves(this.p3r, chunkX * 16, chunkZ * 16, 0, 16, 16, 1, 0.0625D, 0.0625D, 0.0625D);
+		final Random rand = cfg.rand;
+		final IBlockState air = Blocks.AIR.getDefaultState(),
+				main = this.main, liquid = this.liquid,
+				sand1 = this.sand1, sand1B = this.sand1B,
+				sand2 = this.sand2, sand2B = this.sand2B;
+		int y1 = maxY - 1, y0 = minY;
 		for (int z = 0; z < 16; ++z) {
 			for (int x = 0; x < 16; ++x) {
-				boolean genSs = ssr[z + x * 16] + this.rand.nextDouble() * 0.2D > 0.0D;
-				boolean genGv = gvr[z + x * 16] + this.rand.nextDouble() * 0.2D > 0.0D;
-				int thick = (int)(p3r[z + x * 16] / 3.0D + 3.0D + this.rand.nextDouble() * 0.25D);
+				boolean genSs = ssr[z + x * 16] + rand.nextDouble() * 0.2D > 0.0D;
+				boolean genGv = gvr[z + x * 16] + rand.nextDouble() * 0.2D > 0.0D;
+				int thick = (int)(p3r[z + x * 16] / 3.0D + 3.0D + rand.nextDouble() * 0.25D);
 				int str = -1;
-				IBlockState stateT = STONE;
-				IBlockState stateB = STONE;
-				for (int y = 255; y >= 128; --y) {
+				IBlockState stateT = main;
+				IBlockState stateB = main;
+				for (int y = y1; y >= y0; --y) {
 					IBlockState state = primer.getBlockState(x, y, z);
 					if (state.getBlock() != null && state.getMaterial() != Material.AIR) {
-						if (state.getBlock() == Blocks.STONE) {
+						if (state == main) {
 							if (str == -1) {
 								if (thick <= 0) {
-									stateT = AIR;
-									stateB = STONE;
+									stateT = air;
+									stateB = main;
 								} else if (y >= msl - 4 && y <= msl + 1) {//around msl
-									stateT = STONE;
-									stateB = STONE;
+									stateT = main;
+									stateB = main;
 									if (genGv) {
-										stateT = GRAVEL;
-										stateB = STONE;
+										stateT = sand2;
+										stateB = sand2B;
 									}
 									if (genSs) {
-										stateT = SAND;
-										stateB = SANDSTONE;
+										stateT = sand1;
+										stateB = sand1B;
 									}
 								}
 								if (y < msl && (stateT == null || stateT.getMaterial() == Material.AIR))
-									stateT = WATER;
+									stateT = liquid;
 								str = thick;
 								if (y >= msl - 1)
 									primer.setBlockState(x, y, z, stateT);

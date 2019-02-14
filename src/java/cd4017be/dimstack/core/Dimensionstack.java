@@ -26,7 +26,7 @@ import static cd4017be.dimstack.core.PortalConfiguration.*;
  */
 public class Dimensionstack extends API {
 
-	private static final int FILE_VERSION = 1;
+	private static final int FILE_VERSION = 2;
 	private NBTTagCompound defaultCfg;
 	private File cfgFile;
 

@@ -37,13 +37,17 @@ public class TerrainGenHandler implements IRecipeHandler {
 
 	private static final String NOISE_FIELD = "noiseField";
 
-
 	public TerrainGenHandler() {
 		MinecraftForge.TERRAIN_GEN_BUS.register(this);
 		MinecraftForge.EVENT_BUS.register(this);
 		RecipeAPI.Handlers.put(NOISE_FIELD, this);
 		RecipeAPI.Handlers.put(SimpleLayerGen.ID, this);
 		RecipeAPI.Handlers.put(NoiseLayerGen.ID, this);
+		RecipeAPI.Handlers.put(NetherTop.ID, this);
+		
+		TerrainGeneration.REGISTRY.put(SimpleLayerGen.ID, SimpleLayerGen::new);
+		TerrainGeneration.REGISTRY.put(NoiseLayerGen.ID, NoiseLayerGen::new);
+		TerrainGeneration.REGISTRY.put(NetherTop.ID, NetherTop::new);
 	}
 
 	@SubscribeEvent
@@ -120,6 +124,19 @@ public class TerrainGenHandler implements IRecipeHandler {
 			double[] vec = param.getVectorOrAll(5);
 			int idx = cfg.getIndex(param.getIndex(1));
 			gen = new NoiseLayerGen(blocks.toArray(new IBlockState[blocks.size()]), levels.toFloatArray(), (float)gradient, (int)vec[0], (int)vec[1], idx);
+		} else if (key.equals(NetherTop.ID)) {
+			Object[] mats = param.getArray(2);
+			int n = mats.length;
+			IBlockState[] blocks = new IBlockState[n];
+			for (int i = 0; i < n; i++)
+				blocks[i] = BlockPredicate.parse((ItemStack)mats[i]);
+			double[] vec = param.getVector(3);
+			boolean hasLake = vec[1] > 0, hasSand = vec[2] > 0;
+			gen = new NetherTop((int)vec[0], (int)vec[3], param.getIndex(4),
+					hasLake ? (int)vec[1] : 0, hasSand ? (int)vec[2] : 0,
+					blocks[0], hasLake || hasSand ? blocks[1] : null,
+					hasSand ? blocks[2] : null, hasSand ? blocks[3] : null,
+					hasSand ? blocks[4] : null, hasSand ? blocks[5] : null);
 		} else return;
 		TerrainGeneration cfg = PortalConfiguration.get(param.getIndex(1)).getSettings(TerrainGeneration.class, true);
 		cfg.entries.add(gen);
