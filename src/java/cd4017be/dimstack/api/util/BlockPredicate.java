@@ -87,6 +87,14 @@ public class BlockPredicate implements Predicate<IBlockState> {
 	@SuppressWarnings("deprecation")
 	public static IBlockState parse(String s) {
 		try {
+			if (s.startsWith("ore:")) {
+				for (ItemStack stack : OreDictionary.getOres(s.substring(4))) {
+					Item item = stack.getItem();
+					if (!(item instanceof ItemBlock)) continue;
+					return ((ItemBlock)item).getBlock().getStateFromMeta(item.getMetadata(stack.getMetadata()));
+				}
+				return Blocks.AIR.getDefaultState();
+			}
 			int p = s.indexOf('@');
 			if (p < 0) return Block.getBlockFromName(s).getDefaultState();
 			Block block = Block.getBlockFromName(s.substring(0, p));
@@ -94,13 +102,6 @@ public class BlockPredicate implements Predicate<IBlockState> {
 		} catch (Exception e) {
 			return Blocks.AIR.getDefaultState();
 		}
-	}
-
-	@SuppressWarnings("deprecation")
-	public static IBlockState parse(ItemStack stack) {
-		Item item = stack.getItem();
-		if (!(item instanceof ItemBlock)) throw new IllegalArgumentException("supplied item has no registered block equivalent");
-		return ((ItemBlock)item).getBlock().getStateFromMeta(item.getMetadata(stack.getMetadata()));
 	}
 
 	public static String serialize(IBlockState s) {

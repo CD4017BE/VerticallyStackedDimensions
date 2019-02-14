@@ -13,7 +13,6 @@ import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -80,17 +79,17 @@ public class OreGenHandler implements IWorldGenerator, IRecipeHandler {
 		OreGeneration cfg = PortalConfiguration.get(param.getIndex(1)).getSettings(OreGeneration.class, true);
 		BlockPredicate target = BlockPredicate.parse(param.get(2));
 		float veins = (float)param.getNumber(3);
-		ItemStack stack = param.get(4, ItemStack.class);
-		IBlockState ore = BlockPredicate.parse(stack);
-		double[] heights = param.getVectorOrAll(6);
+		int count = param.getIndex(4);
+		IBlockState ore = BlockPredicate.parse(param.get(5, String.class));
+		double[] heights = param.getVectorOrAll(7);
 		
-		String type = param.getString(5);
+		String type = param.getString(6);
 		if (type.startsWith("even"))
-			cfg.entries.add(new OreGenEven(ore, stack.getCount(), veins, target, (int)heights[0], (int)heights[1]));
+			cfg.entries.add(new OreGenEven(ore, count, veins, target, (int)heights[0], (int)heights[1]));
 		else if (type.startsWith("center"))
-			cfg.entries.add(new OreGenCentered(ore, stack.getCount(), veins, target, (int)heights[0], (int)heights[1], (int)heights[2]));
+			cfg.entries.add(new OreGenCentered(ore, count, veins, target, (int)heights[0], (int)heights[1], (int)heights[2]));
 		else if (type.startsWith("gauss"))
-			cfg.entries.add(new OreGenGaussian(ore, stack.getCount(), veins, target, (float)heights[0], (float)heights[1]));
+			cfg.entries.add(new OreGenGaussian(ore, count, veins, target, (float)heights[0], (float)heights[1]));
 		else throw new IllegalArgumentException("invalid ore distribution mode: " + type);
 	}
 

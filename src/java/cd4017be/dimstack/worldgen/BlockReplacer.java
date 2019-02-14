@@ -11,7 +11,6 @@ import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
@@ -40,7 +39,7 @@ public class BlockReplacer implements IWorldGenerator, IRecipeHandler {
 		BlockPredicate target;
 		if (key.equals(BEDROCK_REPL)) target = new BlockPredicate(Blocks.BEDROCK.getRegistryName().toString());
 		else target = BlockPredicate.parse(param.get(n++));
-		IBlockState repl = BlockPredicate.parse(param.get(n++, ItemStack.class));
+		IBlockState repl = BlockPredicate.parse(param.get(n++, String.class));
 		double[] vec = param.getVector(n);
 		if (vec.length != 2) throw new IllegalArgumentException("height parameter must have 2 elements");
 		Replacement r = new Replacement(target, repl, (int)vec[0], (int)vec[1]);

@@ -19,7 +19,6 @@ import cd4017be.lib.script.Parameters;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.NoiseGenerator;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
@@ -101,17 +100,17 @@ public class TerrainGenHandler implements IRecipeHandler {
 				eb = y0 - (int)vec[0];
 				et = (int)vec[3] - y1;
 			} else throw new IllegalArgumentException("expected 2 or 4 height values @ " + 3);
-			gen = new SimpleLayerGen(BlockPredicate.parse(param.get(2, ItemStack.class)), y0, y1, eb, et);
+			gen = new SimpleLayerGen(BlockPredicate.parse(param.get(2, String.class)), y0, y1, eb, et);
 		} else if (key.equals(NoiseLayerGen.ID)) {
 			Object[] layers = param.getArray(2);
 			ArrayList<IBlockState> blocks = new ArrayList<>();
 			FloatArrayList levels = new FloatArrayList();
 			boolean lastB = false;
 			for (Object o : layers) {
-				if (o instanceof ItemStack) {
+				if (o instanceof String) {
 					if (lastB) throw new IllegalArgumentException("Blocks must have discriminator values in between!");
 					lastB = true;
-					blocks.add(BlockPredicate.parse((ItemStack)o));
+					blocks.add(BlockPredicate.parse((String)o));
 				} else if (o instanceof Number) {
 					if (!lastB) blocks.add(null);
 					lastB = false;
@@ -129,7 +128,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 			int n = mats.length;
 			IBlockState[] blocks = new IBlockState[n];
 			for (int i = 0; i < n; i++)
-				blocks[i] = BlockPredicate.parse((ItemStack)mats[i]);
+				blocks[i] = BlockPredicate.parse((String)mats[i]);
 			double[] vec = param.getVector(3);
 			boolean hasLake = vec[1] > 0, hasSand = vec[2] > 0;
 			gen = new NetherTop((int)vec[0], (int)vec[3], param.getIndex(4),

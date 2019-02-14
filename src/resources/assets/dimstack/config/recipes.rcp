@@ -1,4 +1,4 @@
-VERSION = 15;
+VERSION = 17;
 
 !Time in seconds to keep a chunk loaded after it was requested by a portal (set to 0 to disable chunk persistence).
 !This is to avoid lagg by chunks being frequently loaded and unloaded again.
@@ -35,7 +35,7 @@ INIT() {
 	
 	!replace bedrock layers
 	!add("bedrockRepl", <dimId>, it(<repBlock>), [<minY>, <maxY>]#);
-	add("bedrockRepl", 0, it("minecraft:stone"), [0, 5]#); !overworld bedrock layer
+	add("bedrockRepl", 0, "minecraft:stone", [0, 5]#); !overworld bedrock layer
 	
 	netherTop(); !remove/comment this line to disable all nether related features
 }
@@ -48,45 +48,43 @@ netherTop() {
 		overworldOres = true, !should overworld ores be generated
 		netherOres = false; !should nether ores be generated
 	
-	Loc rock; !the terrain base block (used for ore block replacement)
-	Loc baseMat, liquid, sand1Bot, sand1Top, sand2Bot, sand2Top; !the materials to generate the nether out of
+	Loc rock, liquid, sand1Bot, sand1Top, sand2Bot, sand2Top; !the materials to generate the nether out of
 	if (stoneNether) {
 		rock = "minecraft:stone";
-		liquid = it("minecraft:water");
-		sand1Top = it("minecraft:sand");
-		sand1Bot = it("minecraft:sandstone");
+		liquid = "minecraft:water";
+		sand1Top = "minecraft:sand";
+		sand1Bot = "minecraft:sandstone";
 	} else {
 		rock = "minecraft:netherrack";
-		liquid = it("minecraft:lava");
-		sand1Bot = it("minecraft:soulsand");
+		liquid = "minecraft:lava";
+		sand1Bot = "minecraft:soul_sand";
 		sand1Top = sand1Bot;
 	}
-	baseMat = it(rock);
-	sand2Bot = it(rock);
-	sand2Top = it("minecraft:gravel");
+	sand2Bot = rock;
+	sand2Top = "minecraft:gravel";
 	
 	!terrain generation:
 	if (fullSolid) {
 		!fill everything with base material
 		!add("basicLayer", <dimId>, <blockstate>, [<minY>, <maxY>]#);
-		add("basicLayer", -1, baseMat, [128, 256]#);
+		add("basicLayer", -1, rock, [128, 256]#);
 	} else {
 		!generate nether terrain
 		!add("nether", <dimId>, [<materials>...], [minY, lakeY, sandFormY, maxY]#, <borderSize>);
-		add("nether", -1, [baseMat, liquid, sand1Bot, sand1Top, sand2Bot, sand2Top], [128, 160, 192, 256]#, 32);
+		add("nether", -1, [rock, liquid, sand1Bot, sand1Top, sand2Bot, sand2Top], [128, 160, 192, 256]#, 32);
 	}
 	!obsidian layer between top and bottom nether
-	add("basicLayer", -1, it("minecraft:obsidian"), [128, 128, 129, 133]#);
+	add("basicLayer", -1, "minecraft:obsidian", [128, 128, 129, 133]#);
 	!replace upper bedrock layer with obsidian as well
-	add("bedrockRepl", -1, it("minecraft:obsidian"), [123, 128]#);
+	add("bedrockRepl", -1, "minecraft:obsidian", [123, 128]#);
 	
 	!ore vein generation:
 	if (stoneVariants) {
-		add("oregen", -1, rock, 10, 33 * it("minecraft:dirt"), "even", [128, 256]#);
-		add("oregen", -1, rock, 8, 33 * it("minecraft:gravel"), "even", [128, 256]#);
-		add("oregen", -1, rock, 10, 33 * it("minecraft:stone"):1, "even", [128, 256]#);
-		add("oregen", -1, rock, 10, 33 * it("minecraft:stone"):2, "even", [128, 256]#);
-		add("oregen", -1, rock, 10, 33 * it("minecraft:stone"):3, "even", [128, 256]#);
+		add("oregen", -1, rock, 10, 33, "minecraft:dirt", "even", [128, 256]#);
+		add("oregen", -1, rock, 8, 33, "minecraft:gravel", "even", [128, 256]#);
+		add("oregen", -1, rock, 10, 33, "minecraft:stone@1", "even", [128, 256]#);
+		add("oregen", -1, rock, 10, 33, "minecraft:stone@3", "even", [128, 256]#);
+		add("oregen", -1, rock, 10, 33, "minecraft:stone@5", "even", [128, 256]#);
 	}
 	if (overworldOres) {
 		!ore generation
@@ -94,24 +92,24 @@ netherTop() {
 		!The "even" mode takes a minimum and a maximum height and distributes ore veins evenly between them.
 		!The "centered" mode takes a minimum, a center and a maximum height and distributes ore veins between minimum and maximum but with higher concentration towards the center height.
 		!The "gaussian" mode takes a center height and a deviation distance and spreads ore veins with a Gaussian distribution.
-		add("oregen", -1, rock,  3,  8 * it("minecraft:diamond_ore"),  "center", [128, 144, 240]#);
-		add("oregen", -1, rock, 24,  8 * it("minecraft:redstone_ore"), "center", [144, 160, 256]#);
-		add("oregen", -1, rock,  4,  7 * it("minecraft:lapis_ore"),    "center", [144, 240, 256]#);
-		add("oregen", -1, rock,  6,  9 * it("minecraft:gold_ore"),     "center", [128, 176, 256]#);
-		add("oregen", -1, rock, 40,  9 * it("minecraft:iron_ore"),     "even", [128, 256]#);
-		add("oregen", -1, rock, 50, 17 * it("minecraft:coal_ore"),     "even", [128, 256]#);
+		add("oregen", -1, rock,  3,  8, "minecraft:diamond_ore",  "center", [128, 144, 240]#);
+		add("oregen", -1, rock, 24,  8, "minecraft:redstone_ore", "center", [144, 160, 256]#);
+		add("oregen", -1, rock,  4,  7, "minecraft:lapis_ore",    "center", [144, 240, 256]#);
+		add("oregen", -1, rock,  6,  9, "minecraft:gold_ore",     "center", [128, 176, 256]#);
+		add("oregen", -1, rock, 40,  9, "minecraft:iron_ore",     "even", [128, 256]#);
+		add("oregen", -1, rock, 50, 17, "minecraft:coal_ore",     "even", [128, 256]#);
 		
 		!modded ores: these are generated only if other mods have added ore blocks for them into OreDictionary
-		if (ore("oreCopper"))    {add("oregen", -1, rock, 20, 9 * it("ore:oreCopper"),    "center", [192, 216, 256]#);}
-		if (ore("oreTin"))       {add("oregen", -1, rock, 16, 9 * it("ore:oreTin"),       "center", [192, 232, 256]#);}
-		if (ore("oreAluminium")) {add("oregen", -1, rock, 16, 8 * it("ore:oreAluminium"), "center", [176, 192, 256]#);}
-		if (ore("oreNickel"))    {add("oregen", -1, rock,  6, 9 * it("ore:oreNickel"),    "center", [144, 160, 256]#);}
-		if (ore("oreSilver"))    {add("oregen", -1, rock,  8, 9 * it("ore:oreSilver"),    "center", [128, 176, 256]#);}
-		if (ore("oreLead"))      {add("oregen", -1, rock,  8, 9 * it("ore:oreLead"),      "center", [128, 144, 192]#);}
-		if (ore("orePlatinum"))  {add("oregen", -1, rock,  4, 7 * it("ore:orePlatinum"),  "center", [128, 136, 144]#);}
-		if (ore("oreUranium"))   {add("oregen", -1, rock,  6, 7 * it("ore:oreUranium"),   "center", [128, 140, 160]#);}
+		if (ore("oreCopper"))    {add("oregen", -1, rock, 20, 9, "ore:oreCopper",    "center", [192, 216, 256]#);}
+		if (ore("oreTin"))       {add("oregen", -1, rock, 16, 9, "ore:oreTin",       "center", [192, 232, 256]#);}
+		if (ore("oreAluminium")) {add("oregen", -1, rock, 16, 8, "ore:oreAluminium", "center", [176, 192, 256]#);}
+		if (ore("oreNickel"))    {add("oregen", -1, rock,  6, 9, "ore:oreNickel",    "center", [144, 160, 256]#);}
+		if (ore("oreSilver"))    {add("oregen", -1, rock,  8, 9, "ore:oreSilver",    "center", [128, 176, 256]#);}
+		if (ore("oreLead"))      {add("oregen", -1, rock,  8, 9, "ore:oreLead",      "center", [128, 144, 192]#);}
+		if (ore("orePlatinum"))  {add("oregen", -1, rock,  4, 7, "ore:orePlatinum",  "center", [128, 136, 144]#);}
+		if (ore("oreUranium"))   {add("oregen", -1, rock,  6, 7, "ore:oreUranium",   "center", [128, 140, 160]#);}
 	}
 	if (netherOres) {
-		add("oregen", -1, rock, 40,  9 * it("minecraft:quartz"), "even", [128, 256]#);
+		add("oregen", -1, rock, 40,  9, "minecraft:quartz_ore", "even", [128, 256]#);
 	}
 }
