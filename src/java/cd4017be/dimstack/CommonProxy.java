@@ -39,6 +39,7 @@ public class CommonProxy {
 		int n = (int)cfg.getNumber("gen_topNether", Double.NEGATIVE_INFINITY);
 		if (n >= 0) worldgenNether = new NetherTop(n);
 		worldgenOres.initConfig(cfg);
+		worldgenTerrain.initConfig(cfg);
 	}
 
 	public void registerRenderers() {
