@@ -1,14 +1,4 @@
-VERSION = 14;
-
-{
-	!Each array entry is a vector [a, b, ...]# containing dimension IDs that should be stacked on top of each other via portals (order bottom to top).
-	linked_dimensions = [
-		[-1, 0]#
-	];
-	
-	!nubers of octaves for global noise generators, used for add("noiseField" ...)
-	custom_noise_octaves = []#;
-}
+VERSION = 15;
 
 !Time in seconds to keep a chunk loaded after it was requested by a portal (set to 0 to disable chunk persistence).
 !This is to avoid lagg by chunks being frequently loaded and unloaded again.
@@ -26,6 +16,17 @@ disable_iron = false;
 disable_lapis = false;
 disable_redstone = false;
 disable_quartz = false;
+
+{	
+	!nubers of octaves for global noise generators, used for add("noiseField" ...)
+	custom_noise_octaves = []#;
+}
+
+PRE_INIT() {
+	!stacking dimensions on top of each other so they get connected via portals (order bottom to top):
+	!add("dimstack", [<dimId>...]#);
+	add("dimstack", [-1, 0]#); !overworld on top of nether
+}
 
 INIT() {
 	!shaped crafting recipes
@@ -67,9 +68,11 @@ netherTop() {
 	!terrain generation:
 	if (fullSolid) {
 		!fill everything with base material
+		!add("basicLayer", <dimId>, <blockstate>, [<minY>, <maxY>]#);
 		add("basicLayer", -1, baseMat, [128, 256]#);
 	} else {
 		!generate nether terrain
+		!add("nether", <dimId>, [<materials>...], [minY, lakeY, sandFormY, maxY]#, <borderSize>);
 		add("nether", -1, [baseMat, liquid, sand1Bot, sand1Top, sand2Bot, sand2Top], [128, 160, 192, 256]#, 32);
 	}
 	!obsidian layer between top and bottom nether

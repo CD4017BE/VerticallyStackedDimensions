@@ -33,7 +33,6 @@ public class CommonProxy {
 	private void setConfig() {
 		ConfigConstants cfg = new ConfigConstants(RecipeScriptContext.instance.modules.get(Main.ConfigName));
 		ChunkLoader.init(cfg);
-		Main.dimstack.init(cfg);
 		worldgenTerrain.initConfig(cfg);
 		worldgenOres.initConfig(cfg);
 	}

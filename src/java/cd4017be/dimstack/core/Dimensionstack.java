@@ -2,13 +2,16 @@ package cd4017be.dimstack.core;
 
 import java.io.File;
 import java.io.IOException;
-import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
+
+import cd4017be.api.recipes.RecipeAPI;
+import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.API;
 import cd4017be.dimstack.api.IDimension;
 import cd4017be.dimstack.api.IDimensionSettings;
 import cd4017be.dimstack.api.util.SettingProvider;
 import cd4017be.dimstack.worldgen.OreGenHandler;
+import cd4017be.lib.script.Parameters;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -24,26 +27,16 @@ import static cd4017be.dimstack.core.PortalConfiguration.*;
  * @author CD4017BE
  *
  */
-public class Dimensionstack extends API {
+public class Dimensionstack extends API implements IRecipeHandler {
 
+	private static String DIMENSION_STACK = "dimstack";
 	private static final int FILE_VERSION = 2;
 	private NBTTagCompound defaultCfg;
 	private File cfgFile;
 
 	public Dimensionstack() {
 		API.INSTANCE = this;
-	}
-
-	public void init(ConfigConstants cfg) {
-		Object[] arr = cfg.get("linked_dimensions", Object[].class, new Object[0]);
-		for (Object o : arr)
-			if (o instanceof double[]) {
-				double[] vec = (double[])o;
-				int[] dims = new int[vec.length];
-				for (int i = 0; i < vec.length; i++)
-					dims[i] = (int)vec[i];
-				link(dims);
-			}
+		RecipeAPI.Handlers.put(DIMENSION_STACK, this);
 	}
 
 	@Override
@@ -211,6 +204,15 @@ public class Dimensionstack extends API {
 	@Override
 	public void registerOreDisable() {
 		OreGenHandler.register();
+	}
+
+	@Override
+	public void addRecipe(Parameters param) {
+		double[] vec = param.getVectorOrAll();
+		int[] stack = new int[vec.length];
+		for (int i = 0; i < vec.length; i++)
+			stack[i] = (int)vec[i];
+		PortalConfiguration.link(stack);
 	}
 
 }
