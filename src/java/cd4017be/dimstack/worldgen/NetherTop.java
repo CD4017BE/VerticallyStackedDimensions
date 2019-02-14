@@ -21,7 +21,7 @@ public class NetherTop implements ITerrainGenerator {
 	private double[] buffer, vWaves;
 	private final IBlockState main, liquid, sand1B, sand1, sand2B, sand2;
 	private final int minY, maxY, lakeLvl, sandLvl, border;
-	private int fieldSize = 17, fieldOfs = 0;
+	private int fieldSize, fieldOfs;
 
 
 	public NetherTop(int minY, int maxY, int border, int lakeLvl, int sandLvl, IBlockState main, IBlockState liquid, IBlockState sand1b, IBlockState sand1, IBlockState sand2b, IBlockState sand2) {
@@ -58,7 +58,7 @@ public class NetherTop implements ITerrainGenerator {
 		int y0 = minY / 8, y1 = (maxY - 1) / 8 + 1;
 		int ny = y1 - y0 + 1;
 		this.fieldSize = ny;
-		this.fieldOfs = y0 * 8;
+		this.fieldOfs = y0;
 		double[] vWaves = new double[ny];
 		double b = (double)this.border / 8.0;
 		for (int y = 0; y < ny; ++y) {
@@ -115,7 +115,6 @@ public class NetherTop implements ITerrainGenerator {
 		final double[] br = this.br = cfg.l_perlin2.generateNoiseOctaves(this.br, ox, oy, oz, nx, ny, nz, dh, dv, dh);
 		final double[] vWaves = this.vWaves;
 		int i = 0;
-		double border = (double)this.border / 8.0;
 		for (int x = 0; x < nx; ++x)
 			for (int z = 0; z < nz; ++z)
 				for (int y = 0; y < ny; ++y) {
@@ -125,12 +124,7 @@ public class NetherTop implements ITerrainGenerator {
 					double val = weight < 0.0D ? a
 							: weight > 1.0D ? b
 							: a + (b - a) * weight;
-					val -= vWaves[y];
-					if (ny - y < border) {
-						double edge = (border - (double)(ny - y)) / (border - 1.0); //edge 3 ... 0 -> 0.0 ... 1.0
-						val = val * (1.0D - edge) + -10.0D * edge; //interpolate edge 3 ... 0 -> val ... -10
-					}
-					data[i++] = val;
+					data[i++] = val - vWaves[y];
 				}
 		return data;
 	}

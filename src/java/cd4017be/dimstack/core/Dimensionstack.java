@@ -204,7 +204,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 
 	@Override
 	public void addRecipe(Parameters param) {
-		double[] vec = param.getVectorOrAll();
+		double[] vec = param.getVectorOrAll(1);
 		int[] stack = new int[vec.length];
 		for (int i = 0; i < vec.length; i++)
 			stack[i] = (int)vec[i];
