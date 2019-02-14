@@ -5,7 +5,9 @@ import java.util.function.Function;
 
 import cd4017be.dimstack.api.gen.IOreGenerator;
 import cd4017be.dimstack.api.util.CfgList;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 
 
 /**
@@ -19,8 +21,8 @@ public class OreGeneration extends CfgList<IOreGenerator> {
 	public static final HashMap<String, Function<NBTTagCompound, IOreGenerator>> REGISTRY = new HashMap<>();
 
 	@Override
-	public void deserializeNBT(NBTTagCompound nbt) {
-		deserializeNBT(nbt, REGISTRY);
+	public void deserializeNBT(NBTBase nbt) {
+		deserializeNBT((NBTTagList)nbt, REGISTRY);
 	}
 
 }

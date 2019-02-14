@@ -21,7 +21,7 @@ public class BlockReplacements implements IDimensionSettings {
 	public final ArrayList<Replacement> replacements = new ArrayList<>();
 
 	@Override
-	public NBTTagCompound serializeNBT() {
+	public NBTTagList serializeNBT() {
 		if (replacements.isEmpty()) return null;
 		NBTTagList list = new NBTTagList();
 		for (Replacement r : replacements) {
@@ -32,14 +32,12 @@ public class BlockReplacements implements IDimensionSettings {
 			tag.setString("block", BlockPredicate.serialize(r.repl));
 			list.appendTag(tag);
 		}
-		NBTTagCompound nbt = new NBTTagCompound();
-		nbt.setTag("entries", list);
-		return nbt;
+		return list;
 	}
 
 	@Override
-	public void deserializeNBT(NBTTagCompound nbt) {
-		NBTTagList list = nbt.getTagList("entries", NBT.TAG_COMPOUND);
+	public void deserializeNBT(NBTBase nbt) {
+		NBTTagList list = (NBTTagList)nbt;
 		for (NBTBase tag : list) {
 			NBTTagCompound ctag = (NBTTagCompound)tag;
 			try {

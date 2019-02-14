@@ -1,6 +1,6 @@
 package cd4017be.dimstack.api;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTBase;
 import net.minecraftforge.common.util.INBTSerializable;
 
 
@@ -10,7 +10,7 @@ import net.minecraftforge.common.util.INBTSerializable;
  * @see IDimension#getSettings(Class, boolean)
  * @author CD4017BE
  */
-public interface IDimensionSettings extends INBTSerializable<NBTTagCompound> {
+public interface IDimensionSettings extends INBTSerializable<NBTBase> {
 
 	public static <T extends IDimensionSettings> T newInstance(Class<T> type) {
 		try {

@@ -1,5 +1,6 @@
 package cd4017be.dimstack.api;
 
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.event.terraingen.OreGenEvent.GenerateMinable.EventType;
 
@@ -45,10 +46,10 @@ public class DisableVanillaOres implements IDimensionSettings {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void deserializeNBT(NBTTagCompound nbt) {
+	public void deserializeNBT(NBTBase nbt) {
 		reset();
 		for (EventType t : EventType.values())
-			if (nbt.getBoolean(t.name().toLowerCase()))
+			if (((NBTTagCompound)nbt).getBoolean(t.name().toLowerCase()))
 				disable(t);
 		if (disabled != 0) API.INSTANCE.registerOreDisable();
 	}

@@ -2,6 +2,7 @@ package cd4017be.dimstack.api;
 
 import java.util.Random;
 
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.gen.NoiseGenerator;
 import net.minecraft.world.gen.NoiseGeneratorOctaves;
@@ -27,7 +28,8 @@ public class SharedNoiseFields implements IDimensionSettings {
 	}
 
 	@Override
-	public void deserializeNBT(NBTTagCompound nbt) {
+	public void deserializeNBT(NBTBase tag) {
+		NBTTagCompound nbt = (NBTTagCompound)tag;
 		this.octaves = nbt.getByteArray("octaves");
 		this.noiseFields = new NoiseGenerator[octaves.length];
 	}

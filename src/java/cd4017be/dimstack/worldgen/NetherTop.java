@@ -80,7 +80,19 @@ public class NetherTop implements ITerrainGenerator {
 
 	@Override
 	public NBTTagCompound writeNBT() {
-		return new NBTTagCompound();
+		NBTTagCompound nbt = new NBTTagCompound();
+		nbt.setString("main", BlockPredicate.serialize(main));
+		nbt.setString("liquid", BlockPredicate.serialize(liquid));
+		nbt.setString("sand1B", BlockPredicate.serialize(sand1B));
+		nbt.setString("sand1", BlockPredicate.serialize(sand1));
+		nbt.setString("sand2B", BlockPredicate.serialize(sand2B));
+		nbt.setString("sand2", BlockPredicate.serialize(sand2));
+		nbt.setByte("lakeY", (byte)lakeLvl);
+		nbt.setByte("sandY", (byte)sandLvl);
+		nbt.setByte("minY", (byte)minY);
+		nbt.setByte("maxY", (byte)(maxY - 1));
+		nbt.setByte("border", (byte)border);
+		return nbt;
 	}
 
 	@Override

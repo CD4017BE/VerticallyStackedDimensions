@@ -7,6 +7,7 @@ import java.util.function.Function;
 import cd4017be.dimstack.api.gen.ITerrainGenerator;
 import cd4017be.dimstack.api.util.CfgList;
 import cd4017be.dimstack.api.util.NoiseField;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.chunk.ChunkPrimer;
@@ -58,22 +59,24 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 	public int dimId;
 
 	@Override
-	public void deserializeNBT(NBTTagCompound nbt) {
-		NBTTagList list = nbt.getTagList("noiseFields", NBT.TAG_COMPOUND);
+	public void deserializeNBT(NBTBase nbt) {
+		NBTTagCompound ctag = (NBTTagCompound)nbt;
+		NBTTagList list = ctag.getTagList("noiseFields", NBT.TAG_COMPOUND);
 		int n = list.tagCount();
 		this.sources = new int[n];
 		this.noiseFields = new NoiseField[n];
 		for (int i = 0; i < n; i++) {
 			NBTTagCompound tag = list.getCompoundTagAt(i);
 			sources[i] = tag.getByte("src");
-			noiseFields[i] = new NoiseField(tag.getByte("hGrid"), nbt.getByte("vGrid") & 0xff, nbt.getDouble("hScale"), nbt.getDouble("vScale"));
+			noiseFields[i] = new NoiseField(tag.getByte("hGrid"), tag.getByte("vGrid") & 0xff, tag.getDouble("hScale"), tag.getDouble("vScale"));
 		}
-		deserializeNBT(nbt, REGISTRY);
+		deserializeNBT(ctag.getTagList("entries", NBT.TAG_COMPOUND), REGISTRY);
 	}
 
 	@Override
 	public NBTTagCompound serializeNBT() {
-		NBTTagCompound nbt = super.serializeNBT();
+		NBTTagCompound nbt = new NBTTagCompound();
+		nbt.setTag("entries", super.serializeNBT());
 		NBTTagList list = new NBTTagList();
 		for (int i = 0, n = noiseFields.length; i < n; i++) {
 			NBTTagCompound tag = new NBTTagCompound();

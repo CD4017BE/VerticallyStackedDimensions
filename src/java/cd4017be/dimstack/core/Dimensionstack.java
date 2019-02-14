@@ -30,7 +30,7 @@ import static cd4017be.dimstack.core.PortalConfiguration.*;
 public class Dimensionstack extends API implements IRecipeHandler {
 
 	private static String DIMENSION_STACK = "dimstack";
-	private static final int FILE_VERSION = 2;
+	private static final int FILE_VERSION = 3;
 	private NBTTagCompound defaultCfg;
 	private File cfgFile;
 
@@ -68,31 +68,27 @@ public class Dimensionstack extends API implements IRecipeHandler {
 			}
 	}
 
-	private static void loadSettings(SettingProvider sp, NBTTagList nbt) {
-		for (NBTBase tag : nbt) {
-			NBTTagCompound ctag = (NBTTagCompound)tag;
-			String cname = ctag.getString("class");
+	private static void loadSettings(SettingProvider sp, NBTTagCompound cfg) {
+		for (String key : cfg.getKeySet()) {
 			try {
-				Class<?> c = Class.forName(cname);
+				Class<?> c = Class.forName(key);
 				if (IDimensionSettings.class.isAssignableFrom(c)) {
 					@SuppressWarnings("unchecked")
 					IDimensionSettings setting = sp.getSettings((Class<? extends IDimensionSettings>)c, true);
-					if (setting != null) setting.deserializeNBT(ctag);
-				} else Main.LOG.warn("Can't load entry for dimension {}: Invalid class {} doesn't implement IDimensionSettings", sp, cname);
+					if (setting != null) setting.deserializeNBT(cfg.getTag(key));
+				} else Main.LOG.warn("Can't load entry for dimension {}: Invalid class {} doesn't implement IDimensionSettings", sp, key);
 			} catch (ClassNotFoundException e) {
-				Main.LOG.warn("Can't load entry for dimension {}: Class {} not found!", sp, cname);
+				Main.LOG.warn("Can't load entry for dimension {}: Class {} not found!", sp, key);
 			}
 		}
 	}
 
-	private static NBTTagList saveSettings(SettingProvider sp) {
-		NBTTagList cfg = new NBTTagList();
+	private static NBTTagCompound saveSettings(SettingProvider sp) {
+		NBTTagCompound cfg = new NBTTagCompound();
 		for (IDimensionSettings s : sp.getAllSettings()) {
-			NBTTagCompound tag = s.serializeNBT();
-			if (tag != null && !tag.hasNoTags()) {
-				tag.setString("class", s.getClass().getName());
-				cfg.appendTag(tag);
-			}
+			NBTBase tag = s.serializeNBT();
+			if (tag != null && !tag.hasNoTags())
+				cfg.setTag(s.getClass().getName(), tag);
 		}
 		return cfg;
 	}
@@ -114,7 +110,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		for (String key : nbt.getKeySet())
 			try {
 				SettingProvider sp = key.equals("global") ? this : get(Integer.parseInt(key));
-				NBTTagList cfg = nbt.getTagList(key, NBT.TAG_COMPOUND);
+				NBTTagCompound cfg = nbt.getCompoundTag(key);
 				if (!cfg.hasNoTags())
 					loadSettings(sp, cfg);
 			} catch(NumberFormatException e) {}
@@ -127,7 +123,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	 */
 	public void save(NBTTagCompound nbt) {
 		IntOpenHashSet bottoms = new IntOpenHashSet(), loops = new IntOpenHashSet();
-		NBTTagList cfg = saveSettings(this);
+		NBTTagCompound cfg = saveSettings(this);
 		if (!cfg.hasNoTags())
 			nbt.setTag("global", cfg);
 		for (PortalConfiguration pc : dimensions.values()) {
