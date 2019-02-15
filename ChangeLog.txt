@@ -1,3 +1,19 @@
+v0.0.3
+Changes:
+- fixed #7 by only generating ceiling portals when needed
+- fixed portal block updates by second neighbor
+- created a mod api
+- restructured dimension stack nbt format
+- fixed bugs in persistend settings loading
+- added configurable bedrock like block layer generation for #5
+- added noise field based block layer generation for #5
+- turned top nether into configurable world generation feature (can be added to other dimensions too)
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.3.2
+
 v0.0.2
 Changes:
 - fixed #2 portals not synchronizing properly when force generating chunk on the other side
