@@ -1,5 +1,6 @@
 package cd4017be.dimstack.block;
 
+import cd4017be.dimstack.Objects;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.TickRegistry;
 import cd4017be.lib.block.BaseBlock;
@@ -262,7 +263,13 @@ public class Portal extends BaseBlock {
 	private void syncStates(DimPos oPos, DimPos tPos) {
 		IBlockState oState = oPos.getBlock();
 		IBlockState tState = tPos.getBlock();
-		if (oState.getBlock() != this) return;
+		if (oState.getMaterial() != Objects.M_PORTAL) {
+			int ceil = oPos.getY() >= 128 ? -1 : 1;
+			oState = getDefaultState()
+				.withProperty(onCeiling, ceil < 0)
+				.withProperty(solidThis1, isSolid(((DimPos)oPos.up(ceil)).getBlock()))
+				.withProperty(solidThis2, isSolid(((DimPos)oPos.up(ceil<<1)).getBlock()));
+		}
 		IBlockState ntState = tState
 				.withProperty(solidOther2, oState.getValue(solidThis2))
 				.withProperty(solidOther1, oState.getValue(solidThis1));
@@ -297,7 +304,7 @@ public class Portal extends BaseBlock {
 		DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 		if (posO == null) return;
 		IBlockState stateO = posO.getBlock();
-		if (stateO.getBlock() != this) stateO = getDefaultState().withProperty(onCeiling, posO.getY() >= 128);
+		if (stateO.getMaterial() != Objects.M_PORTAL) stateO = getDefaultState().withProperty(onCeiling, posO.getY() >= 128);
 		int ceil = posO.getY() >= 128 ? -1 : 1;
 		boolean this1 = isSolid(((DimPos)posT.down(ceil)).getBlock()), this2 = isSolid(((DimPos)posT.down(ceil<<1)).getBlock());
 		boolean other1 = isSolid(((DimPos)posO.up(ceil)).getBlock()), other2 = isSolid(((DimPos)posO.up(ceil<<1)).getBlock());

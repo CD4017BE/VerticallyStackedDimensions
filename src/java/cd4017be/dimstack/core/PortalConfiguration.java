@@ -13,6 +13,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -266,18 +267,19 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	 * @return the destination position and world the given portal leads to (or null if there is none or it can't be loaded)
 	 */
 	public static DimPos getAdjacentPos(DimPos pos) {
-		PortalConfiguration pc = get(pos.dimId);
+		PortalConfiguration pc0 = get(pos.dimId);
 		int y = pos.getY();
-		pc = y == 255 ? pc.neighbourUp : y == 0 ? pc.neighbourDown : null;
-		if (pc == null) return null;
-		WorldServer world = pos.getWorldServer().getMinecraftServer().getWorld(pc.dimId);
+		PortalConfiguration pc1 = y == 255 ? pc0.neighbourUp : y == 0 ? pc0.neighbourDown : null;
+		if (pc1 == null) return null;
+		if (pc1 == pc0) return pos.offset(y == 0 ? EnumFacing.UP : EnumFacing.DOWN, 255);
+		WorldServer world = pos.getWorldServer().getMinecraftServer().getWorld(pc1.dimId);
 		if (world == null) return null;
 		if (ChunkLoader.active()) {
 			ChunkPos chunk = new ChunkPos(pos);
-			LoadingInfo ti = pc.loadedChunks.get(chunk);
+			LoadingInfo ti = pc1.loadedChunks.get(chunk);
 			if (ti != null) ti.onRequest(pos);
-			else if (pc.loadingTicket != null || (pc.loadingTicket = ForgeChunkManager.requestTicket(Main.instance, pc.getWorld(), Type.NORMAL)) != null)
-				pc.loadedChunks.put(chunk, new LoadingInfo(pc, pos));
+			else if (pc1.loadingTicket != null || (pc1.loadingTicket = ForgeChunkManager.requestTicket(Main.instance, pc1.getWorld(), Type.NORMAL)) != null)
+				pc1.loadedChunks.put(chunk, new LoadingInfo(pc1, pos));
 		}
 		return new DimPos(pos.getX(), 255 - pos.getY(), pos.getZ(), world);
 	}
