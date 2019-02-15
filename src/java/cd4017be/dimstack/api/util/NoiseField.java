@@ -24,6 +24,8 @@ public class NoiseField {
 	private int[] ranges;
 	/** array of generated noise fields for different height regions */
 	private double[][] fieldBuffers;
+	/** Y-coordinate offset */
+	private int offsetY = 0;
 
 	/**
 	 * @param hGrid horizontal grid interval in blocks (may be 1, 2, 4, 8 or 16)
@@ -50,6 +52,8 @@ public class NoiseField {
 		int g = vGrid;
 		if (g <= 0) throw new IllegalStateException("2D noise fields can't provide a range of heights!");
 		if (y0 >= y1) throw new IllegalArgumentException("upper bound must be greater than lower bound!");
+		y0 += offsetY;
+		y1 += offsetY;
 		if (g != 1) {
 			y0 = Math.floorDiv(y0, g);
 			y1 = Math.floorDiv(y1 - 1, g) + 2;
@@ -78,6 +82,7 @@ public class NoiseField {
 	public NoiseField provideLayer(int y) {
 		int g = vGrid;
 		if (g > 0) return provideRange(y, y + 1);
+		y += offsetY;
 		if (ranges == null) {
 			ranges = new int[] {y};
 			return this;
@@ -85,6 +90,15 @@ public class NoiseField {
 		int l = ranges.length;
 		ranges = Arrays.copyOf(ranges, l + 1);
 		ranges[l] = y;
+		return this;
+	}
+
+	/**
+	 * @param ofsY new Y-offset in blocks by which to shift the underlying noise-field down
+	 * @return this
+	 */
+	public NoiseField setOffsetY(int ofsY) {
+		this.offsetY = ofsY;
 		return this;
 	}
 
@@ -148,6 +162,7 @@ public class NoiseField {
 	 * @see #provideLayer(int)
 	 */
 	public int getIndex(int y) {
+		y += offsetY;
 		int g = vGrid;
 		if (g <= 0) {
 			int i = Arrays.binarySearch(ranges, y);
@@ -165,7 +180,7 @@ public class NoiseField {
 	 */
 	public int getYOffset(int i) {
 		int g = vGrid;
-		return g <= 0 ? ranges[i] : ranges[i << 1] * g;
+		return (g <= 0 ? ranges[i] : ranges[i << 1] * g) - offsetY;
 	}
 
 	/**

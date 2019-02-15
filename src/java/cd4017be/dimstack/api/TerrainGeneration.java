@@ -133,7 +133,7 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 					gen = snf.noiseFields[id];
 				else continue;
 			}
-			noiseFields[i].setGenerator(gen);
+			noiseFields[i].setGenerator(gen).setOffsetY(offsetY);
 		}
 		for (ITerrainGenerator g : entries)
 			g.initNoise(this);
