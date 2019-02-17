@@ -64,7 +64,7 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 			}
 		}
 		if (updateCon) {
-			if (linkTile != null)
+			if (linkTile != null && !linkTile.unloaded)
 				linkTile.onConTileChange(world.getBlockState(pos.offset(side)));
 			updateCon = false;
 		}
@@ -143,8 +143,12 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 	@Override
 	public boolean onActivated(EntityPlayer player, EnumHand hand, ItemStack item, EnumFacing s, float X, float Y, float Z) {
 		if (!player.isSneaking() || !item.isEmpty()) return false;
-		Objects.PORTAL.syncStates(new DimPos(this), Objects.PORTAL.getDefaultState());
-		player.addItemStackToInventory(new ItemStack(Objects.dim_pipe));
+		DimPos posT = new DimPos(this), posO = PortalConfiguration.getAdjacentPos(posT);
+		if (posO != null) {
+			posO.setBlock(Objects.PORTAL.getDefaultState());
+			Objects.PORTAL.syncStates(posT, Objects.PORTAL.getDefaultState());
+			player.addItemStackToInventory(new ItemStack(Objects.dim_pipe));
+		}
 		return true;
 	}
 
