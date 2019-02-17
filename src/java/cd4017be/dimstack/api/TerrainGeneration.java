@@ -116,7 +116,16 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 		}
 		this.rand = rand;
 		this.dimId = dim.id();
-		this.offsetY = dim.height() * 254;
+		int y = 0, h = dim.height();
+		for (; h > 0; h--) {
+			dim = dim.down();
+			y += dim.ceilHeight() - 1;
+		}
+		for (; h < 0; h++) {
+			y -= dim.ceilHeight() - 1;
+			dim = dim.up();
+		}
+		this.offsetY = y;
 		
 		initNoiseFields();
 	}

@@ -19,6 +19,11 @@ public interface IDimension {
 	int height();
 
 	/**
+	 * @return the height at which ceiling portals are generated in this dimension (if it has up() != null)
+	 */
+	int ceilHeight();
+
+	/**
 	 * @return the destination when traversing up (null for regular world border)
 	 */
 	IDimension up();

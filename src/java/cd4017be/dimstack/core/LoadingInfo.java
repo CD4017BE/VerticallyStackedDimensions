@@ -22,7 +22,7 @@ public class LoadingInfo {
 		long t = System.currentTimeMillis();
 		this.startTime = t;
 		this.chunk = new ChunkPos(from);
-		if (from.getY() < 128) {
+		if (from.getY() == 0) {
 			lastReqT = t;
 			lastReqB = Long.MIN_VALUE;
 		} else {
@@ -39,7 +39,7 @@ public class LoadingInfo {
 
 	public void onRequest(BlockPos from) {
 		long t = System.currentTimeMillis();
-		if (from.getY() < 128) lastReqT = t;
+		if (from.getY() == 0) lastReqT = t;
 		else lastReqB = t;
 	}
 

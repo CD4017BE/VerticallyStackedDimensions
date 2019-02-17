@@ -32,16 +32,17 @@ public class PortalGen implements IWorldGenerator {
 		Chunk chunk = world.getChunkFromChunkCoords(cx, cz);
 		if (pc.down() != null)
 			placePortals(chunk, 0);
-		if (pc.up() != null)
-			if (chunk.getTopFilledSegment() >= 240)
-				placePortals(chunk, 255);
+		if (pc.up() != null) {
+			int yc = pc.ceilHeight();
+			if (chunk.getTopFilledSegment() >= yc - 15)
+				placePortals(chunk, yc);
 			else pc.setTopOpen();
+		}
 	}
 
-	public static void fixCeil(World world, BlockPos pos) {
+	public static void fixCeil(World world, BlockPos pos, int y) {
 		int x0 = pos.getX() - 8, x1 = x0 + 16,
-			z0 = pos.getZ() - 8, z1 = z0 + 16,
-			y = 255;
+			z0 = pos.getZ() - 8, z1 = z0 + 16;
 		IChunkProvider cp = world.getChunkProvider();
 		Chunk chunk;
 		chunk = cp.getLoadedChunk(x0 >> 4, z0 >> 4);
@@ -64,7 +65,7 @@ public class PortalGen implements IWorldGenerator {
 				s1 = state.getValue(Portal.solidThis1),
 				s2 = state.getValue(Portal.solidThis2);
 		MutableBlockPos pos = new MutableBlockPos();
-		int y1 = y < 128 ? y+1 : y-1, y2 = y1 + y1 - y;
+		int y1 = y == 0 ? 1 : y-1, y2 = y1 + y1 - y;
 		int x0 = chunk.x << 4, x1 = x0 + 16;
 		for (int z = chunk.z << 4, z1 = z + 16; z < z1; z++)
 			for (int x = x0; x < x1; x++)

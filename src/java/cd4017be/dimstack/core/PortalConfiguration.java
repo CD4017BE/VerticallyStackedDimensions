@@ -13,7 +13,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
@@ -21,6 +20,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
@@ -38,6 +38,8 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	private PortalConfiguration neighbourUp;
 	/** the destination when traversing down (null for regular world border) */
 	private PortalConfiguration neighbourDown;
+	/** height at which the ceiling portals are generated */
+	public int ceilY = defaultCeilY;
 	/** this dimension has chunks with missing portal top layer */
 	boolean topOpen = false;
 	/** the dimension height level */
@@ -77,6 +79,11 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 			if (pc1 == this)
 				return null;
 		return pc;
+	}
+
+	@Override
+	public int ceilHeight() {
+		return ceilY;
 	}
 
 	@Override
@@ -183,15 +190,15 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	@Override
 	public void notifyBlockUpdate(World world, BlockPos pos, IBlockState oldState, IBlockState newState, int flags) {
 		if ((flags & 1) == 0) return;
-		int y = pos.getY();
-		if (y >= 252 && topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR)
-			PortalGen.fixCeil(world, pos);
+		int y = pos.getY(), yc = ceilY;
+		if (y >= yc - 3 && topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR)
+			PortalGen.fixCeil(world, pos, yc);
 		if (y == 2) {
 			BlockPos posP = pos.down(2);
 			IBlockState stateP = world.getBlockState(posP);
 			if (stateP.getBlock() instanceof Portal)
 				stateP.neighborChanged(world, posP, newState.getBlock(), pos);
-		} else if (y == 253) {
+		} else if (y == yc - 2) {
 			BlockPos posP = pos.up(2);
 			IBlockState stateP = world.getBlockState(posP);
 			if (stateP.getBlock() instanceof Portal)
@@ -225,6 +232,7 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	//static features:
 	static final Int2ObjectOpenHashMap<PortalConfiguration> dimensions = new Int2ObjectOpenHashMap<>();
 	static boolean cfgModified;
+	static int defaultCeilY = 255;
 
 	/**
 	 * @param world current world
@@ -267,29 +275,45 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	 * @return the destination position and world the given portal leads to (or null if there is none or it can't be loaded)
 	 */
 	public static DimPos getAdjacentPos(DimPos pos) {
-		PortalConfiguration pc0 = get(pos.dimId);
-		int y = pos.getY();
-		PortalConfiguration pc1 = y == 255 ? pc0.neighbourUp : y == 0 ? pc0.neighbourDown : null;
-		if (pc1 == null) return null;
-		if (pc1 == pc0) return pos.offset(y == 0 ? EnumFacing.UP : EnumFacing.DOWN, 255);
-		WorldServer world = pos.getWorldServer().getMinecraftServer().getWorld(pc1.dimId);
-		if (world == null) return null;
-		if (ChunkLoader.active()) {
-			ChunkPos chunk = new ChunkPos(pos);
-			LoadingInfo ti = pc1.loadedChunks.get(chunk);
-			if (ti != null) ti.onRequest(pos);
-			else if (pc1.loadingTicket != null || (pc1.loadingTicket = ForgeChunkManager.requestTicket(Main.instance, pc1.getWorld(), Type.NORMAL)) != null)
-				pc1.loadedChunks.put(chunk, new LoadingInfo(pc1, pos));
-		}
-		return new DimPos(pos.getX(), 255 - pos.getY(), pos.getZ(), world);
+		return getAdjacentPos(pos, true);
 	}
 
 	/**
 	 * @param pos current portal location
-	 * @return location of the paired portal in the destination world
+	 * @param forceLoad whether to force load the world and chunk on the other side if needed
+	 * @return the destination position and world the given portal leads to (or null if there is none or it can't be / isn't loaded)
 	 */
-	public static BlockPos getAdjacentPos(BlockPos pos) {
-		return new BlockPos(pos.getX(), 255 - pos.getY(), pos.getZ());
+	public static DimPos getAdjacentPos(DimPos pos, boolean forceLoad) {
+		PortalConfiguration pc0 = get(pos.dimId), pc1 = null;
+		int y = pos.getY();
+		if (y == 0) {
+			pc1 = pc0.neighbourDown;
+			y = pc1.ceilY;
+		} else if (y == pc0.ceilY) {
+			pc1 = pc0.neighbourUp;
+			y = 0;
+		}
+		if (pc1 == null) return null;
+		WorldServer world = pos.getWorldServer();
+		if (pc1 != pc0) {
+			int d = pc1.dimId;
+			world = DimensionManager.getWorld(d);
+			if (!forceLoad && (world == null || !world.isBlockLoaded(pos)))
+				return null;
+			else if (world == null) {
+				DimensionManager.initDimension(d);
+				if ((world = DimensionManager.getWorld(d)) == null)
+					return null;
+			}
+			if (ChunkLoader.active()) {
+				ChunkPos chunk = new ChunkPos(pos);
+				LoadingInfo ti = pc1.loadedChunks.get(chunk);
+				if (ti != null) ti.onRequest(pos);
+				else if (pc1.loadingTicket != null || (pc1.loadingTicket = ForgeChunkManager.requestTicket(Main.instance, pc1.getWorld(), Type.NORMAL)) != null)
+					pc1.loadedChunks.put(chunk, new LoadingInfo(pc1, pos));
+			}
+		}
+		return new DimPos(pos.getX(), y, pos.getZ(), world);
 	}
 
 }

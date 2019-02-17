@@ -18,7 +18,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
@@ -54,12 +53,9 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 		if (unloaded) return;
 		if (updateLink) {
 			updateLink = false;
-			PortalConfiguration pc = PortalConfiguration.get(world);
-			pc = pos.getY() < 128 ? pc.down() : pc.up();
-			if (pc == null) return;
-			World world = pc.getWorld();
-			BlockPos linkPos = PortalConfiguration.getAdjacentPos(pos);
-			TileEntity te = world != null && world.isBlockLoaded(linkPos) ? world.getTileEntity(linkPos) : null;
+			DimPos linkPos = PortalConfiguration.getAdjacentPos(new DimPos(this), false);
+			if (linkPos == null) return;
+			TileEntity te = linkPos.getTileEntity();
 			if (te instanceof DimensionalPipe) {
 				link((DimensionalPipe)te);
 				linkTile.link(this);
@@ -85,7 +81,7 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 	protected void setupData() {
 		updateLink = updateCon = true;
 		if (!world.isRemote) TickRegistry.instance.updates.add(this);
-		side = pos.getY() < 128 ? EnumFacing.UP : EnumFacing.DOWN;
+		side = pos.getY() == 0 ? EnumFacing.UP : EnumFacing.DOWN;
 	}
 
 	@Override

@@ -88,7 +88,7 @@ public class Portal extends BaseBlock {
 
 	@Override
 	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-		return state.withProperty(onCeiling, pos.getY() >= 128);
+		return state.withProperty(onCeiling, pos.getY() != 0);
 	}
 
 	@Override
@@ -111,7 +111,7 @@ public class Portal extends BaseBlock {
 				DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 				if (posO == null) return false;
 				syncStates(posO, posT);
-				boolean ceil = pos.getY() < 128;
+				boolean ceil = pos.getY() == 0;
 				posO = posO.add(0, (posT.getBlock().getValue(solidOther2) ? 1 : 2) * (ceil ? -1 : 1), 0);
 				tryPlaceBlock(posO, player, item, hand, facing, hitX, hitY, hitZ);
 				player.addExhaustion(4.0F);
@@ -153,9 +153,9 @@ public class Portal extends BaseBlock {
 			stack.onItemUse(player, world, pos, hand, facing, hitX, hitY, hitZ);
 			if (stack.isEmpty()) net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(player, copyBeforeUse, hand);
 		}
-		int y = pos.getY();
-		if (y <= 2) world.neighborChanged(pos.down(y), block, pos);
-		else if (y >= 253) world.neighborChanged(pos.up(255-y), block, pos);
+		//int y = pos.getY();
+		//if (y <= 2) world.neighborChanged(pos.down(y), block, pos);
+		//else if (y >= 253) world.neighborChanged(pos.up(255-y), block, pos);
 	}
 
 	@Override
@@ -166,7 +166,7 @@ public class Portal extends BaseBlock {
 			DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 			if (posO == null) return;
 			syncStates(posO, posT);
-			boolean ceil = pos.getY() < 128;
+			boolean ceil = pos.getY() == 0;
 			IBlockState state = posT.getBlock();
 			if (state.getValue(solidOther1))
 				posO = posO.add(0, ceil ? -1 : 1, 0);
@@ -225,36 +225,35 @@ public class Portal extends BaseBlock {
 			if (exp > 0)
 				block.dropXpOnBlockBreak(world, pos, exp);
 		}
-		int y = pos.getY();
-		if (y <= 2) world.neighborChanged(pos.down(y), block, pos);
-		else if (y >= 253) world.neighborChanged(pos.up(255-y), block, pos);
+		//int y = pos.getY();
+		//if (y <= 2) world.neighborChanged(pos.down(y), block, pos);
+		//else if (y >= 253) world.neighborChanged(pos.up(255-y), block, pos);
 	}
 
 	@Override
 	public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity) {
 		if (world instanceof WorldServer && !state.getValue(solidOther1) && !state.getValue(solidOther2)) {
 			AxisAlignedBB box = entity.getEntityBoundingBox();
-			boolean floor = pos.getY() < 128;
+			int y = pos.getY();
 			double py = entity.motionY;
-			if (floor) {
-				if (box.maxY + py >= 1.0) return;
-				py = entity.posY + 254.0;
-				if (box.maxY > 1.0) py -= box.maxY - 1.0;
-			} else {
-				if (box.minY + py <= 255.0) return;
-				py = entity.posY - 254.0;
-				if (box.minY < 255.0) py -= box.minY - 255.0;
-			}
+			if (y == 0 ? box.maxY + py >= 1.0 : box.minY + py <= y) return;
 			DimPos posT = new DimPos(pos, world);
 			DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 			if (posO == null) return;
+			if (y == 0) {
+				py = entity.posY + (double)posO.getY() - 1.0;
+				if (box.maxY > 1.0) py -= box.maxY - 1.0;
+			} else {
+				py = entity.posY - (double)y + 1.0;
+				if (box.minY < (double)y) py -= box.minY - (double)y;
+			}
 			syncStates(posO, posT);
 			int dim = posO.dimId;
-			double x = entity.posX, y = py, z = entity.posZ;
+			double nx = entity.posX, ny = py, nz = entity.posZ;
 			TickRegistry.instance.updates.add(()-> {
 				//only teleport if not already at destination (to avoid duplicate events)
-				if (entity.dimension != dim || Math.abs(entity.posY - y) > entity.height + 4.0) {
-					MovedBlock.moveEntity(entity, dim, x, y, z);
+				if (entity.dimension != dim || Math.abs(entity.posY - ny) > entity.height + 4.0) {
+					MovedBlock.moveEntity(entity, dim, nx, ny, nz);
 				}
 			});
 		}
@@ -264,7 +263,7 @@ public class Portal extends BaseBlock {
 		IBlockState oState = oPos.getBlock();
 		IBlockState tState = tPos.getBlock();
 		if (oState.getMaterial() != Objects.M_PORTAL) {
-			int ceil = oPos.getY() >= 128 ? -1 : 1;
+			int ceil = oPos.getY() != 0 ? -1 : 1;
 			oState = getDefaultState()
 				.withProperty(onCeiling, ceil < 0)
 				.withProperty(solidThis1, isSolid(((DimPos)oPos.up(ceil)).getBlock()))
@@ -282,8 +281,12 @@ public class Portal extends BaseBlock {
 
 	@Override
 	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-		if (pos.getY() > 0 && pos.getY() < 255 || !(placer instanceof EntityPlayer && ((EntityPlayer)placer).isCreative())) {
-			placer.sendMessage(new TextComponentString("This block is meant to be auto generated at the bottom (y=0) and/or top (y=255) most layer of the world!"));
+		PortalConfiguration pc = PortalConfiguration.get(world);
+		int y = pos.getY();
+		if (!(placer instanceof EntityPlayer && ((EntityPlayer)placer).isCreative())
+				|| !(y == 0 && pc.down() != null)
+				|| !(y == pc.ceilHeight() && pc.up() != null)) {
+			placer.sendMessage(new TextComponentString("This block is meant to be auto generated as part of the bottom and/or top portal layer of this world!"));
 			world.setBlockToAir(pos);
 			return;
 		}
@@ -304,8 +307,8 @@ public class Portal extends BaseBlock {
 		DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 		if (posO == null) return;
 		IBlockState stateO = posO.getBlock();
-		if (stateO.getMaterial() != Objects.M_PORTAL) stateO = getDefaultState().withProperty(onCeiling, posO.getY() >= 128);
-		int ceil = posO.getY() >= 128 ? -1 : 1;
+		if (stateO.getMaterial() != Objects.M_PORTAL) stateO = getDefaultState().withProperty(onCeiling, posO.getY() != 0);
+		int ceil = posO.getY() != 0 ? -1 : 1;
 		boolean this1 = isSolid(((DimPos)posT.down(ceil)).getBlock()), this2 = isSolid(((DimPos)posT.down(ceil<<1)).getBlock());
 		boolean other1 = isSolid(((DimPos)posO.up(ceil)).getBlock()), other2 = isSolid(((DimPos)posO.up(ceil<<1)).getBlock());
 		posT.setBlock(stateT.withProperty(solidThis1, this1).withProperty(solidThis2, this2).withProperty(solidOther1, other1).withProperty(solidOther2, other2));
@@ -318,7 +321,7 @@ public class Portal extends BaseBlock {
 
 	@Override
 	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-		boolean ceil = pos.getY() >= 128;
+		boolean ceil = pos.getY() != 0;
 		return state.getValue(solidOther1) ? (ceil ? fullCeil : fullFloor)
 			: state.getValue(solidOther2) ? (ceil? halfCeil : halfFloor)
 										: (ceil ? emptyCeil : emptyFloor);
@@ -326,7 +329,7 @@ public class Portal extends BaseBlock {
 
 	@Override
 	public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess world, BlockPos pos) {
-		boolean ceil = pos.getY() >= 128;
+		boolean ceil = pos.getY() != 0;
 		return state.getValue(solidOther1) ? (ceil ? fullCeil : fullFloor)
 			: state.getValue(solidOther2) ? (ceil? halfCeil : halfFloor)
 			: NULL_AABB;
@@ -346,7 +349,7 @@ public class Portal extends BaseBlock {
 	@Override
 	public boolean shouldSideBeRendered(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing side) {
 		BlockPos pos1 = pos.offset(side);
-		boolean ceil = pos.getY() >= 128;
+		boolean ceil = pos.getY() != 0;
 		switch(side) {
 		case UP: return ceil || !(state.getValue(solidOther1) && world.getBlockState(pos1).doesSideBlockRendering(world, pos1, EnumFacing.DOWN));
 		case DOWN: return !ceil || !(state.getValue(solidOther1) && world.getBlockState(pos1).doesSideBlockRendering(world, pos1, EnumFacing.UP));
