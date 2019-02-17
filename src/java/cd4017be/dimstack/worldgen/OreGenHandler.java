@@ -12,6 +12,9 @@ import cd4017be.dimstack.api.gen.IOreGenerator;
 import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
+import cd4017be.lib.script.obj.Error;
+import cd4017be.lib.script.obj.IOperand;
+import cd4017be.lib.script.obj.Number;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -58,11 +61,13 @@ public class OreGenHandler implements IWorldGenerator, IRecipeHandler {
 
 	public void initConfig(ConfigConstants cfg) {
 		DisableVanillaOres d = PortalConfiguration.get(0).getSettings(DisableVanillaOres.class, true);
-		for (EventType t : EventType.values())
-			if (cfg.get("disable_" + t.name().toLowerCase(), Boolean.class, Boolean.FALSE))
-				d.disable(t);
+		for (EventType t : EventType.values()) {
+			String id = "disable_" + t.name().toLowerCase();
+			d.setDisabled(t, cfg.get(id, Boolean.class, Boolean.FALSE));
+			cfg.get(id, OreDisableInfo.class, new OreDisableInfo(t));
+		}
 		if (d.disabled(EventType.QUARTZ))
-			PortalConfiguration.get(-1).getSettings(DisableVanillaOres.class, true).disable(EventType.QUARTZ);
+			PortalConfiguration.get(-1).getSettings(DisableVanillaOres.class, true).setDisabled(EventType.QUARTZ, true);
 	}
 
 	@Override
@@ -91,6 +96,37 @@ public class OreGenHandler implements IWorldGenerator, IRecipeHandler {
 		else if (type.startsWith("gauss"))
 			cfg.entries.add(new OreGenGaussian(ore, count, veins, target, (float)heights[0], (float)heights[1]));
 		else throw new IllegalArgumentException("invalid ore distribution mode: " + type);
+	}
+
+	private static class OreDisableInfo implements IOperand {
+
+		private final EventType type;
+
+		OreDisableInfo(EventType type) {
+			super();
+			this.type = type;
+		}
+
+		@Override
+		public boolean asBool() throws Error {return true;}
+		@Override
+		public Object value() {return this;}
+
+		@Override
+		public IOperand get(IOperand idx) {
+			DisableVanillaOres cfg = PortalConfiguration.get(idx.asIndex()).getSettings(DisableVanillaOres.class, false);
+			return cfg != null && cfg.disabled(type) ? Number.TRUE : Number.FALSE;
+		}
+
+		@Override
+		public void put(IOperand idx, IOperand val) {
+			try {
+				boolean disable = val.asBool();
+				DisableVanillaOres cfg = PortalConfiguration.get(idx.asIndex()).getSettings(DisableVanillaOres.class, disable);
+				if (cfg != null) cfg.setDisabled(type, disable);
+			} catch (Error e) {e.printStackTrace();}
+		}
+
 	}
 
 }

@@ -12,11 +12,6 @@ public class DisableVanillaOres implements IDimensionSettings {
 
 	private short disabled;
 
-	/** re-enable all ores in this dimension */
-	public void reset() {
-		disabled = 0;
-	}
-
 	/**
 	 * @param ore ore generator type
 	 * @return whether given ore generator is disabled for this dimension
@@ -26,11 +21,13 @@ public class DisableVanillaOres implements IDimensionSettings {
 	}
 
 	/**
-	 * disable given ore generator for this dimension
+	 * set the disabled state of given ore generator for this dimension
 	 * @param ore ore generator type
+	 * @param d whether to disable
 	 */
-	public void disable(EventType ore) {
-		disabled |= 1 << ore.ordinal();
+	public void setDisabled(EventType ore, boolean d) {
+		if (d) disabled |= 1 << ore.ordinal();
+		else disabled &= ~(1 << ore.ordinal());
 	}
 
 	@SuppressWarnings("deprecation")
@@ -47,10 +44,8 @@ public class DisableVanillaOres implements IDimensionSettings {
 	@SuppressWarnings("deprecation")
 	@Override
 	public void deserializeNBT(NBTBase nbt) {
-		reset();
 		for (EventType t : EventType.values())
-			if (((NBTTagCompound)nbt).getBoolean(t.name().toLowerCase()))
-				disable(t);
+			setDisabled(t, ((NBTTagCompound)nbt).getBoolean(t.name().toLowerCase()));
 		if (disabled != 0) API.INSTANCE.registerOreDisable();
 	}
 
