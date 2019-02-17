@@ -46,7 +46,6 @@ public class Main {
 	public void preInit(FMLPreInitializationEvent event) {
 		LOG = event.getModLog();
 		MinecraftForge.EVENT_BUS.register(proxy);
-		Objects.init();
 		proxy.init();
 		RecipeScriptContext.instance.run(ConfigName + ".PRE_INIT");
 	}
@@ -54,6 +53,7 @@ public class Main {
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
 		proxy.registerRenderers();
+		Objects.init();
 	}
 
 	@Mod.EventHandler
