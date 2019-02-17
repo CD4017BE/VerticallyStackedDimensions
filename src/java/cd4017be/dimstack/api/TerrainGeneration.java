@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.function.Function;
 
+import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.gen.ITerrainGenerator;
 import cd4017be.dimstack.api.util.CfgList;
 import cd4017be.dimstack.api.util.NoiseField;
@@ -17,6 +18,7 @@ import net.minecraft.world.gen.NoiseGeneratorOctaves;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
 import net.minecraftforge.common.util.Constants.NBT;
+import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent.Context;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent.ContextEnd;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent.ContextHell;
@@ -57,6 +59,8 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 	public int offsetY;
 	/** dimension id */
 	public int dimId;
+	
+	private boolean initialized = false;
 
 	@Override
 	public void deserializeNBT(NBTBase nbt) {
@@ -114,6 +118,10 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 		this.dimId = dim.id();
 		this.offsetY = dim.height() * 254;
 		
+		initNoiseFields();
+	}
+
+	private void initNoiseFields() {
 		SharedNoiseFields snf = API.INSTANCE.getSettings(SharedNoiseFields.class, false);
 		for (int i = 0, l = noiseFields.length; i < l; i++) {
 			NoiseGenerator gen;
@@ -137,9 +145,16 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 		}
 		for (ITerrainGenerator g : entries)
 			g.initNoise(this);
+		initialized = true;
 	}
 
 	public void generate(IChunkGenerator gen, ChunkPrimer cp, int cx, int cz) {
+		if (!initialized) {
+			Main.LOG.fatal("The chunk generator {} did not properly trigger a {} during its initialization!\nPlease report this issue to the mod author of the above mentionied ChunkGenerator.", gen.getClass().getName(), InitNoiseGensEvent.class.getSimpleName());
+			this.rand = new Random();
+			initNoiseFields();
+			Main.LOG.warn("A rudimentary setup of noise fields has been performed to avoid at least some issues later on, however the terrain will likely not generate correctly and things might even crash!");
+		}
 		for (NoiseField f : noiseFields)
 			f.prepareFor(cx, cz);
 		for (ITerrainGenerator tg : entries)

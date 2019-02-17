@@ -50,7 +50,10 @@ public class NoiseField {
 	 */
 	public NoiseField provideRange(int y0, int y1) {
 		int g = vGrid;
-		if (g <= 0) throw new IllegalStateException("2D noise fields can't provide a range of heights!");
+		if (g <= 0) {
+			if (ranges == null) provideLayer(0);
+			return this;
+		}
 		if (y0 >= y1) throw new IllegalArgumentException("upper bound must be greater than lower bound!");
 		y0 += offsetY;
 		y1 += offsetY;
@@ -133,6 +136,7 @@ public class NoiseField {
 		x = (x << 4) / g; z = (z << 4) / g;
 		boolean flat = vGrid <= 0;
 		int[] ranges = this.ranges;
+		if (ranges == null) return;
 		int l = ranges.length >> (flat ? 0 : 1);
 		double[][] fields = this.fieldBuffers;
 		if (fields == null) this.fieldBuffers = fields = new double[l][];
