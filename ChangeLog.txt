@@ -1,3 +1,19 @@
+v0.0.4
+Changes:
+- fixed some potential noise field issues with modded chunk generators
+- added configuration for changing the ceiling portal height
+- added configuration for dimension specific deactivating of vanilla ore generation
+- fixed Interdimensional Pipe crashing during removal attempt
+- fixed #3 Interdimensional Pipe duplicating TileEntities (actually fixed by CD4017BE_lib)
+- enhanced block placement logic through portals
+- fixed creative tab icon not showing
+- improved block tool-tips and added German translation
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.3.3
+
 v0.0.3
 Changes:
 - fixed #7 by only generating ceiling portals when needed

@@ -3,7 +3,7 @@
   "modid": "dimstack",
   "name": "Vertically Stacked Dimensions",
   "description": "Effectively increases the Build height by stacking dimensions above each other with transition portals in between.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "acceptableRemoteVersions": "[0.0.0,0.1.0)",
   "acceptableSaveVersions": "[0.0.0,0.1.0)",
   "acceptedMinecraftVersions": "[1.12.2,1.13)",
@@ -14,7 +14,7 @@
   "logoFile": "",
   "screenshots": [],
   "useDependencyInformation": true,
-  "requiredMods": ["cd4017be_lib@[6.3.2, 6.5.0)"],
-  "dependencies": ["cd4017be_lib@[6.3.2, 6.5.0)"]
+  "requiredMods": ["cd4017be_lib@[6.3.3, 6.5.0)"],
+  "dependencies": ["cd4017be_lib@[6.3.3, 6.5.0)"]
 }
 ]
