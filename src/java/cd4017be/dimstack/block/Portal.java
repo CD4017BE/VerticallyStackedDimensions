@@ -98,21 +98,19 @@ public class Portal extends BaseBlock {
 
 	@Override
 	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if (player.isCreative() && player.isSneaking() && player.getHeldItem(hand).isEmpty()) {
-			onBlockClicked(world, pos, player);
-			return true;
-		}
-		if (state.getValue(solidOther1)) return false;
+		boolean solid = state.getValue(solidOther1), side = facing != EnumFacing.UP && facing != EnumFacing.DOWN;
+		if (solid && !side) return false;
 		if (!(world instanceof WorldServer)) return true;
 		if (player instanceof EntityPlayerMP && !(player instanceof FakePlayer)) {
 			ItemStack item = player.getHeldItem(hand);
 			if (!item.isEmpty()) {
+				if (solid) pos = pos.offset(facing);
 				DimPos posT = new DimPos(pos, world);
 				DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 				if (posO == null) return false;
 				syncStates(posO, posT);
-				boolean ceil = pos.getY() == 0;
-				posO = posO.add(0, (posT.getBlock().getValue(solidOther2) ? 1 : 2) * (ceil ? -1 : 1), 0);
+				int ceil = pos.getY() == 0 ? -1 : 1;
+				posO = posO.add(0, solid || posT.getBlock().getValue(solidOther2) ? ceil : ceil<<1, 0);
 				tryPlaceBlock(posO, player, item, hand, facing, hitX, hitY, hitZ);
 				player.addExhaustion(4.0F);
 				return true;
@@ -257,6 +255,12 @@ public class Portal extends BaseBlock {
 				}
 			});
 		}
+	}
+
+	@Override
+	public boolean removedByPlayer(IBlockState state, World world, BlockPos pos, EntityPlayer player, boolean willHarvest) {
+		onBlockClicked(world, pos, player);
+		return false;
 	}
 
 	private void syncStates(DimPos oPos, DimPos tPos) {
