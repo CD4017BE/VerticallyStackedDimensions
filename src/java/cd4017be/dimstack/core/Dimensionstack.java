@@ -4,14 +4,20 @@ import java.io.File;
 import java.io.IOException;
 
 import cd4017be.api.recipes.RecipeAPI;
+import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
+import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.API;
 import cd4017be.dimstack.api.IDimension;
 import cd4017be.dimstack.api.IDimensionSettings;
 import cd4017be.dimstack.api.util.SettingProvider;
 import cd4017be.dimstack.worldgen.OreGenHandler;
+import cd4017be.lib.Lib;
 import cd4017be.lib.script.Parameters;
+import cd4017be.lib.script.obj.Error;
+import cd4017be.lib.script.obj.IOperand;
+import cd4017be.lib.script.obj.Number;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -69,8 +75,13 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	}
 
 	private static void loadSettings(SettingProvider sp, NBTTagCompound cfg) {
-		for (String key : cfg.getKeySet()) {
-			try {
+		if (sp instanceof PortalConfiguration) {
+			PortalConfiguration pc = (PortalConfiguration)sp;
+			int y = cfg.getByte("ceil") & 0xff;
+			pc.ceilY = y > 0 ? y : 255;
+		}
+		for (String key : cfg.getKeySet())
+			if (key.indexOf('.') >= 0) try {
 				Class<?> c = Class.forName(key);
 				if (IDimensionSettings.class.isAssignableFrom(c)) {
 					@SuppressWarnings("unchecked")
@@ -80,11 +91,14 @@ public class Dimensionstack extends API implements IRecipeHandler {
 			} catch (ClassNotFoundException e) {
 				Main.LOG.warn("Can't load entry for dimension {}: Class {} not found!", sp, key);
 			}
-		}
 	}
 
 	private static NBTTagCompound saveSettings(SettingProvider sp) {
 		NBTTagCompound cfg = new NBTTagCompound();
+		if (sp instanceof PortalConfiguration) {
+			PortalConfiguration pc = (PortalConfiguration)sp;
+			cfg.setByte("ceil", (byte)pc.ceilY);
+		}
 		for (IDimensionSettings s : sp.getAllSettings()) {
 			NBTBase tag = s.serializeNBT();
 			if (tag != null && !tag.hasNoTags())
@@ -209,6 +223,35 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		for (int i = 0; i < vec.length; i++)
 			stack[i] = (int)vec[i];
 		PortalConfiguration.link(stack);
+	}
+
+	public static void initConfig(ConfigConstants cfg) {
+		defaultCeilY = (int)cfg.getNumber("dim_ceiling", defaultCeilY);
+		cfg.get("dim_ceiling", CeilingInfo.class, new CeilingInfo());
+	}
+
+	private static class CeilingInfo implements IOperand {
+
+		@Override
+		public boolean asBool() throws Error {return true;}
+		@Override
+		public Object value() {return this;}
+
+		@Override
+		public IOperand get(IOperand idx) {
+			return new Number(PortalConfiguration.get(idx.asIndex()).ceilY);
+		}
+
+		@Override
+		public void put(IOperand idx, IOperand val) {
+			int y = val.asIndex();
+			if (y <= 0 || y >= 256) {
+				Lib.LOG.error(RecipeScriptContext.ERROR, "script attempted to set portal ceiling height to an invalid value {}", y);
+				return;
+			}
+			PortalConfiguration.get(idx.asIndex()).ceilY = val.asIndex();
+		}
+
 	}
 
 }

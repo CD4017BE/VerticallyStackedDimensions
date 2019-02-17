@@ -32,7 +32,7 @@ public class ChunkLoader implements OrderedLoadingCallback {
 
 	private int timer;
 
-	public static void init(ConfigConstants cfg) {
+	public static void initConfig(ConfigConstants cfg) {
 		EXPIRE_TIME = (long)(cfg.getNumber("chunk_load_time", (double)EXPIRE_TIME / 1000D) * 1000D);
 		OVER_TIME = (long)(cfg.getNumber("cont_load_time", (double)OVER_TIME / 1000D) * 1000D);
 		CHECK_INTERVAL = (int) (EXPIRE_TIME / 200L);

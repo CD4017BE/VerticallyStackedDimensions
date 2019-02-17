@@ -3,6 +3,7 @@ package cd4017be.dimstack;
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.core.ChunkLoader;
+import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.worldgen.BlockReplacer;
 import cd4017be.dimstack.worldgen.OreGenHandler;
 import cd4017be.dimstack.worldgen.PortalGen;
@@ -32,7 +33,8 @@ public class CommonProxy {
 
 	private void setConfig() {
 		ConfigConstants cfg = new ConfigConstants(RecipeScriptContext.instance.modules.get(Main.ConfigName));
-		ChunkLoader.init(cfg);
+		Dimensionstack.initConfig(cfg);
+		ChunkLoader.initConfig(cfg);
 		worldgenTerrain.initConfig(cfg);
 		worldgenOres.initConfig(cfg);
 	}
