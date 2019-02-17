@@ -1,5 +1,7 @@
 VERSION = 17;
 
+!for more documentation see: https://github.com/CD4017BE/VerticallyStackedDimensions/wiki
+
 !Time in seconds to keep a chunk loaded after it was requested by a portal (set to 0 to disable chunk persistence).
 !This is to avoid lagg by chunks being frequently loaded and unloaded again.
 chunk_load_time = 30.0;
@@ -21,6 +23,8 @@ disable_quartz = false;
 	!nubers of octaves for global noise generators, used for add("noiseField" ...)
 	custom_noise_octaves = []#;
 }
+
+dim_ceiling = 255; !default height at which ceiling portals are generated
 
 PRE_INIT() {
 	!stacking dimensions on top of each other so they get connected via portals (order bottom to top):
