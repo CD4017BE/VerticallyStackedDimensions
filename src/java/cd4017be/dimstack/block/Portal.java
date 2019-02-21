@@ -1,5 +1,7 @@
 package cd4017be.dimstack.block;
 
+import java.util.Random;
+
 import cd4017be.dimstack.Objects;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.TickRegistry;
@@ -24,6 +26,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -396,6 +399,17 @@ public class Portal extends BaseBlock {
 	@SideOnly(Side.CLIENT)
 	public BlockRenderLayer getBlockLayer() {
 		return BlockRenderLayer.CUTOUT;
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand) {
+		if (state.getValue(solidOther1) || rand.nextInt(4) != 0) return;
+		int by = pos.getY();
+		double x = (double)pos.getX() + rand.nextFloat();
+		double y = by == 0 ? 1.0 : (double)by;
+		double z = (double)pos.getZ() + rand.nextFloat();
+		world.spawnParticle(EnumParticleTypes.TOWN_AURA, x, y, z, 0, 0, 0);
 	}
 
 }

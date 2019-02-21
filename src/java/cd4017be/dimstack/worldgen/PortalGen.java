@@ -31,11 +31,11 @@ public class PortalGen implements IWorldGenerator {
 		PortalConfiguration pc = PortalConfiguration.get(world);
 		Chunk chunk = world.getChunkFromChunkCoords(cx, cz);
 		if (pc.down() != null)
-			placePortals(chunk, 0);
+			placePortals(chunk, 0, false);
 		if (pc.up() != null) {
 			int yc = pc.ceilHeight();
 			if (chunk.getTopFilledSegment() >= yc - 15)
-				placePortals(chunk, yc);
+				placePortals(chunk, yc, false);
 			else pc.setTopOpen();
 		}
 	}
@@ -47,29 +47,30 @@ public class PortalGen implements IWorldGenerator {
 		Chunk chunk;
 		chunk = cp.getLoadedChunk(x0 >> 4, z0 >> 4);
 		if (chunk != null && chunk.getBlockState(x0, y, z0).getMaterial() != Objects.M_PORTAL)
-			placePortals(chunk, y);
+			placePortals(chunk, y, true);
 		chunk = cp.getLoadedChunk(x1 >> 4, z0 >> 4);
 		if (chunk != null && chunk.getBlockState(x1, y, z0).getMaterial() != Objects.M_PORTAL)
-			placePortals(chunk, y);
+			placePortals(chunk, y, true);
 		chunk = cp.getLoadedChunk(x0 >> 4, z1 >> 4);
 		if (chunk != null && chunk.getBlockState(x0, y, z1).getMaterial() != Objects.M_PORTAL)
-			placePortals(chunk, y);
+			placePortals(chunk, y, true);
 		chunk = cp.getLoadedChunk(x1 >> 4, z1 >> 4);
 		if (chunk != null && chunk.getBlockState(x1, y, z1).getMaterial() != Objects.M_PORTAL)
-			placePortals(chunk, y);
+			placePortals(chunk, y, true);
 	}
 
-	public static void placePortals(Chunk chunk, int y) {
-		IBlockState state = Objects.PORTAL.getDefaultState();
+	public static void placePortals(Chunk chunk, int y, boolean update) {
+		IBlockState state = Objects.PORTAL.getDefaultState(), olds;
 		boolean s0 = state.getValue(Portal.solidOther1),
 				s1 = state.getValue(Portal.solidThis1),
 				s2 = state.getValue(Portal.solidThis2);
+		World world = chunk.getWorld();
 		MutableBlockPos pos = new MutableBlockPos();
 		int y1 = y == 0 ? 1 : y-1, y2 = y1 + y1 - y;
 		int x0 = chunk.x << 4, x1 = x0 + 16;
 		for (int z = chunk.z << 4, z1 = z + 16; z < z1; z++)
 			for (int x = x0; x < x1; x++)
-				if (chunk.getBlockState(x, y, z).getMaterial() != Objects.M_PORTAL) {
+				if ((olds = chunk.getBlockState(x, y, z)).getMaterial() != Objects.M_PORTAL) {
 					if (s2 ^ Portal.isSolid(chunk.getBlockState(x, y2, z)))
 						state = state.withProperty(Portal.solidThis2, s2 = !s2);
 					if (s1 ^ Portal.isSolid(chunk.getBlockState(x, y1, z)))
@@ -77,6 +78,8 @@ public class PortalGen implements IWorldGenerator {
 					if (s0 ^ Portal.isSolid(chunk.getBlockState(x, y, z)))
 						state = state.withProperty(Portal.solidOther1, s0 = !s0).withProperty(Portal.solidOther2, s0);
 					chunk.setBlockState(pos.setPos(x, y, z), state);
+					if (update)
+						world.notifyBlockUpdate(pos, olds, state, 2);
 				}
 	}
 
