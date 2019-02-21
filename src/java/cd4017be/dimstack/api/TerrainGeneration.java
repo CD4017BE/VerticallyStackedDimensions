@@ -6,8 +6,10 @@ import java.util.function.Function;
 
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.gen.ITerrainGenerator;
+import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.api.util.CfgList;
 import cd4017be.dimstack.api.util.NoiseField;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -59,6 +61,8 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 	public int offsetY;
 	/** dimension id */
 	public int dimId;
+	/** A block that should be prevented from generation during regular world-gen code */
+	public IBlockState disabledBlock = null;
 	
 	private boolean initialized = false;
 
@@ -75,6 +79,7 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 			noiseFields[i] = new NoiseField(tag.getByte("hGrid"), tag.getByte("vGrid") & 0xff, tag.getDouble("hScale"), tag.getDouble("vScale"));
 		}
 		deserializeNBT(ctag.getTagList("entries", NBT.TAG_COMPOUND), REGISTRY);
+		this.disabledBlock = ctag.hasKey("remove", NBT.TAG_STRING) ? BlockPredicate.parse(ctag.getString("remove")) : null;
 	}
 
 	@Override
@@ -93,6 +98,7 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 			list.appendTag(tag);
 		}
 		if (!list.hasNoTags()) nbt.setTag("noiseFields", list);
+		if (disabledBlock != null) nbt.setString("remove", BlockPredicate.serialize(disabledBlock));
 		return nbt;
 	}
 
@@ -168,6 +174,7 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 			f.prepareFor(cx, cz);
 		for (ITerrainGenerator tg : entries)
 			tg.generate(gen, cp, cx, cz, this);
+		BlockPredicate.disableBlock(cp, disabledBlock);
 	}
 
 }

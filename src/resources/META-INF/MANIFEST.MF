@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+FMLCorePlugin: cd4017be.dimstack.asm.CorePlugin
+FMLCorePluginContainsFMLMod: cd4017be.dimstack.Main

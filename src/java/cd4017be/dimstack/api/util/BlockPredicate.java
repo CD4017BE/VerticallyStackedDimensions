@@ -12,6 +12,7 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraftforge.oredict.OreDictionary;
 
 
@@ -107,6 +108,16 @@ public class BlockPredicate implements Predicate<IBlockState> {
 	public static String serialize(IBlockState s) {
 		Block b = s.getBlock();
 		return b.getRegistryName() + "@" + b.getMetaFromState(s);
+	}
+
+	/**
+	 * make the given chunk primer ignore placement calls for the given blockstate<br>
+	 * Note: you can only have one block disabled at a time this way so choose wisely ...
+	 * @param cp the chunk primer to configure
+	 * @param state the state to disable or null to disable none
+	 */
+	public static void disableBlock(ChunkPrimer cp, IBlockState state) {
+		//cp.ingnoredBlock = state; //implemented via ASM
 	}
 
 }
