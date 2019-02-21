@@ -16,6 +16,10 @@ import cd4017be.dimstack.api.util.NoiseField;
 import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
+import cd4017be.lib.script.obj.Error;
+import cd4017be.lib.script.obj.IOperand;
+import cd4017be.lib.script.obj.Nil;
+import cd4017be.lib.script.obj.Text;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import net.minecraft.block.state.IBlockState;
@@ -78,6 +82,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 			snf.octaves = oct;
 			snf.noiseFields = new NoiseGenerator[l];
 		}
+		cfg.get("rem_block_gen", BlockRemInfo.class, new BlockRemInfo());
 	}
 
 	@Override
@@ -189,6 +194,31 @@ public class TerrainGenHandler implements IRecipeHandler {
 			gen.noiseFields = nf;
 			regDims.put(dim, n);
 			return n;
+		}
+
+	}
+
+	private static class BlockRemInfo implements IOperand {
+
+		@Override
+		public boolean asBool() throws Error {return true;}
+		@Override
+		public Object value() {return this;}
+
+		@Override
+		public IOperand get(IOperand idx) {
+			TerrainGeneration cfg = PortalConfiguration.get(idx.asIndex()).getSettings(TerrainGeneration.class, false);
+			return cfg == null || cfg.disabledBlock == null ? Nil.NIL : new Text(BlockPredicate.serialize(cfg.disabledBlock));
+		}
+
+		@Override
+		public void put(IOperand idx, IOperand val) {
+			boolean set = val instanceof Text;
+			TerrainGeneration cfg = PortalConfiguration.get(idx.asIndex()).getSettings(TerrainGeneration.class, set);
+			if (set) 
+				cfg.disabledBlock = BlockPredicate.parse(((Text)val).value);
+			else if (cfg != null)
+				cfg.disabledBlock = null;
 		}
 
 	}

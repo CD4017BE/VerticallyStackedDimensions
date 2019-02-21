@@ -37,9 +37,8 @@ INIT() {
 	!add("shaped", <result>, <pattern>, <ingredients>...);
 	add("shaped", it("tile.dim_pipe", 1), "010/020/010", "obsidian", "gemQuartz", it("minecraft:hopper"));
 	
-	!replace bedrock layers
-	!add("bedrockRepl", <dimId>, it(<repBlock>), [<minY>, <maxY>]#);
-	add("bedrockRepl", 0, "minecraft:stone", [0, 5]#); !overworld bedrock layer
+	!prevent bedrock from being generated in the Overworld
+	rem_block_gen:0 = "minecraft:bedrock";
 	
 	netherTop(); !remove/comment this line to disable all nether related features
 }
@@ -80,6 +79,7 @@ netherTop() {
 	!obsidian layer between top and bottom nether
 	add("basicLayer", -1, "minecraft:obsidian", [128, 128, 129, 133]#);
 	!replace upper bedrock layer with obsidian as well
+	!add("bedrockRepl", <dimId>, <repBlock>, [<minY>, <maxY>]#);
 	add("bedrockRepl", -1, "minecraft:obsidian", [123, 128]#);
 	
 	!ore vein generation:
