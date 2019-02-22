@@ -9,7 +9,6 @@ import cd4017be.lib.templates.TabMaterials;
 import cd4017be.lib.util.TooltipUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
-import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -27,7 +26,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 public class Objects {
 
 	public static TabMaterials tabDimStack = new TabMaterials(Main.ID);
-	public static Material M_PORTAL = new Material(MapColor.AIR);
+	public static Material M_PORTAL = Material.PORTAL;
 
 	//Blocks
 	public static final Portal PORTAL = null;

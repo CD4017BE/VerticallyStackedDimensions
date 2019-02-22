@@ -233,7 +233,7 @@ public class Portal extends BaseBlock {
 
 	@Override
 	public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity) {
-		if (world instanceof WorldServer && !state.getValue(solidOther1) && !state.getValue(solidOther2)) {
+		if (world instanceof WorldServer && !state.getValue(solidOther1)) {
 			AxisAlignedBB box = entity.getEntityBoundingBox();
 			int y = pos.getY();
 			double py = entity.motionY;
