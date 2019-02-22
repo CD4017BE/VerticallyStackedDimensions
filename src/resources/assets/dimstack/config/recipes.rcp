@@ -24,7 +24,10 @@ disable_quartz = false;
 	custom_noise_octaves = []#;
 }
 
+ceil_on_demand = true; !whether to generate ceiling portals in open sky dimensions only when & where needed. (It's highly recommended to leave this at default true)
+
 dim_ceiling = 255; !default height at which ceiling portals are generated
+
 
 PRE_INIT() {
 	!stacking dimensions on top of each other so they get connected via portals (order bottom to top):

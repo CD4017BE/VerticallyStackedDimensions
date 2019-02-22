@@ -37,6 +37,7 @@ public class CommonProxy {
 		ChunkLoader.initConfig(cfg);
 		worldgenTerrain.initConfig(cfg);
 		worldgenOres.initConfig(cfg);
+		worldgenPortal.initConfig(cfg);
 	}
 
 	public void registerRenderers() {

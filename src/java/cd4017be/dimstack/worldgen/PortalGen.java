@@ -2,6 +2,7 @@ package cd4017be.dimstack.worldgen;
 
 import java.util.Random;
 
+import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.Objects;
 import cd4017be.dimstack.block.Portal;
 import cd4017be.dimstack.core.PortalConfiguration;
@@ -22,6 +23,8 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
  */
 public class PortalGen implements IWorldGenerator {
 
+	static boolean genImmediate = false;
+
 	public PortalGen() {
 		//this generator should run rather late to ensure the portal states won't need to change much later on.
 		GameRegistry.registerWorldGenerator(this, 10);
@@ -35,7 +38,7 @@ public class PortalGen implements IWorldGenerator {
 			placePortals(chunk, 0, false, pc1);
 		if ((pc1 = pc.up()) != null) {
 			int yc = pc.ceilY;
-			if (chunk.getTopFilledSegment() >= yc - 15)
+			if (genImmediate || chunk.getTopFilledSegment() >= yc - 15)
 				placePortals(chunk, yc, false, pc1);
 			else pc.setTopOpen();
 		}
@@ -77,7 +80,7 @@ public class PortalGen implements IWorldGenerator {
 			Chunk chunk_ = worldO.getChunkProvider().getLoadedChunk(chunk.x, chunk.z);
 			if (chunk_ == null) break;
 			int Y = y == 0 ? neighb.ceilY : 0;
-			if (chunk_.getTopFilledSegment() < Y - 15) break;
+			if (!genImmediate && chunk_.getTopFilledSegment() < Y - 15) break;
 			IBlockState state_ = state
 					.withProperty(Portal.solidOther1, s1)
 					.withProperty(Portal.solidOther2, s2)
@@ -124,6 +127,10 @@ public class PortalGen implements IWorldGenerator {
 				chunk.setBlockState(pos.setPos(x, y, z), state);
 				if (update) world.notifyBlockUpdate(pos, olds, state, 2);
 			}
+	}
+
+	public void initConfig(ConfigConstants cfg) {
+		genImmediate = cfg.getNumber("ceil_on_demand", 1.0) < 1.0;
 	}
 
 }
