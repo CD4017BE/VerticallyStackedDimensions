@@ -191,8 +191,8 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	public void notifyBlockUpdate(World world, BlockPos pos, IBlockState oldState, IBlockState newState, int flags) {
 		if ((flags & 1) == 0) return;
 		int y = pos.getY(), yc = ceilY;
-		if (y >= yc - 3 && topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR)
-			PortalGen.fixCeil(world, pos, yc);
+		if (y >= yc - 4 && topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR)
+			PortalGen.fixCeil(world, pos, yc, neighbourUp);
 		if (y == 2) {
 			BlockPos posP = pos.down(2);
 			IBlockState stateP = world.getBlockState(posP);
