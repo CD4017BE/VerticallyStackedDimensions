@@ -1,3 +1,16 @@
+v0.0.5
+Changes:
+- made portals generate particle effects so they're visible when open too
+- added more clean bedrock removal feature that prevents it from being generated in the first place instead of replacing it afterwards
+- fixed ceiling portals blocking precipitation and confusing things like spawnpoint logic and generation of surface structures
+- added config option to not generate ceiling portals on demand (not stricly needed anymore ^^)
+- made portals already sync during world-gen if adjacent chunk happens to be loaded
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.3.3
+
 v0.0.4
 Changes:
 - fixed some potential noise field issues with modded chunk generators
