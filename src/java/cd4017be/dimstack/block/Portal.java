@@ -29,6 +29,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
@@ -237,7 +238,9 @@ public class Portal extends BaseBlock {
 	@Override
 	public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity) {
 		if (world instanceof WorldServer && !state.getValue(solidOther1)) {
+			if (MathHelper.floor(entity.posX) != pos.getX() || MathHelper.floor(entity.posZ) != pos.getZ()) return;
 			AxisAlignedBB box = entity.getEntityBoundingBox();
+			if (box.maxY - box.minY > 1.0 && state.getValue(solidOther2)) return;
 			int y = pos.getY();
 			double py = entity.motionY;
 			if (y == 0 ? box.maxY + py >= 1.0 : box.minY + py <= y) return;
