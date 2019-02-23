@@ -126,7 +126,8 @@ public class Portal extends BaseBlock {
 	 * Picked together from PlayerInteractionManager, with unwanted code removed.
 	 */
 	public void tryPlaceBlock(DimPos pos, EntityPlayer player, ItemStack stack, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		Block block = pos.getBlock().getBlock();
+		IBlockState state = pos.getBlock();
+		Block block = state.getBlock();
 		WorldServer world = pos.getWorldServer();
 		if (!block.isReplaceable(world, pos)) return;
 		
@@ -154,9 +155,7 @@ public class Portal extends BaseBlock {
 			stack.onItemUse(player, world, pos, hand, facing, hitX, hitY, hitZ);
 			if (stack.isEmpty()) net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(player, copyBeforeUse, hand);
 		}
-		//int y = pos.getY();
-		//if (y <= 2) world.neighborChanged(pos.down(y), block, pos);
-		//else if (y >= 253) world.neighborChanged(pos.up(255-y), block, pos);
+		fixSync(pos, state);
 	}
 
 	@Override
@@ -226,9 +225,13 @@ public class Portal extends BaseBlock {
 			if (exp > 0)
 				block.dropXpOnBlockBreak(world, pos, exp);
 		}
-		//int y = pos.getY();
-		//if (y <= 2) world.neighborChanged(pos.down(y), block, pos);
-		//else if (y >= 253) world.neighborChanged(pos.up(255-y), block, pos);
+		fixSync(pos, state);
+	}
+
+	private static void fixSync(DimPos pos, IBlockState old) {
+		WorldServer world = pos.getWorldServer();
+		if (!world.getChunkFromBlockCoords(pos).isPopulated())
+			PortalConfiguration.get(pos.dimId).notifyBlockUpdate(world, pos, old, pos.getBlock(), 3);
 	}
 
 	@Override
