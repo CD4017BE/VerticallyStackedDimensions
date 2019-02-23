@@ -109,3 +109,10 @@ processResources
         exclude 'mcmod.info'
     }
 }
+
+jar {
+	manifest {
+	    attributes 'FMLCorePlugin': 'cd4017be.dimstack.asm.CorePlugin'
+	    attributes 'FMLCorePluginContainsFMLMod': 'cd4017be.dimstack.Main'
+	}
+}
