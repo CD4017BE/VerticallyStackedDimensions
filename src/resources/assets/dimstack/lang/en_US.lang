@@ -8,3 +8,10 @@ tile.dimstack.dim_pipe.tip=Allows adjacent inventories, fluid tanks and energy d
 
 #Gui
 gui.dimstack.cfg=Dimension Stack
+gui.dimstack.ldim=List of Dimensions:
+gui.dimstack.lstack=Selected Stack:
+gui.dimstack.edit=Edit Dimension
+gui.dimstack.sel=Select
+gui.dimstack.add=Add
+gui.dimstack.rem=Remove
+gui.dimstack.search=Search

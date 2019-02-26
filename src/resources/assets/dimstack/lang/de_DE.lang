@@ -6,3 +6,10 @@ tile.dimstack.dim_pipe.name=Interdimensionales Rohr
 
 #Gui
 gui.dimstack.cfg=Gestapelte Dimensionen
+gui.dimstack.ldim=Dimensionsliste:
+gui.dimstack.lstack=Ausgewählter Stapel:
+gui.dimstack.edit=Dimension Bearbeiten
+gui.dimstack.sel=Auswählen
+gui.dimstack.add=Hinzufügen
+gui.dimstack.rem=Entfernen
+gui.dimstack.search=Suchen

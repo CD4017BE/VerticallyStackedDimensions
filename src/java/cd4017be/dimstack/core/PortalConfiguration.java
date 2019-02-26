@@ -116,18 +116,27 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 			pc.height = h;
 	}
 
-	private void unlink() {
+	public void unlink() {
 		PortalConfiguration u = neighbourUp, d = neighbourDown;
 		if (u != null) u.neighbourDown = d;
 		if (d != null) d.neighbourUp = u;
+		neighbourUp = null;
+		neighbourDown = null;
 	}
 
 	@Override
 	public void insertTop(IDimension dim) {
 		if (dim == neighbourUp) return;
-		PortalConfiguration pc = (PortalConfiguration)dim, u = neighbourUp;
+		PortalConfiguration pc = (PortalConfiguration)dim;
+		if (neighbourUp == null && pc.neighbourUp != null) {
+			if (pc.neighbourDown != null) pc.neighbourDown.neighbourUp = null;
+			pc.neighbourDown = this;
+			neighbourUp = pc;
+		}
 		pc.unlink();
+		PortalConfiguration u = neighbourUp;
 		neighbourUp = pc;
+		pc.neighbourDown = this;
 		if (u != null) {
 			pc.neighbourUp = u;
 			u.neighbourDown = pc;
@@ -137,9 +146,16 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	@Override
 	public void insertBottom(IDimension dim) {
 		if (dim == neighbourDown) return;
-		PortalConfiguration pc = (PortalConfiguration)dim, d = neighbourDown;
+		PortalConfiguration pc = (PortalConfiguration)dim;
+		if (neighbourDown == null && pc.neighbourDown != null) {
+			if (pc.neighbourUp != null) pc.neighbourUp.neighbourDown = null;
+			pc.neighbourUp = this;
+			neighbourDown = pc;
+		}
 		pc.unlink();
+		PortalConfiguration d = neighbourDown;
 		neighbourDown = pc;
+		pc.neighbourUp = this;
 		if (d != null) {
 			pc.neighbourDown = d;
 			d.neighbourUp = pc;
@@ -175,7 +191,13 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 
 	@Override
 	public String toString() {
-		return Integer.toString(dimId);
+		String name;
+		try {
+			name = DimensionManager.getProviderType(dimId).getName();
+		} catch (IllegalArgumentException e) {
+			name = "§oundefined§r";
+		}
+		return "id " + Integer.toString(dimId) + ": " + name;
 	}
 
 	/**

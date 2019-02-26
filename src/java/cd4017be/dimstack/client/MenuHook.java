@@ -2,7 +2,7 @@ package cd4017be.dimstack.client;
 
 import java.util.List;
 
-import cd4017be.dimstack.client.gui.GuiMenuBase;
+import cd4017be.dimstack.client.gui.GuiDimStack;
 import cd4017be.lib.util.TooltipUtil;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiCreateWorld;
@@ -43,7 +43,7 @@ public class MenuHook {
 	public void clickButton(GuiScreenEvent.ActionPerformedEvent.Pre event) {
 		if (event.getButton() == dimstackCfgButton) {
 			GuiScreen gui = event.getGui();
-			gui.mc.displayGuiScreen(new GuiMenuBase(gui));
+			gui.mc.displayGuiScreen(new GuiDimStack(gui));
 		}
 	}
 }
