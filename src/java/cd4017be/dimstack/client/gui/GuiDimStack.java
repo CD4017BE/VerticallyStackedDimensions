@@ -125,7 +125,7 @@ public class GuiDimStack extends GuiMenuBase {
 			s = dimStack.sel;
 			list = dimStack.list;
 			if (s >= 0 && s < list.size())
-				mc.displayGuiScreen(new GuiMenuBase(this));
+				mc.displayGuiScreen(new GuiEditDim(this, list.get(s).getDim()));
 			break;
 		case 8:
 			try {
