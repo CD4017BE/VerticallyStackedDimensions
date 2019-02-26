@@ -5,14 +5,19 @@ import cd4017be.lib.ClientInputHandler;
 import cd4017be.lib.render.SpecialModelLoader;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import static cd4017be.dimstack.Objects.*;
+
+import cd4017be.dimstack.client.MenuHook;
 
 /**
  * 
  * @author cd4017be
  */
 public class ClientProxy extends CommonProxy {
+
+	public MenuHook menuHook = new MenuHook();
 
 	@Override
 	public void init() {
@@ -24,7 +29,7 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public void registerRenderers() {
 		super.registerRenderers();
-		
+		MinecraftForge.EVENT_BUS.register(menuHook);
 	}
 
 	@SubscribeEvent

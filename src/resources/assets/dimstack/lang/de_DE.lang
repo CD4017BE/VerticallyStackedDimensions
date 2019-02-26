@@ -3,3 +3,6 @@ tile.dimstack.dim_pipe.tip=Erlaubt es Geräten, durch das Portal hindurch auf be
 tile.dimstack.portal.name=Übergangsportal
 tile.dimstack.portal.tip=§4Nicht herstellbar, wird automatisch in die Welt generiert!\\nSpringe oder falle in's Portal um zur anderen Seite zu gelangen.\\nBeim Versuch das Portal abzubauen oder Blöcke hinein zu platzeren werden stattdessen auf der anderen Seite Blocke abgebaut / plaziert.\n§8§oWelche Dimensionen miteinander verbunden werden, ist in der Konfigurationsdatei der mod festgelegt.
 tile.dimstack.dim_pipe.name=Interdimensionales Rohr
+
+#Gui
+gui.dimstack.cfg=Gestapelte Dimensionen
