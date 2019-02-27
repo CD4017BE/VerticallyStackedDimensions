@@ -84,4 +84,8 @@ public class GuiList<T extends IDrawableEntry> extends GuiButton {
 		return true;
 	}
 
+	public T getSelEl() {
+		return sel >= 0 && sel < list.size() ? list.get(sel) : null;
+	}
+
 }

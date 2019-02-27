@@ -128,37 +128,47 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	public void insertTop(IDimension dim) {
 		if (dim == neighbourUp) return;
 		PortalConfiguration pc = (PortalConfiguration)dim;
-		if (neighbourUp == null && pc.neighbourUp != null) {
-			if (pc.neighbourDown != null) pc.neighbourDown.neighbourUp = null;
-			pc.neighbourDown = this;
-			neighbourUp = pc;
-		}
-		pc.unlink();
-		PortalConfiguration u = neighbourUp;
+		if (neighbourUp != null) {
+			pc.unlink();
+			PortalConfiguration u = neighbourUp;
+			if (u != null) {
+				pc.neighbourUp = u;
+				u.neighbourDown = pc;
+			}
+		} else pc.splitBottom();
 		neighbourUp = pc;
 		pc.neighbourDown = this;
-		if (u != null) {
-			pc.neighbourUp = u;
-			u.neighbourDown = pc;
-		}
 	}
 
 	@Override
 	public void insertBottom(IDimension dim) {
 		if (dim == neighbourDown) return;
 		PortalConfiguration pc = (PortalConfiguration)dim;
-		if (neighbourDown == null && pc.neighbourDown != null) {
-			if (pc.neighbourUp != null) pc.neighbourUp.neighbourDown = null;
-			pc.neighbourUp = this;
-			neighbourDown = pc;
-		}
-		pc.unlink();
-		PortalConfiguration d = neighbourDown;
+		if (neighbourDown != null) {
+			pc.unlink();
+			PortalConfiguration d = neighbourDown;
+			if (d != null) {
+				pc.neighbourDown = d;
+				d.neighbourUp = pc;
+			}
+		} else pc.splitTop();
 		neighbourDown = pc;
 		pc.neighbourUp = this;
-		if (d != null) {
-			pc.neighbourDown = d;
-			d.neighbourUp = pc;
+	}
+
+	public void splitTop() {
+		PortalConfiguration p = neighbourUp;
+		if (p != null) {
+			p.neighbourDown = null;
+			neighbourUp = null;
+		}
+	}
+
+	public void splitBottom() {
+		PortalConfiguration p = neighbourDown;
+		if (p != null) {
+			p.neighbourUp = null;
+			neighbourDown = null;
 		}
 	}
 
