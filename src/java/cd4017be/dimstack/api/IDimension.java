@@ -73,4 +73,11 @@ public interface IDimension {
 	 */
 	void insertBottom(IDimension dim);
 
+	/**
+	 * @param type setting type
+	 * @param create whether to create a new settings instance if absent
+	 * @return the settings of given type
+	 */
+	<T extends IDimensionSettings> T getSettings(Class<T> type, boolean create);
+
 }

@@ -1,7 +1,10 @@
 package cd4017be.dimstack.api;
 
+import cd4017be.dimstack.api.util.ICfgButtonHandler;
 import cd4017be.dimstack.api.util.SettingProvider;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
  * The central dimension stack API.
@@ -27,6 +30,13 @@ public abstract class API extends SettingProvider {
 	public IDimension getDim(World world) {
 		return getDim(world.provider.getDimension());
 	}
+
+	/**
+	 * add a custom dimension configuration screen
+	 * @param handler the button handler to register
+	 */
+	@SideOnly(Side.CLIENT)
+	public abstract void registerConfigGui(ICfgButtonHandler handler);
 
 	/**@deprecated internal function */
 	public abstract void registerOreDisable();

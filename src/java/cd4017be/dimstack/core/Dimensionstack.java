@@ -2,15 +2,18 @@ package cd4017be.dimstack.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import cd4017be.api.recipes.RecipeAPI;
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
+import cd4017be.dimstack.ClientProxy;
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.API;
 import cd4017be.dimstack.api.IDimension;
 import cd4017be.dimstack.api.IDimensionSettings;
+import cd4017be.dimstack.api.util.ICfgButtonHandler;
 import cd4017be.dimstack.api.util.SettingProvider;
 import cd4017be.dimstack.worldgen.OreGenHandler;
 import cd4017be.lib.Lib;
@@ -27,6 +30,9 @@ import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.util.Constants.NBT;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+
 import static cd4017be.dimstack.core.PortalConfiguration.*;
 
 /**
@@ -136,24 +142,36 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	 * @param nbt data to save in
 	 */
 	public void save(NBTTagCompound nbt) {
-		IntOpenHashSet bottoms = new IntOpenHashSet(), loops = new IntOpenHashSet();
 		NBTTagCompound cfg = saveSettings(this);
 		if (!cfg.hasNoTags())
 			nbt.setTag("global", cfg);
+		for (PortalConfiguration pc : dimensions.values())
+			if (!(cfg = saveSettings(pc)).hasNoTags())
+				nbt.setTag(Integer.toString(pc.dimId), cfg);
+		NBTTagList stacks = new NBTTagList();
+		for (int[] stack : getStacks())
+			stacks.appendTag(new NBTTagIntArray(stack));
+		nbt.setTag("stacks", stacks);
+		nbt.setByte("version", (byte)FILE_VERSION);
+	}
+
+	/**
+	 * @return all currently registered dimension stacks as dimension id arrays
+	 */
+	public static ArrayList<int[]> getStacks() {
+		IntOpenHashSet bottoms = new IntOpenHashSet(), loops = new IntOpenHashSet();
 		for (PortalConfiguration pc : dimensions.values()) {
 			PortalConfiguration bot = pc.bottom();
 			if (bot == null) loops.add(pc.dimId);
 			else if (bot != pc) bottoms.add(bot.dimId);
-			if (!(cfg = saveSettings(pc)).hasNoTags())
-				nbt.setTag(pc.toString(), cfg);
 		}
-		NBTTagList stacks = new NBTTagList();
+		ArrayList<int[]> stacks = new ArrayList<>();
 		IntArrayList stack = new IntArrayList();
 		for (int d : bottoms) {
 			stack.add(d);
 			for (PortalConfiguration pc = get(d), pc1; (pc1 = pc.up()) != null; pc = pc1)
 				stack.add(pc1.dimId);
-			stacks.appendTag(new NBTTagIntArray(stack.toIntArray()));
+			stacks.add(stack.toIntArray());
 			stack.clear();
 		}
 		while(!loops.isEmpty()) {
@@ -166,13 +184,11 @@ public class Dimensionstack extends API implements IRecipeHandler {
 				stack.add(d1);
 			}
 			stack.add(d);
-			stacks.appendTag(new NBTTagIntArray(stack.toIntArray()));
+			stacks.add(stack.toIntArray());
 			stack.clear();
 		}
-		nbt.setTag("stacks", stacks);
-		nbt.setByte("version", (byte)FILE_VERSION);
+		return stacks;
 	}
-
 
 	/**
 	 * load or initialize dimension settings for a specific world
@@ -252,6 +268,12 @@ public class Dimensionstack extends API implements IRecipeHandler {
 			PortalConfiguration.get(idx.asIndex()).ceilY = val.asIndex();
 		}
 
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void registerConfigGui(ICfgButtonHandler handler) {
+		((ClientProxy)Main.proxy).cfgButtons.add(handler);
 	}
 
 }

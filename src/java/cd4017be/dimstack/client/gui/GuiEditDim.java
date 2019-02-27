@@ -1,8 +1,11 @@
 package cd4017be.dimstack.client.gui;
 
 import java.io.IOException;
-
+import java.util.ArrayList;
+import cd4017be.dimstack.ClientProxy;
+import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.TerrainGeneration;
+import cd4017be.dimstack.api.util.ICfgButtonHandler;
 import cd4017be.dimstack.core.PortalConfiguration;
 
 import static cd4017be.lib.util.TooltipUtil.translate;
@@ -21,17 +24,24 @@ import net.minecraft.init.Blocks;
 public class GuiEditDim extends GuiMenuBase implements GuiResponder {
 
 	private final PortalConfiguration dim;
+	private final ArrayList<ICfgButtonHandler> entries;
 
 	public GuiEditDim(GuiScreen parent, PortalConfiguration dim) {
 		super(parent);
 		this.dim = dim;
+		this.entries = new ArrayList<ICfgButtonHandler>();
+		for (ICfgButtonHandler b : ((ClientProxy)Main.proxy).cfgButtons)
+			if (b.showButton(dim))
+				entries.add(b);
 	}
 
 	@Override
 	public void initGui() {
 		super.initGui();
 		title = translate("gui.dimstack.edit") + " [§e" + dim + "§r]";
-		int x = width / 2, y = height / 2 - 38;
+		
+		int n = entries.size();
+		int x = width / 2, y = (height - (n + 1) / 2 * 28 - 20) / 2;
 		if (dim.up() != null) {
 			GuiTextField tf = new GuiTextField(1, fontRenderer, x - 38, y, 30, 20);
 			tf.setMaxStringLength(3);
@@ -44,19 +54,19 @@ public class GuiEditDim extends GuiMenuBase implements GuiResponder {
 		}
 		TerrainGeneration cfg = dim.getSettings(TerrainGeneration.class, false);
 		addButton(new GuiListButton(this, 2, x + 8, y, "gui.dimstack.bedrock", cfg != null && cfg.disabledBlock == Blocks.BEDROCK.getDefaultState()));
-		y += 28;
-		addButton(new GuiButton(3, x - 158, y, 150, 20, translate("gui.dimstack.defOre")));
-		addButton(new GuiButton(4, x + 8, y, 150, 20, translate("gui.dimstack.custOre")));
-		y += 28;
-		addButton(new GuiButton(5, x - 158, y, 150, 20, translate("gui.dimstack.repl")));
-		addButton(new GuiButton(6, x + 8, y, 150, 20, translate("gui.dimstack.terrain")));
+		y += 28; x -= 158;
+		for (int i = 0; i < n; i++)
+			addButton(new GuiButton(3 + i, x + (i&1) * 166, y + (i>>1) * 28, 150, 20, entries.get(i).getButtonName(dim)));
 	}
 
 	@Override
 	protected void actionPerformed(GuiButton b) throws IOException {
-		switch(b.id) {
-		default: super.actionPerformed(b);
-		}
+		int id = b.id - 3;
+		if (id >= 0 && id < entries.size()) {
+			GuiScreen gui = entries.get(id).getGui(this, dim);
+			if (gui == null) gui = this;
+			mc.displayGuiScreen(gui);
+		} else super.actionPerformed(b);
 	}
 
 	@Override
