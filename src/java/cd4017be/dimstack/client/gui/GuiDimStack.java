@@ -87,7 +87,7 @@ public class GuiDimStack extends GuiMenuBase {
 		selStack = dim;
 		if (dim == null) {
 			dimStack.list.clear();
-			dimStack.sel = -1;
+			dimStack.setSel(-1);
 			updateButtons();
 			return;
 		}
@@ -103,6 +103,7 @@ public class GuiDimStack extends GuiMenuBase {
 			if (d == dim) dimStack.sel = list.size();
 			list.add(new Dim(d.dimId));
 		}
+		dimStack.setSel(dimStack.sel);
 		updateButtons();
 	}
 
@@ -150,7 +151,7 @@ public class GuiDimStack extends GuiMenuBase {
 				d.unlink();
 				for (int i = dimList.list.size() - 1; i >= 0; i--)
 					if (dimList.list.get(i).id == d.dimId) {
-						dimList.sel = i;
+						dimList.setSel(i);
 						break;
 					}
 				setSelDimstack(d1);
@@ -168,13 +169,15 @@ public class GuiDimStack extends GuiMenuBase {
 				for (int l = list.size(); s < l; s++) {
 					int id = list.get(s).id;
 					if (id == i) {
-						dimList.sel = s;
+						dimList.setSel(s);
+						updateButtons();
 						return;
 					}
 					if (id > i) break;
 				}
 				list.add(s, new Dim(i));
-				dimList.sel = s;
+				dimList.setSel(s);
+				updateButtons();
 			} catch (NumberFormatException e) {}
 			textFields.get(0).setText("");
 			break;

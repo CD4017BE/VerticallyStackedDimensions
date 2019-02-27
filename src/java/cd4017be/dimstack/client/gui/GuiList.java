@@ -12,7 +12,7 @@ import net.minecraft.client.gui.GuiButton;
  * @author CD4017BE
  *
  */
-public class GuiList<T extends IDrawableEntry> extends GuiButton {
+public class GuiList<T extends IDrawableEntry> extends GuiButton implements IScrollInputHandler {
 
 	public final List<T> list;
 	final int maxEntries, entryHgt;
@@ -48,9 +48,10 @@ public class GuiList<T extends IDrawableEntry> extends GuiButton {
 	}
 
 	@Override
-	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) {
+	public void drawButton(Minecraft mc, int mx, int my, float t) {
 		if (visible) {
-			this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+			if (hovered) mouseDragged(mc, mx, my);
+			
 			FontRenderer fr = mc.fontRenderer;
 			drawRect(x, y, x + width, y + height, 0xff000000);
 			drawHorizontalLine(x, x + width - 1, y, 0xffffffff);
@@ -61,15 +62,26 @@ public class GuiList<T extends IDrawableEntry> extends GuiButton {
 			
 			drawCenteredString(fr, displayString, x + width / 2, y + (20 - fr.FONT_HEIGHT) / 2, 0xffffff);
 			
+			int w = width;
+			if (maxEntries < list.size()) {
+				w -= 7;
+				drawVerticalLine(x + w - 1, y + 19, y + height - 1, 0xffffffff);
+				
+				int h = height - 21, y0 = y + 20;
+				y0 += h * scroll / list.size();
+				h = h * maxEntries / list.size();
+				drawRect(x + w, y0, x + width - 1, y0 + h, 0xff808080);
+			} else scroll = 0;
+			
 			int s = scroll, n = Math.min(maxEntries, list.size() - scroll);
 			for (int i = 0; i < n; i++) {
 				int y1 = y + 20 + entryHgt * i;
 				if (i < maxEntries - 1)
-					drawHorizontalLine(x + 1, x + width - 2, y1 + entryHgt - 1, 0xff404040);
+					drawHorizontalLine(x + 1, x + w - 2, y1 + entryHgt - 1, 0xff404040);
 				if (sel == i + s)
-					drawRect(x + 1, y1, x + width - 1, y1 + entryHgt - 1, 0xff408080);
+					drawRect(x + 1, y1, x + w - 1, y1 + entryHgt - 1, 0xff408080);
 				IDrawableEntry e = list.get(i + s);
-				if (e != null) e.draw(mc, x, y1, width, entryHgt, partialTicks);
+				if (e != null) e.draw(mc, x, y1, w, entryHgt, t);
 			}
 		}
 	}
@@ -77,6 +89,10 @@ public class GuiList<T extends IDrawableEntry> extends GuiButton {
 	@Override
 	public boolean mousePressed(Minecraft mc, int mx, int my) {
 		if (!super.mousePressed(mc, mx, my)) return false;
+		if (maxEntries < list.size() && mx > x + width - 7) {
+			hovered = true;
+			return true;
+		}
 		int dy = Math.floorDiv(my - y - 20, entryHgt);
 		if (dy < 0 || dy >= maxEntries || (dy += scroll) >= list.size()) dy = -1;
 		if (dy == sel) return false;
@@ -84,8 +100,45 @@ public class GuiList<T extends IDrawableEntry> extends GuiButton {
 		return true;
 	}
 
+	@Override
+	public void mouseReleased(int mx, int my) {
+		if (hovered) {
+			mouseDragged(null, mx, my);
+			hovered = false;
+		}
+	}
+
+	@Override
+	protected void mouseDragged(Minecraft mc, int mx, int my) {
+		int h = height - 21;
+		my -= y + 20 + h * maxEntries / list.size() / 2;
+		scroll = my * list.size() / h;
+		int n = list.size() - maxEntries;
+		if (scroll > n) scroll = n;
+		if (scroll < 0) scroll = 0;
+	}
+
+	public void setSel(int i) {
+		if (i < 0 || i >= list.size()) sel = -1;
+		else {
+			sel = i;
+			i -= scroll;
+			if (i < 0) scroll += i;
+			else if (i >= maxEntries) scroll += i - maxEntries + 1;
+		}
+	}
+
 	public T getSelEl() {
 		return sel >= 0 && sel < list.size() ? list.get(sel) : null;
+	}
+
+	@Override
+	public void onScroll(Minecraft mc, int mx, int my, int dw) {
+		if (!super.mousePressed(mc, mx, my)) return;
+		scroll -= dw;
+		int n = list.size() - maxEntries;
+		if (scroll > n) scroll = n;
+		if (scroll < 0) scroll = 0;
 	}
 
 }

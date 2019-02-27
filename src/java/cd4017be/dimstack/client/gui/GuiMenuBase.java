@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import com.google.common.collect.Lists;
 
@@ -58,6 +59,21 @@ public class GuiMenuBase extends GuiScreen {
 			}
 		if (DEBUG && k == Keyboard.KEY_F1) mc.displayGuiScreen(this);
 		else if (k == Keyboard.KEY_ESCAPE) mc.displayGuiScreen(parent);
+	}
+
+	@Override
+	public void handleMouseInput() throws IOException {
+		int z = Mouse.getEventDWheel();
+		if (z != 0) {
+			if (z > 1) z = 1;
+			else if (z < -1) z = -1;
+			int x = Mouse.getEventX() * width / mc.displayWidth;
+			int y = height - Mouse.getEventY() * height / mc.displayHeight - 1;
+			for (GuiButton b : buttonList)
+				if (b instanceof IScrollInputHandler)
+					((IScrollInputHandler)b).onScroll(mc, x, y, z);
+		}
+		super.handleMouseInput();
 	}
 
 	@Override
