@@ -10,14 +10,14 @@ import net.minecraftforge.event.terraingen.OreGenEvent.GenerateMinable.EventType
  */
 public class DisableVanillaOres implements IDimensionSettings {
 
-	private short disabled;
+	private long disabled;
 
 	/**
 	 * @param ore ore generator type
 	 * @return whether given ore generator is disabled for this dimension
 	 */
 	public boolean disabled(EventType ore) {
-		return (disabled & 1 << ore.ordinal()) != 0;
+		return (disabled & 1L << ore.ordinal()) != 0;
 	}
 
 	/**
@@ -26,8 +26,8 @@ public class DisableVanillaOres implements IDimensionSettings {
 	 * @param d whether to disable
 	 */
 	public void setDisabled(EventType ore, boolean d) {
-		if (d) disabled |= 1 << ore.ordinal();
-		else disabled &= ~(1 << ore.ordinal());
+		if (d) disabled |= 1L << ore.ordinal();
+		else disabled &= ~(1L << ore.ordinal());
 	}
 
 	@SuppressWarnings("deprecation")

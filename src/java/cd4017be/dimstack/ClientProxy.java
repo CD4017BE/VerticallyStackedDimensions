@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import cd4017be.dimstack.api.util.ICfgButtonHandler;
 import cd4017be.dimstack.client.CfgButtonHandler;
 import cd4017be.dimstack.client.MenuHook;
+import cd4017be.dimstack.client.gui.GuiDefOres;
 
 /**
  * 
@@ -26,6 +27,7 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public void init() {
 		super.init();
+		cfgButtons.add(new CfgButtonHandler("gui.dimstack.defOre", GuiDefOres::new));
 	}
 
 	@Override

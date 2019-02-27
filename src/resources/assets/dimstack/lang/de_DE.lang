@@ -19,3 +19,4 @@ gui.dimstack.defOre=Standart Erze
 gui.dimstack.custOre=Eigene Erzgenerierung
 gui.dimstack.repl=Blöcke ersetzen
 gui.dimstack.terrain=Terrain bearbeiten
+gui.dimstack.selall=Alle aktivieren
