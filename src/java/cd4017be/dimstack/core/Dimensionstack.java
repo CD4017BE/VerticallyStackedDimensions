@@ -42,7 +42,7 @@ import static cd4017be.dimstack.core.PortalConfiguration.*;
 public class Dimensionstack extends API implements IRecipeHandler {
 
 	private static String DIMENSION_STACK = "dimstack";
-	private static final int FILE_VERSION = 3;
+	public static final int FILE_VERSION = 3;
 	private NBTTagCompound defaultCfg;
 	private File cfgFile;
 
@@ -117,7 +117,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	 * reload all dimension stack info and settings
 	 * @param nbt data to load from
 	 */
-	public void load(NBTTagCompound nbt) {
+	public static void load(NBTTagCompound nbt) {
 		dimensions.clear();
 		NBTTagList stacks = nbt.getTagList("stacks", NBT.TAG_INT_ARRAY);
 		for (NBTBase tag : stacks)
@@ -126,10 +126,10 @@ public class Dimensionstack extends API implements IRecipeHandler {
 			PortalConfiguration pc = get(dim);
 			if (pc.up() != null) pc.topOpen = true;
 		}
-		getAllSettings().clear();
+		INSTANCE.getAllSettings().clear();
 		for (String key : nbt.getKeySet())
 			try {
-				SettingProvider sp = key.equals("global") ? this : get(Integer.parseInt(key));
+				SettingProvider sp = key.equals("global") ? INSTANCE : get(Integer.parseInt(key));
 				NBTTagCompound cfg = nbt.getCompoundTag(key);
 				if (!cfg.hasNoTags())
 					loadSettings(sp, cfg);
@@ -141,8 +141,8 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	 * save all dimension stack info and settings
 	 * @param nbt data to save in
 	 */
-	public void save(NBTTagCompound nbt) {
-		NBTTagCompound cfg = saveSettings(this);
+	public static void save(NBTTagCompound nbt) {
+		NBTTagCompound cfg = saveSettings(INSTANCE);
 		if (!cfg.hasNoTags())
 			nbt.setTag("global", cfg);
 		for (PortalConfiguration pc : dimensions.values())

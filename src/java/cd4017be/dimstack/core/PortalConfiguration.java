@@ -1,7 +1,6 @@
 package cd4017be.dimstack.core;
 
 import java.util.HashMap;
-
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.IDimension;
 import cd4017be.dimstack.api.util.SettingProvider;
@@ -9,6 +8,7 @@ import cd4017be.dimstack.block.Portal;
 import cd4017be.dimstack.worldgen.PortalGen;
 import cd4017be.lib.util.DimPos;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -346,6 +346,10 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 			}
 		}
 		return new DimPos(pos.getX(), y, pos.getZ(), world);
+	}
+
+	public static IntSet getDefinedIds() {
+		return dimensions.keySet();
 	}
 
 }

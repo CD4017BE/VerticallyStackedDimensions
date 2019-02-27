@@ -1,18 +1,29 @@
 package cd4017be.dimstack.client.gui;
 
+import java.awt.FileDialog;
+import java.awt.Frame;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import cd4017be.dimstack.Main;
+import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.core.PortalConfiguration;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+
 import static cd4017be.lib.util.TooltipUtil.*;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 
 /**
  * @author CD4017BE
@@ -23,6 +34,7 @@ public class GuiDimStack extends GuiMenuBase {
 	private GuiList<Dim> dimList, dimStack;
 	private GuiButton b_edit, b_sel, b_add, b_rem, b_cut;
 	private PortalConfiguration selStack;
+	private File file;
 
 	/**
 	 * @param parent
@@ -45,11 +57,13 @@ public class GuiDimStack extends GuiMenuBase {
 		int left = (width - bw - 16) / 2 - w, right = (width + bw + 16) / 2 + w;
 		
 		dimList = addButton(new GuiList<>(1, (width - bw - 16) / 2 - w, 36, w, height - 72, translate("gui.dimstack.ldim")));
+		IntOpenHashSet ids = new IntOpenHashSet();
+		for (int i : DimensionManager.getStaticDimensionIDs()) ids.add(i);
+		ids.addAll(PortalConfiguration.getDefinedIds());
 		List<Dim> list = dimList.list;
-		Integer[] ids = DimensionManager.getStaticDimensionIDs();
-		Arrays.sort(ids);
-		for (int id : ids)
-			list.add(new Dim(id));
+		int[] IDs = ids.toIntArray();
+		Arrays.sort(IDs);
+		for (int id : IDs) list.add(new Dim(id));
 		dimStack = addButton(new GuiList<>(2, (width + bw + 16) / 2, 36, w, height - 72, translate("gui.dimstack.lstack")));
 		int y = (height - 4 * 28 + 8) / 2, x = (width - bw) / 2;
 		b_sel = addButton(new GuiButtonExt(3, x, y, bw, 20, translate("gui.dimstack.sel")));
@@ -65,6 +79,8 @@ public class GuiDimStack extends GuiMenuBase {
 			b_close.setWidth(bw);
 			b_close.x += (150 - bw) / 2;
 		}
+		addButton(new GuiButtonExt(10, left, 8, bw, 20, translate("gui.dimstack.import")));
+		addButton(new GuiButtonExt(11, right - bw, 8, bw, 20, translate("gui.dimstack.export")));
 	}
 
 	private void setSelDimstack(PortalConfiguration dim) {
@@ -168,8 +184,76 @@ public class GuiDimStack extends GuiMenuBase {
 				setSelDimstack(selStack);
 			}
 			break;
+		case 10: {
+			FileDialog fd = new FileDialog((Frame)null, translate("gui.dimstack.import"), FileDialog.LOAD);
+			fd.setDirectory(FMLCommonHandler.instance().getSavesDirectory().getAbsolutePath());
+			fd.setFile("dimensionstack.dat");
+			fd.setVisible(true);
+			File[] files = fd.getFiles();
+			if (files.length > 0) {
+				file = files[0];
+				load();
+			}
+		}	break;
+		case 11:
+			FileDialog fd = new FileDialog((Frame)null, translate("gui.dimstack.export"), FileDialog.SAVE);
+			fd.setDirectory((file != null ? file.getParentFile() : FMLCommonHandler.instance().getSavesDirectory()).getAbsolutePath());
+			fd.setFile("dimensionstack.dat");
+			fd.setVisible(true);
+			File[] files = fd.getFiles();
+			if (files.length > 0) {
+				file = files[0];
+				File dir = file.getParentFile();
+				if (dir != null && new File(dir, "level.dat").exists()) {
+					mc.displayGuiScreen(new GuiYesNo(this, translate("gui.dimstack.warnsave1"), translate("gui.dimstack.warnsave2"), 11));
+					return;
+				}
+				save();
+			}
+			break;
 		default: super.actionPerformed(b);
 		}
+	}
+
+	private void load() {
+		if (file == null || !file.exists() || !file.getName().endsWith(".dat")) {
+			Main.LOG.info("import cancled: invalid file supplied!");
+			return;
+		}
+		try {
+			NBTTagCompound nbt = CompressedStreamTools.read(file);
+			if (nbt.getByte("version") < Dimensionstack.FILE_VERSION)
+				Main.LOG.warn("importing from file with outdated version!");
+			Dimensionstack.load(nbt);
+			Main.LOG.info("Dimension stack configuration sucessfully imported from {}", file);
+			mc.displayGuiScreen(this);
+		} catch(IOException e) {
+			Main.LOG.error("Importing dimension stack configuration failed: ", e);
+		}
+	}
+
+	private void save() {
+		if (file == null || !file.getName().endsWith(".dat")) {
+			Main.LOG.info("export cancled: invalid file supplied!");
+			return;
+		}
+		try {
+			NBTTagCompound nbt = new NBTTagCompound();
+			Dimensionstack.save(nbt);
+			file.createNewFile();
+			CompressedStreamTools.write(nbt, file);
+			Main.LOG.info("Dimension stack configuration sucessfully exported to {}", file);
+		} catch (IOException e) {
+			Main.LOG.error("Exporting dimension stack configuration failed: ", e);
+		}
+	}
+
+	@Override
+	public void confirmClicked(boolean result, int id) {
+		if (id == 11) {
+			if (result && file != null) save();
+			mc.displayGuiScreen(this);
+		} else super.confirmClicked(result, id);
 	}
 
 	static class Dim implements IDrawableEntry {
