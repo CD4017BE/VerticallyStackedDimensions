@@ -1,4 +1,4 @@
-VERSION = 17;
+VERSION = 18;
 
 !for more documentation see: https://github.com/CD4017BE/VerticallyStackedDimensions/wiki
 
@@ -11,7 +11,7 @@ cont_load_time = 300.0;
 
 !set these to true to disable vanilla ore-generation in overworld and nether. 
 disable_coal = false;
-disable_diamond = true;!<-
+disable_diamond = false;
 disable_emerald = false;
 disable_gold = false;
 disable_iron = false;
@@ -21,7 +21,7 @@ disable_quartz = false;
 
 {	
 	!nubers of octaves for global noise generators, used for add("noiseField" ...)
-	custom_noise_octaves = []#;
+	custom_noise_octaves = [4]#;
 }
 
 ceil_on_demand = true; !whether to generate ceiling portals in open sky dimensions only when & where needed. (It's highly recommended to leave this at default true)
@@ -33,6 +33,24 @@ PRE_INIT() {
 	!stacking dimensions on top of each other so they get connected via portals (order bottom to top):
 	!add("dimstack", [<dimId>...]#);
 	add("dimstack", [-1, 0]#); !overworld on top of nether
+	
+	!dimension data for automatic transition layer generation:
+	!dim_transitions:<dimId> = [<botMaterial>, <botLayerSize>, <topMaterial>, <topLayerSize>];
+	dim_transitions:0 = ["minecraft:stone", 4, "minecraft:air", 0]; !Overworld has stone at floor and air at ceiling
+	dim_transitions:-1 = ["minecraft:netherrack", 4, "minecraft:netherrack", 4]; !The Nether has netherrack at both floor and ceiling
+	dim_transitions:1 = ["minecraft:air", 0, "minecraft:air", 0]; !The End has air at both floor and ceiling
+	
+	!lower the portal ceiling height in the nether
+	dim_ceiling:-1 = 127;
+	
+	!prevent bedrock from being generated in ...
+	rem_block_gen:0 = "minecraft:bedrock"; !the Overworld
+	rem_block_gen:-1 = "minecraft:bedrock"; !the Nether
+	
+	!register a new noise field
+	!add("noiseField", <name>, <genIdx>, <horGrid>, <vertGrid>, <horScale>, <vertScale>);
+	add("noiseField", "main", 0, 4, 4, 1.0, 1.0); !"main" is used internally for dimension transition layers
+	
 }
 
 INIT() {
@@ -40,10 +58,8 @@ INIT() {
 	!add("shaped", <result>, <pattern>, <ingredients>...);
 	add("shaped", it("tile.dim_pipe", 1), "010/020/010", "obsidian", "gemQuartz", it("minecraft:hopper"));
 	
-	!prevent bedrock from being generated in the Overworld
-	rem_block_gen:0 = "minecraft:bedrock";
-	
-	netherTop(); !remove/comment this line to disable all nether related features
+	!remove the '!' in the following line to enable top half nether generation
+	!netherTop();
 }
 
 netherTop() {
@@ -52,10 +68,14 @@ netherTop() {
 		fullSolid = false, !should the top nether be completely filled instead of giant cave terrain
 		stoneVariants = true, !should veins of dirt, gravel and stone variants be generated
 		overworldOres = true, !should overworld ores be generated
-		netherOres = false; !should nether ores be generated
+		netherOres = false, !should nether ores be generated
+		ceil = 256; !the ceiling height
+	
+	dim_ceiling:-1 = ceil - 1;
 	
 	Loc rock, liquid, sand1Bot, sand1Top, sand2Bot, sand2Top; !the materials to generate the nether out of
 	if (stoneNether) {
+		dim_transitions:-1 = ["minecraft:netherrack", 4, "minecraft:stone", 4]; !we have stone on top now
 		rock = "minecraft:stone";
 		liquid = "minecraft:water";
 		sand1Top = "minecraft:sand";
@@ -73,17 +93,15 @@ netherTop() {
 	if (fullSolid) {
 		!fill everything with base material
 		!add("basicLayer", <dimId>, <blockstate>, [<minY>, <maxY>]#);
-		add("basicLayer", -1, rock, [128, 256]#);
+		add("basicLayer", -1, rock, [128, ceil]#);
 	} else {
 		!generate nether terrain
 		!add("nether", <dimId>, [<materials>...], [minY, lakeY, sandFormY, maxY]#, <borderSize>);
-		add("nether", -1, [rock, liquid, sand1Bot, sand1Top, sand2Bot, sand2Top], [128, 160, 192, 256]#, 32);
+		add("nether", -1, [rock, liquid, sand1Bot, sand1Top, sand2Bot, sand2Top], [128, 160, 192, ceil]#, 32);
 	}
 	!obsidian layer between top and bottom nether
-	add("basicLayer", -1, "minecraft:obsidian", [128, 128, 129, 133]#);
-	!replace upper bedrock layer with obsidian as well
-	!add("bedrockRepl", <dimId>, <repBlock>, [<minY>, <maxY>]#);
-	add("bedrockRepl", -1, "minecraft:obsidian", [123, 128]#);
+	!add("basicLayer", <dimId>, <blockstate>, [<startY>, <minY>, <maxY>, <endY>]#);
+	add("basicLayer", -1, "minecraft:obsidian", [123, 127, 129, 133]#);
 	
 	!ore vein generation:
 	if (stoneVariants) {
