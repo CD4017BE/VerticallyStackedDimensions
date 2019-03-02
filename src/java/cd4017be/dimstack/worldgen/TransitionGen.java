@@ -23,13 +23,13 @@ public class TransitionGen implements ITerrainGenerator, BlockPlacer {
 	private final IBlockState state;
 	private ChunkPrimer cp;
 
-	public TransitionGen(IBlockState block, int minY, int maxY, int ext, boolean top) {
+	public TransitionGen(IBlockState block, int minY, int maxY, int size, boolean top) {
 		this.state = block;
 		this.minY = minY;
 		this.maxY = maxY;
 		this.top = top;
-		this.centerY = (double)(minY + maxY + (top ? ext : -ext)) / 2.0 - 0.5;
-		double d = (double)(maxY - minY + ext) / 2.0;
+		double d = (double)size / 2.0;
+		this.centerY = top ? (double)minY + d : (double)maxY - d;
 		this.scale = NOISE_SCALE / d / d / d;
 	}
 
@@ -58,7 +58,7 @@ public class TransitionGen implements ITerrainGenerator, BlockPlacer {
 
 	@Override
 	public void place(int x, int y, int z, double f) {
-		double dy = (double)y - centerY;
+		double dy = (double)y + 0.5 - centerY;
 		dy *= dy * dy * scale;
 		if (top ? dy > f : dy < f)
 			cp.setBlockState(x, y, z, state);

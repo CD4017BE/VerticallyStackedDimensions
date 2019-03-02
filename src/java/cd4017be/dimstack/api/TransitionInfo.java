@@ -13,13 +13,9 @@ import net.minecraftforge.common.util.Constants.NBT;
  */
 public class TransitionInfo implements IDimensionSettings {
 
-	public final IDimension dim;
 	public IBlockState blockTop, blockBot;
 	public int sizeTop, sizeBot;
-
-	public TransitionInfo(IDimension dim) {
-		this.dim = dim;
-	}
+	private boolean initialized = false;
 
 	@Override
 	public NBTBase serializeNBT() {
@@ -38,6 +34,12 @@ public class TransitionInfo implements IDimensionSettings {
 		sizeTop = ctag.getByte("sT") & 0xff;
 		blockBot = ctag.hasKey("bB", NBT.TAG_STRING) ? BlockPredicate.parse(ctag.getString("bB")) : null;
 		blockTop = ctag.hasKey("bT", NBT.TAG_STRING) ? BlockPredicate.parse(ctag.getString("bT")) : null;
+	}
+
+	public boolean init() {
+		if (initialized) return false;
+		initialized = true;
+		return true;
 	}
 
 }

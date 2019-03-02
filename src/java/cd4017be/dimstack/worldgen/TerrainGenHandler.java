@@ -66,7 +66,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 			snf.init(world.getSeed());
 		
 		TransitionInfo ti = pc.getSettings(TransitionInfo.class, false);
-		if (ti != null)
+		if (ti != null && ti.init())
 			initTransitions(ti, pc);
 		
 		TerrainGeneration cfg = pc.getSettings(TerrainGeneration.class, false);
@@ -90,7 +90,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 	private void initTransitions(TransitionInfo cfg, IDimension d) {
 		do {
 			int n = cfg.sizeTop;
-			if (n <= 0) break;
+			if (n < 0) break;
 			
 			IDimension d1 = d.up();
 			if (d1 == null) break;
@@ -103,11 +103,11 @@ public class TerrainGenHandler implements IRecipeHandler {
 			
 			int c = d.ceilHeight();
 			d.getSettings(TerrainGeneration.class, true).entries
-				.add(new TransitionGen(block, c - n, c, cfg1.sizeBot, true));
+				.add(new TransitionGen(block, c - n, c + 1, n + cfg1.sizeBot, true));
 		} while(false);
 		do {
 			int n = cfg.sizeBot;
-			if (n <= 0) break;
+			if (n < 0) break;
 			
 			IDimension d1 = d.down();
 			if (d1 == null) break;
@@ -119,7 +119,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 			if (block == null || block == cfg.blockBot) break;
 			
 			d.getSettings(TerrainGeneration.class, true).entries
-				.add(new TransitionGen(block, 1, 1 + n, cfg1.sizeTop, false));
+				.add(new TransitionGen(block, 0, n + 1, n + cfg1.sizeTop, false));
 		} while(false);
 	}
 
