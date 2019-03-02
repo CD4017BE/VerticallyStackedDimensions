@@ -42,7 +42,7 @@ import static cd4017be.dimstack.core.PortalConfiguration.*;
 public class Dimensionstack extends API implements IRecipeHandler {
 
 	private static String DIMENSION_STACK = "dimstack";
-	public static final int FILE_VERSION = 3;
+	public static final int FILE_VERSION = 4;
 	private NBTTagCompound defaultCfg;
 	private File cfgFile;
 

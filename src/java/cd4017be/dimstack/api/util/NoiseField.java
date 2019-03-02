@@ -42,6 +42,11 @@ public class NoiseField {
 		this.vGrid = vGrid;
 	}
 
+	@Override
+	public NoiseField clone() {
+		return new NoiseField(hGrid, vGrid, hScale, vScale).setGenerator(gen);
+	}
+
 	/**
 	 * register the given range to be included in later generated noise field arrays
 	 * @param y0 lower Y-bound (inclusive)

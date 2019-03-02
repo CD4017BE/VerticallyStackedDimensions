@@ -8,6 +8,7 @@ import cd4017be.api.recipes.RecipeAPI;
 import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.api.API;
+import cd4017be.dimstack.api.DisabledBlockGen;
 import cd4017be.dimstack.api.SharedNoiseFields;
 import cd4017be.dimstack.api.TerrainGeneration;
 import cd4017be.dimstack.api.gen.ITerrainGenerator;
@@ -21,10 +22,8 @@ import cd4017be.lib.script.obj.IOperand;
 import cd4017be.lib.script.obj.Nil;
 import cd4017be.lib.script.obj.Text;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.NoiseGenerator;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.ChunkGeneratorEvent.ReplaceBiomeBlocks;
@@ -56,32 +55,42 @@ public class TerrainGenHandler implements IRecipeHandler {
 	@SubscribeEvent
 	public void init(InitNoiseGensEvent<Context> event) {
 		World world = event.getWorld();
-		SharedNoiseFields snf = Dimensionstack.INSTANCE.getSettings(SharedNoiseFields.class, false);
-		if (snf != null) snf.init(world.getSeed());
-		
 		PortalConfiguration pc = PortalConfiguration.get(world);
+		
+		SharedNoiseFields snf = Dimensionstack.INSTANCE.getSettings(SharedNoiseFields.class, false);
+		if (snf != null)
+			snf.init(world.getSeed());
+		
 		TerrainGeneration cfg = pc.getSettings(TerrainGeneration.class, false);
-		if (cfg != null) cfg.setupNoiseGens(pc, event.getNewValues(), event.getRandom());
+		if (cfg != null)
+			cfg.setupNoiseGens(pc, event.getNewValues(), event.getRandom());
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public void generate(ReplaceBiomeBlocks event) {
-		TerrainGeneration cfg = PortalConfiguration.get(event.getWorld()).getSettings(TerrainGeneration.class, false);
+		PortalConfiguration pc = PortalConfiguration.get(event.getWorld());
+		
+		TerrainGeneration cfg = pc.getSettings(TerrainGeneration.class, false);
 		if (cfg != null)
 			cfg.generate(event.getGen(), event.getPrimer(), event.getX(), event.getZ());
+		
+		DisabledBlockGen dbg = pc.getSettings(DisabledBlockGen.class, false);
+		if (dbg != null)
+			BlockPredicate.disableBlock(event.getPrimer(), dbg.disabledBlock);
 	}
 
 	public void initConfig(ConfigConstants cfg) {
 		double[] v = cfg.get("custom_noise_octaves", double[].class, new double[0]);
+		SharedNoiseFields snf = Dimensionstack.INSTANCE.getSettings(SharedNoiseFields.class, true);
 		if (v.length > 0) {
-			SharedNoiseFields snf = Dimensionstack.INSTANCE.getSettings(SharedNoiseFields.class, true);
 			int l = v.length;
 			byte[] oct = new byte[l];
 			for (int i = 0; i < l; i++)
 				oct[i] = (byte)v[i];
 			snf.octaves = oct;
-			snf.noiseFields = new NoiseGenerator[l];
-		}
+		} else snf.octaves = new byte[] {4};
+		snf.noiseFields = new NoiseField[] {new NoiseField(4, 4, 1.0, 1.0)};
+		snf.source = new byte[] {0};
 		cfg.get("rem_block_gen", BlockRemInfo.class, new BlockRemInfo());
 	}
 
@@ -90,7 +99,19 @@ public class TerrainGenHandler implements IRecipeHandler {
 		ITerrainGenerator gen;
 		String key = param.getString(0);
 		if (key.equals(NOISE_FIELD)) {
-			new NoiseFieldCfg(param);
+			String name = param.getString(1);
+			NoiseFieldInfo nfi = NoiseFieldInfo.REGISTRY.get(name);
+			SharedNoiseFields snf = API.INSTANCE.getSettings(SharedNoiseFields.class, true);
+			int id, src = param.getIndex(2);
+			if (nfi == null) {
+				id = snf.source.length;
+				nfi = new NoiseFieldInfo(name, id).setSource(src);
+				snf.source = Arrays.copyOf(snf.source, id + 1);
+				snf.noiseFields = Arrays.copyOf(snf.noiseFields, id + 1);
+			} else id = nfi.setSource(src).id;
+			snf.source[id] = (byte)src;
+			NoiseField nf = new NoiseField(param.getIndex(3), param.getIndex(4), param.getNumber(5), param.getNumber(6));
+			snf.noiseFields[id] = nf;
 			return;
 		} else if (key.equals(SimpleLayerGen.ID)) {
 			double[] vec = param.getVectorOrAll(3);
@@ -116,17 +137,17 @@ public class TerrainGenHandler implements IRecipeHandler {
 					if (lastB) throw new IllegalArgumentException("Blocks must have discriminator values in between!");
 					lastB = true;
 					blocks.add(BlockPredicate.parse((String)o));
-				} else if (o instanceof Number) {
+				} else if (o instanceof Double) {
 					if (!lastB) blocks.add(null);
 					lastB = false;
-					levels.add(((Number)o).floatValue());
+					levels.add(((Double)o).floatValue());
 				}
 			}
 			if (!lastB) blocks.add(null);
-			NoiseFieldCfg cfg = NoiseFieldCfg.REGISTRY.get(param.getString(4));
+			NoiseFieldInfo cfg = NoiseFieldInfo.REGISTRY.getOrDefault(param.getString(4), NoiseFieldInfo.DEFAULT);
 			double gradient = param.getNumber(3) / (double)((1 << cfg.octaves) - 1);
 			double[] vec = param.getVectorOrAll(5);
-			int idx = cfg.getIndex(param.getIndex(1));
+			int idx = cfg.id;
 			gen = new NoiseLayerGen(blocks.toArray(new IBlockState[blocks.size()]), levels.toFloatArray(), (float)gradient, (int)vec[0], (int)vec[1], idx);
 		} else if (key.equals(NetherTop.ID)) {
 			Object[] mats = param.getArray(2);
@@ -146,23 +167,21 @@ public class TerrainGenHandler implements IRecipeHandler {
 		cfg.entries.add(gen);
 	}
 
-	static class NoiseFieldCfg {
-		static HashMap<String, NoiseFieldCfg> REGISTRY = new HashMap<>();
+	static class NoiseFieldInfo {
+		static HashMap<String, NoiseFieldInfo> REGISTRY = new HashMap<>();
+		static final NoiseFieldInfo DEFAULT = new NoiseFieldInfo("main", 0).setSource(0);
 
-		final int hGrid, vGrid, source, octaves;
-		final double hScale, vScale;
-		final Int2IntOpenHashMap regDims;
+		final int id;
+		int octaves;
 
-		NoiseFieldCfg(Parameters param) {
-			this.source = param.getIndex(2);
-			this.hGrid = param.getIndex(3);
-			this.vGrid = param.getIndex(4);
-			this.hScale = param.getNumber(5);
-			this.vScale = param.getNumber(6);
-			this.regDims = new Int2IntOpenHashMap();
-			regDims.defaultReturnValue(-1);
-			REGISTRY.put(param.getString(1), this);
-			switch(source) {
+		NoiseFieldInfo(String name, int id) {
+			this.id = id;
+			if (REGISTRY.put(name, this) != null)
+				throw new IllegalStateException("noise field '" + name + "' already registered");
+		}
+
+		NoiseFieldInfo setSource(int src) {
+			switch(src) {
 			case -1: case -4: case -5:
 				this.octaves = 16; break;
 			case -2:
@@ -173,27 +192,13 @@ public class TerrainGenHandler implements IRecipeHandler {
 				this.octaves = 4; break;
 			default:
 				SharedNoiseFields snf = API.INSTANCE.getSettings(SharedNoiseFields.class, false);
-				if (snf != null && source >= 0 && source < snf.octaves.length) {
-					this.octaves = snf.octaves[source];
+				if (snf != null && src >= 0 && src < snf.octaves.length) {
+					this.octaves = snf.octaves[src];
 					break;
 				}
-				throw new IllegalArgumentException("invalid noise gen source " + source);
+				throw new IllegalArgumentException("invalid noise gen source " + src);
 			}
-		}
-
-		int getIndex(int dim) {
-			int i = regDims.get(dim);
-			if (i >= 0) return i;
-			TerrainGeneration gen = PortalConfiguration.get(dim).getSettings(TerrainGeneration.class, true);
-			int n = gen.noiseFields.length;
-			int[] srcs = Arrays.copyOf(gen.sources, n + 1);
-			srcs[n] = source;
-			gen.sources = srcs;
-			NoiseField[] nf = Arrays.copyOf(gen.noiseFields, n + 1);
-			nf[n] = new NoiseField(hGrid, vGrid, hScale, vScale);
-			gen.noiseFields = nf;
-			regDims.put(dim, n);
-			return n;
+			return this;
 		}
 
 	}
@@ -207,14 +212,14 @@ public class TerrainGenHandler implements IRecipeHandler {
 
 		@Override
 		public IOperand get(IOperand idx) {
-			TerrainGeneration cfg = PortalConfiguration.get(idx.asIndex()).getSettings(TerrainGeneration.class, false);
+			DisabledBlockGen cfg = PortalConfiguration.get(idx.asIndex()).getSettings(DisabledBlockGen.class, false);
 			return cfg == null || cfg.disabledBlock == null ? Nil.NIL : new Text(BlockPredicate.serialize(cfg.disabledBlock));
 		}
 
 		@Override
 		public void put(IOperand idx, IOperand val) {
 			boolean set = val instanceof Text;
-			TerrainGeneration cfg = PortalConfiguration.get(idx.asIndex()).getSettings(TerrainGeneration.class, set);
+			DisabledBlockGen cfg = PortalConfiguration.get(idx.asIndex()).getSettings(DisabledBlockGen.class, set);
 			if (set) 
 				cfg.disabledBlock = BlockPredicate.parse(((Text)val).value);
 			else if (cfg != null)

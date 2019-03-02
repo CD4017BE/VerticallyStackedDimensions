@@ -6,10 +6,8 @@ import java.util.function.Function;
 
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.gen.ITerrainGenerator;
-import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.api.util.CfgList;
 import cd4017be.dimstack.api.util.NoiseField;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -19,7 +17,6 @@ import net.minecraft.world.gen.NoiseGenerator;
 import net.minecraft.world.gen.NoiseGeneratorOctaves;
 import net.minecraft.world.gen.NoiseGeneratorPerlin;
 import net.minecraft.world.gen.NoiseGeneratorSimplex;
-import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent.Context;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent.ContextEnd;
@@ -53,53 +50,18 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 	public NoiseGeneratorSimplex islands;
 	/** terrain random */
 	public Random rand;
-	/** noise generator source ids */
-	public int[] sources = new int[0];
 	/** custom noise fields */
-	public NoiseField[] noiseFields = new NoiseField[0];
+	public NoiseField[] noiseFields;
 	/** vertical offset of this dimension relative to stack bottom (used for interdimensional terrain features) */
 	public int offsetY;
 	/** dimension id */
 	public int dimId;
-	/** A block that should be prevented from generation during regular world-gen code */
-	public IBlockState disabledBlock = null;
 	
 	private boolean initialized = false;
 
 	@Override
 	public void deserializeNBT(NBTBase nbt) {
-		NBTTagCompound ctag = (NBTTagCompound)nbt;
-		NBTTagList list = ctag.getTagList("noiseFields", NBT.TAG_COMPOUND);
-		int n = list.tagCount();
-		this.sources = new int[n];
-		this.noiseFields = new NoiseField[n];
-		for (int i = 0; i < n; i++) {
-			NBTTagCompound tag = list.getCompoundTagAt(i);
-			sources[i] = tag.getByte("src");
-			noiseFields[i] = new NoiseField(tag.getByte("hGrid"), tag.getByte("vGrid") & 0xff, tag.getDouble("hScale"), tag.getDouble("vScale"));
-		}
-		deserializeNBT(ctag.getTagList("entries", NBT.TAG_COMPOUND), REGISTRY);
-		this.disabledBlock = ctag.hasKey("remove", NBT.TAG_STRING) ? BlockPredicate.parse(ctag.getString("remove")) : null;
-	}
-
-	@Override
-	public NBTTagCompound serializeNBT() {
-		NBTTagCompound nbt = new NBTTagCompound();
-		nbt.setTag("entries", super.serializeNBT());
-		NBTTagList list = new NBTTagList();
-		for (int i = 0, n = noiseFields.length; i < n; i++) {
-			NBTTagCompound tag = new NBTTagCompound();
-			tag.setByte("src", (byte)sources[i]);
-			NoiseField nf = noiseFields[i];
-			tag.setByte("hGrid", (byte)nf.hGrid);
-			tag.setByte("vGrid", (byte)nf.vGrid);
-			tag.setDouble("hScale", nf.hScale);
-			tag.setDouble("vScale", nf.vScale);
-			list.appendTag(tag);
-		}
-		if (!list.hasNoTags()) nbt.setTag("noiseFields", list);
-		if (disabledBlock != null) nbt.setString("remove", BlockPredicate.serialize(disabledBlock));
-		return nbt;
+		deserializeNBT((NBTTagList)nbt, REGISTRY);
 	}
 
 	public void setupNoiseGens(IDimension dim, Context c, Random rand) {
@@ -138,9 +100,12 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 
 	private void initNoiseFields() {
 		SharedNoiseFields snf = API.INSTANCE.getSettings(SharedNoiseFields.class, false);
-		for (int i = 0, l = noiseFields.length; i < l; i++) {
+		int l = snf.noiseFields.length;
+		this.noiseFields = new NoiseField[l];
+		for (int i = 0; i < l; i++) {
+			NoiseField nf = snf.noiseFields[i].clone();
 			NoiseGenerator gen;
-			int id = sources[i];
+			int id = snf.source[i];
 			switch(id) {
 			case -1: gen = depth; break;
 			case -2: gen = scale; break;
@@ -151,12 +116,10 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 			case -7: gen = height; break;
 			case -8: gen = perlin2; break;
 			case -9: gen = perlin3; break;
-			default:
-				if (snf != null && id >= 0 && id < snf.noiseFields.length)
-					gen = snf.noiseFields[id];
-				else continue;
+			default: gen = nf.gen;
 			}
-			noiseFields[i].setGenerator(gen).setOffsetY(offsetY);
+			nf.setGenerator(gen).setOffsetY(offsetY);
+			noiseFields[i] = nf;
 		}
 		for (ITerrainGenerator g : entries)
 			g.initNoise(this);
@@ -174,7 +137,6 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 			f.prepareFor(cx, cz);
 		for (ITerrainGenerator tg : entries)
 			tg.generate(gen, cp, cx, cz, this);
-		BlockPredicate.disableBlock(cp, disabledBlock);
 	}
 
 }

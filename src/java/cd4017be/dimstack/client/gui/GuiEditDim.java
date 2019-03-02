@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import cd4017be.dimstack.ClientProxy;
 import cd4017be.dimstack.Main;
-import cd4017be.dimstack.api.TerrainGeneration;
+import cd4017be.dimstack.api.DisabledBlockGen;
 import cd4017be.dimstack.api.util.ICfgButtonHandler;
 import cd4017be.dimstack.core.PortalConfiguration;
 
@@ -46,7 +46,7 @@ public class GuiEditDim extends GuiMenuBase implements GuiResponder {
 			addButton(new GuiSlider(this, 1, x, y, translate("gui.dimstack.ceil"), 1, 255, dim.ceilY, (id, name, val)-> String.format("%s: %.0f", name, val))).setWidth(316);
 			y += 28;
 		}
-		TerrainGeneration cfg = dim.getSettings(TerrainGeneration.class, false);
+		DisabledBlockGen cfg = dim.getSettings(DisabledBlockGen.class, false);
 		addButton(new GuiListButton(this, 2, x, y, "gui.dimstack.bedrock", cfg != null && cfg.disabledBlock == Blocks.BEDROCK.getDefaultState()));
 		for (int i = 1; i <= n; i++)
 			addButton(new GuiButton(2 + i, x + (i&1) * 166, y + (i>>1) * 28, 150, 20, entries.get(i - 1).getButtonName(dim)));
@@ -66,7 +66,7 @@ public class GuiEditDim extends GuiMenuBase implements GuiResponder {
 	public void setEntryValue(int id, boolean value) {
 		switch(id) {
 		case 2: {
-			TerrainGeneration cfg = dim.getSettings(TerrainGeneration.class, true);
+			DisabledBlockGen cfg = dim.getSettings(DisabledBlockGen.class, true);
 			cfg.disabledBlock = value ? Blocks.BEDROCK.getDefaultState() : null;
 		}	break;
 		}

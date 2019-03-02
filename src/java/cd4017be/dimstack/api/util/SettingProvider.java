@@ -1,8 +1,10 @@
 package cd4017be.dimstack.api.util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
 
+import cd4017be.dimstack.api.IDimension;
 import cd4017be.dimstack.api.IDimensionSettings;
 
 /**
@@ -21,7 +23,19 @@ public class SettingProvider {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends IDimensionSettings> T getSettings(Class<T> type, boolean create) {
-		return (T) (create ? settings.computeIfAbsent(type, IDimensionSettings::newInstance) : settings.get(type));
+		return (T) (create ? settings.computeIfAbsent(type, this::newInstance) : settings.get(type));
+	}
+
+	private <T extends IDimensionSettings> T newInstance(Class<T> type) {
+		try {
+			try {
+				return type.getConstructor(IDimension.class).newInstance(this);
+			} catch (NoSuchMethodException e) {
+				return type.newInstance();
+			}
+		} catch (IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
+			return null;
+		}
 	}
 
 	/**

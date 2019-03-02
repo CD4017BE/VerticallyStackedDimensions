@@ -38,6 +38,7 @@ public abstract class CfgList<T extends ICfgListEntry> implements IDimensionSett
 		NBTTagList list = new NBTTagList();
 		for (T e : entries) {
 			NBTTagCompound tag = e.writeNBT();
+			if (tag == null) continue;
 			tag.setString("id", e.getRegistryName());
 			list.appendTag(tag);
 		}
