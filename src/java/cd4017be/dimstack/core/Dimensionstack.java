@@ -227,6 +227,15 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		if (reload) load(defaultCfg);
 	}
 
+	/**
+	 * resets the current dimension configuration to default
+	 */
+	public void reset() {
+		if (defaultCfg == null) return;
+		load(defaultCfg);
+		defaultCfg = null;
+	}
+
 	@Override
 	public void registerOreDisable() {
 		OreGenHandler.register();
