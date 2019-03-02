@@ -9,18 +9,22 @@ import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.api.API;
 import cd4017be.dimstack.api.DisabledBlockGen;
+import cd4017be.dimstack.api.IDimension;
 import cd4017be.dimstack.api.SharedNoiseFields;
 import cd4017be.dimstack.api.TerrainGeneration;
+import cd4017be.dimstack.api.TransitionInfo;
 import cd4017be.dimstack.api.gen.ITerrainGenerator;
 import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.api.util.NoiseField;
 import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
+import cd4017be.lib.script.obj.Array;
 import cd4017be.lib.script.obj.Error;
 import cd4017be.lib.script.obj.IOperand;
 import cd4017be.lib.script.obj.Nil;
 import cd4017be.lib.script.obj.Text;
+import cd4017be.lib.script.obj.Number;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.world.World;
@@ -61,6 +65,10 @@ public class TerrainGenHandler implements IRecipeHandler {
 		if (snf != null)
 			snf.init(world.getSeed());
 		
+		TransitionInfo ti = pc.getSettings(TransitionInfo.class, false);
+		if (ti != null)
+			initTransitions(ti, pc);
+		
 		TerrainGeneration cfg = pc.getSettings(TerrainGeneration.class, false);
 		if (cfg != null)
 			cfg.setupNoiseGens(pc, event.getNewValues(), event.getRandom());
@@ -79,6 +87,42 @@ public class TerrainGenHandler implements IRecipeHandler {
 			BlockPredicate.disableBlock(event.getPrimer(), dbg.disabledBlock);
 	}
 
+	private void initTransitions(TransitionInfo cfg, IDimension d) {
+		do {
+			int n = cfg.sizeTop;
+			if (n <= 0) break;
+			
+			IDimension d1 = d.up();
+			if (d1 == null) break;
+			
+			TransitionInfo cfg1 = d1.getSettings(TransitionInfo.class, false);
+			if (cfg1 == null) break;
+			
+			IBlockState block = cfg1.blockBot;
+			if (block == null || block == cfg.blockTop) break;
+			
+			int c = d.ceilHeight();
+			d.getSettings(TerrainGeneration.class, true).entries
+				.add(new TransitionGen(block, c - n, c, cfg1.sizeBot, true));
+		} while(false);
+		do {
+			int n = cfg.sizeBot;
+			if (n <= 0) break;
+			
+			IDimension d1 = d.down();
+			if (d1 == null) break;
+			
+			TransitionInfo cfg1 = d1.getSettings(TransitionInfo.class, false);
+			if (cfg1 == null) break;
+			
+			IBlockState block = cfg1.blockTop;
+			if (block == null || block == cfg.blockBot) break;
+			
+			d.getSettings(TerrainGeneration.class, true).entries
+				.add(new TransitionGen(block, 1, 1 + n, cfg1.sizeTop, false));
+		} while(false);
+	}
+
 	public void initConfig(ConfigConstants cfg) {
 		double[] v = cfg.get("custom_noise_octaves", double[].class, new double[0]);
 		SharedNoiseFields snf = Dimensionstack.INSTANCE.getSettings(SharedNoiseFields.class, true);
@@ -92,6 +136,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 		snf.noiseFields = new NoiseField[] {new NoiseField(4, 4, 1.0, 1.0)};
 		snf.source = new byte[] {0};
 		cfg.get("rem_block_gen", BlockRemInfo.class, new BlockRemInfo());
+		cfg.get("dim_transitions", TransInfo.class, new TransInfo());
 	}
 
 	@Override
@@ -224,6 +269,36 @@ public class TerrainGenHandler implements IRecipeHandler {
 				cfg.disabledBlock = BlockPredicate.parse(((Text)val).value);
 			else if (cfg != null)
 				cfg.disabledBlock = null;
+		}
+
+	}
+
+	private static class TransInfo implements IOperand {
+
+		@Override
+		public boolean asBool() throws Error {return true;}
+		@Override
+		public Object value() {return this;}
+
+		@Override
+		public IOperand get(IOperand idx) {
+			TransitionInfo cfg = PortalConfiguration.get(idx.asIndex()).getSettings(TransitionInfo.class, false);
+			return cfg == null ? Nil.NIL : new Array(
+					cfg.blockBot == null ? Nil.NIL : new Text(BlockPredicate.serialize(cfg.blockBot)), new Number(cfg.sizeBot),
+					cfg.blockTop == null ? Nil.NIL : new Text(BlockPredicate.serialize(cfg.blockTop)), new Number(cfg.sizeTop)
+				);
+		}
+
+		@Override
+		public void put(IOperand idx, IOperand val) {
+			if (!(val instanceof Array)) return;
+			IOperand[] arr = ((Array)val).array;
+			if (arr.length != 4) return;
+			TransitionInfo cfg = PortalConfiguration.get(idx.asIndex()).getSettings(TransitionInfo.class, true);
+			cfg.blockBot = arr[0] instanceof Text ? BlockPredicate.parse(((Text)arr[0]).value) : null;
+			cfg.blockTop = arr[2] instanceof Text ? BlockPredicate.parse(((Text)arr[2]).value) : null;
+			cfg.sizeBot = arr[1].asIndex();
+			cfg.sizeTop = arr[3].asIndex();
 		}
 
 	}
