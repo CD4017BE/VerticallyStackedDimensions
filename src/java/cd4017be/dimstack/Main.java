@@ -5,6 +5,7 @@ import java.io.File;
 import org.apache.logging.log4j.Logger;
 
 import cd4017be.api.recipes.RecipeScriptContext;
+import cd4017be.dimstack.asm.Test;
 import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.lib.script.ScriptFiles.Version;
 import net.minecraftforge.common.MinecraftForge;
@@ -45,6 +46,7 @@ public class Main {
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		LOG = event.getModLog();
+		Test.run();
 		MinecraftForge.EVENT_BUS.register(proxy);
 		proxy.init();
 		RecipeScriptContext.instance.run(ConfigName + ".PRE_INIT");
