@@ -4,11 +4,9 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.init.Biomes;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -27,11 +25,7 @@ public class RenderUtil {
 	public static void renderBlock(IBlockAccess world, BlockPos pos, BufferBuilder bb) {
 		BlockRendererDispatcher render = Minecraft.getMinecraft().getBlockRendererDispatcher();
 		IBlockState state = world.getBlockState(pos);
-		if (state.getRenderType() != EnumBlockRenderType.MODEL) state = Blocks.GLASS.getDefaultState();
-		state = state.getActualState(world, pos);
-		IBakedModel model = render.getModelForState(state);
-		state = state.getBlock().getExtendedState(state, world, pos);
-		render.getBlockModelRenderer().renderModel(world, model, state, pos, bb, false);
+		render.renderBlock(state, pos, world, bb);
 	}
 
 	public static class BlockWrapper implements IBlockAccess {
