@@ -1,3 +1,19 @@
+v0.1.0
+Changes:
+- added dimension stack editor to create new world screen
+- added portal ceiling setting to config gui
+- added bedrock removal setting to config gui
+- added default ore generation settings to config gui
+- added automatic dimension transition layers (available in config gui too)
+- added api for configuration gui
+- some other api changes!
+- some changes in dimensionstack.dat NBT data structure!
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.3.3
+
 v0.0.5
 Changes:
 - made portals generate particle effects so they're visible when open too
