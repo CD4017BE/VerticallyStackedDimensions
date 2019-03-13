@@ -1,3 +1,14 @@
+v0.1.1
+Changes:
+- fixed problems with other mods replacing the Create New World screen
+- added automatic work around for modded chunk generators not triggering forge events
+- changed logging of forced chunks to debug level to reduce log spam
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.3.3
+
 v0.1.0
 Changes:
 - added dimension stack editor to create new world screen
