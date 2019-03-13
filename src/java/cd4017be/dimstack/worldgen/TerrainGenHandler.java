@@ -3,10 +3,12 @@ package cd4017be.dimstack.worldgen;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Random;
 
 import cd4017be.api.recipes.RecipeAPI;
 import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
+import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.API;
 import cd4017be.dimstack.api.DisabledBlockGen;
 import cd4017be.dimstack.api.IDimension;
@@ -18,6 +20,7 @@ import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.api.util.NoiseField;
 import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.core.PortalConfiguration;
+import cd4017be.dimstack.util.DebugInfo;
 import cd4017be.lib.script.Parameters;
 import cd4017be.lib.script.obj.Array;
 import cd4017be.lib.script.obj.Error;
@@ -28,6 +31,8 @@ import cd4017be.lib.script.obj.Number;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.ChunkPrimer;
+import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.ChunkGeneratorEvent.ReplaceBiomeBlocks;
@@ -78,13 +83,25 @@ public class TerrainGenHandler implements IRecipeHandler {
 	public void generate(ReplaceBiomeBlocks event) {
 		PortalConfiguration pc = PortalConfiguration.get(event.getWorld());
 		
-		TerrainGeneration cfg = pc.getSettings(TerrainGeneration.class, false);
-		if (cfg != null)
-			cfg.generate(event.getGen(), event.getPrimer(), event.getX(), event.getZ());
+		generate(pc, event.getGenerator(), event.getPrimer(), event.getX(), event.getZ());
 		
 		DisabledBlockGen dbg = pc.getSettings(DisabledBlockGen.class, false);
 		if (dbg != null)
 			BlockPredicate.disableBlock(event.getPrimer(), dbg.disabledBlock);
+		
+		pc.getSettings(DebugInfo.class, true).chunksGenerated = true;
+	}
+
+	public static void generate(PortalConfiguration dim, IChunkGenerator gen, ChunkPrimer cp, int cx, int cz) {
+		TerrainGeneration cfg = dim.getSettings(TerrainGeneration.class, false);
+		if (cfg != null) {
+			if (!cfg.initialized) {
+				Main.LOG.fatal("The chunk generator {} did not trigger {} during initialization!\nPlease report this issue to the mod author of the above mentionied ChunkGenerator.", gen.getClass().getName(), InitNoiseGensEvent.class.getName());
+				cfg.setupNoiseGens(dim, new Context(null, null, null, null, null), new Random());
+				Main.LOG.warn("Could not provide native noise fields and RNG for dimension {}!\nTerrain features that depend on these won't work correctly.", dim);
+			}
+			cfg.generate(gen, cp, cx, cz);
+		}
 	}
 
 	private void initTransitions(TransitionInfo cfg, IDimension d) {

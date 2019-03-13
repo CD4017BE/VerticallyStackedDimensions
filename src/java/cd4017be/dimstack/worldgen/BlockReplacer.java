@@ -4,16 +4,20 @@ import java.util.Random;
 
 import cd4017be.api.recipes.RecipeAPI;
 import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
+import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.BlockReplacements;
 import cd4017be.dimstack.api.BlockReplacements.Replacement;
 import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.core.PortalConfiguration;
+import cd4017be.dimstack.util.DebugInfo;
+import cd4017be.dimstack.util.PostGenChunkBuffer;
 import cd4017be.lib.script.Parameters;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
+import net.minecraftforge.event.terraingen.ChunkGeneratorEvent.ReplaceBiomeBlocks;
 import net.minecraftforge.fml.common.IWorldGenerator;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
@@ -24,12 +28,13 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class BlockReplacer implements IWorldGenerator, IRecipeHandler {
 
 	private static final String BEDROCK_REPL = "bedrockRepl", BLOCK_REPL = "blockRepl";
+	private boolean errorLogged = false;
 
 	public BlockReplacer() {
 		RecipeAPI.Handlers.put(BEDROCK_REPL, this);
 		RecipeAPI.Handlers.put(BLOCK_REPL, this);
 		//mods commonly use 0 for their ore-gen, so this runs just before.
-		GameRegistry.registerWorldGenerator(this, -1);
+		GameRegistry.registerWorldGenerator(this, -1000);
 	}
 
 	@Override
@@ -49,8 +54,18 @@ public class BlockReplacer implements IWorldGenerator, IRecipeHandler {
 	}
 
 	@Override
-	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator, IChunkProvider chunkProvider) {
-		BlockReplacements repl = PortalConfiguration.get(world).getSettings(BlockReplacements.class, false);
+	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator gen, IChunkProvider chunkProvider) {
+		PortalConfiguration pc = PortalConfiguration.get(world);
+		if (!pc.getSettings(DebugInfo.class, true).chunksGenerated) {
+			if (!errorLogged) {
+				Main.LOG.fatal("The chunk generator {} doesn't trigger {} when generating chunks!\nPlease report this issue to the mod author of the above mentionied ChunkGenerator.", gen.getClass().getName(), ReplaceBiomeBlocks.class.getName());
+				Main.LOG.warn("Switching to inefficient terrain generation during chunk population.");
+				errorLogged = true;
+			}
+			TerrainGenHandler.generate(pc, gen, PostGenChunkBuffer.wrap(world.getChunkFromChunkCoords(chunkX, chunkZ)), chunkX, chunkZ);
+		}
+		
+		BlockReplacements repl = pc.getSettings(BlockReplacements.class, false);
 		if (repl != null)
 			for (Replacement r : repl.replacements)
 				r.doReplace(world, chunkX, chunkZ);
