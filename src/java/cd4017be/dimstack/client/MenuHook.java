@@ -111,6 +111,7 @@ public class MenuHook {
 			Main.dimstack.reset();
 			GuiScreen gui = event.getGui();
 			gui.mc.displayGuiScreen(new GuiDimStack(gui));
+			event.setCanceled(true);
 		}
 	}
 }
