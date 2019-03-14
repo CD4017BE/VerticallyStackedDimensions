@@ -73,7 +73,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 		if (cfg != null)
 			cfg.setupNoiseGens(pc, event.getNewValues(), event.getRandom());
 		
-		pc.getSettings(DebugInfo.class, true).initialized = true;
+		pc.getSettings(DebugInfo.class, true).setInitialized();
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGH)
@@ -89,7 +89,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 		if (dbg != null)
 			BlockPredicate.disableBlock(event.getPrimer(), dbg.disabledBlock);
 		
-		pc.getSettings(DebugInfo.class, true).chunksGenerated = true;
+		pc.getSettings(DebugInfo.class, true).setGenerated();
 	}
 
 	private void initTransitions(TransitionInfo cfg, IDimension d) {

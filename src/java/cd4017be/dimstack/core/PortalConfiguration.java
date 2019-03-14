@@ -216,7 +216,7 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	public void setTopOpen() {
 		if (topOpen || neighbourUp == null) return;
 		topOpen = true;
-		cfgModified = true;
+		Dimensionstack.markDirty();
 	}
 
 	@Override
@@ -263,7 +263,6 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 
 	//static features:
 	static final Int2ObjectOpenHashMap<PortalConfiguration> dimensions = new Int2ObjectOpenHashMap<>();
-	static boolean cfgModified;
 	static int defaultCeilY = 255;
 
 	/**

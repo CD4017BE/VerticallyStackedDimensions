@@ -6,6 +6,7 @@ import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.IDimension;
 import cd4017be.dimstack.api.IDimensionSettings;
 import cd4017be.dimstack.api.TerrainGeneration;
+import cd4017be.dimstack.core.Dimensionstack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTPrimitive;
 import net.minecraft.nbt.NBTTagByte;
@@ -21,8 +22,8 @@ import net.minecraftforge.event.terraingen.InitNoiseGensEvent.Context;
  */
 public class DebugInfo implements IDimensionSettings {
 
-	public boolean chunksGenerated = false;
-	public boolean initialized = false;
+	private boolean chunksGenerated = false;
+	private boolean initialized = false;
 	private boolean logged = false;
 
 	@Override
@@ -34,6 +35,17 @@ public class DebugInfo implements IDimensionSettings {
 	public void deserializeNBT(NBTBase nbt) {
 		byte state = ((NBTPrimitive)nbt).getByte();
 		chunksGenerated = (state & 1) != 0;
+	}
+
+	public void setGenerated() {
+		if (!chunksGenerated) {
+			chunksGenerated = true;
+			Dimensionstack.markDirty();
+		}
+	}
+
+	public void setInitialized() {
+		initialized = true;
 	}
 
 	public void genTerrainLate(IDimension dim, IChunkGenerator gen, World world, int cx, int cz) {

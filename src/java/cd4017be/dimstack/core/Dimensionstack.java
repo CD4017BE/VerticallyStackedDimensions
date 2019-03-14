@@ -45,6 +45,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	public static final int FILE_VERSION = 4;
 	private NBTTagCompound defaultCfg;
 	private File cfgFile;
+	private static boolean cfgModified;
 
 	public Dimensionstack() {
 		API.INSTANCE = this;
@@ -54,6 +55,10 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	@Override
 	public IDimension getDim(int id) {
 		return get(id);
+	}
+
+	public static void markDirty() {
+		cfgModified = true;
 	}
 
 	/**
@@ -72,6 +77,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		if (cfgModified && cfgFile != null)
 			try {
 				NBTTagCompound data = CompressedStreamTools.read(cfgFile);
+				save(data);
 				data.setIntArray("topOpen", open.toIntArray());
 				CompressedStreamTools.write(data, cfgFile);
 				Main.LOG.info("updated dimension stack configuration file");
