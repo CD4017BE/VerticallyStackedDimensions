@@ -11,6 +11,7 @@ import cd4017be.dimstack.Main;
 import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.core.PortalConfiguration;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 import static cd4017be.lib.util.TooltipUtil.*;
 
@@ -163,7 +164,12 @@ public class GuiDimStack extends GuiMenuBase {
 			break;
 		case 8:
 			try {
-				int i = Integer.parseInt(textFields.get(0).getText());
+				String text = textFields.get(0).getText();
+				int i;
+				if (text.isEmpty()) {
+					IntSet ids = PortalConfiguration.getDefinedIds();
+					for (i = 0; ids.contains(i); i++);
+				} else i = Integer.parseInt(text);
 				List<Dim> list = dimList.list;
 				int s = 0;
 				for (int l = list.size(); s < l; s++) {
