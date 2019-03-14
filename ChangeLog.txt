@@ -1,8 +1,10 @@
-v0.1.1
+v0.1.2
 Changes:
 - fixed problems with other mods replacing the Create New World screen
 - added automatic work around for modded chunk generators not triggering forge events
 - changed logging of forced chunks to debug level to reduce log spam
+- "Add ID to list" button in dimension stack editor now adds the next free dimension id (which mods would get if they don't specify the id) to list if text field is left empty
+- fixed color codes being displayed as weird characters instead
 
 Dependencies:
 - for MC-1.12.2

@@ -49,6 +49,7 @@ public class DebugInfo implements IDimensionSettings {
 	}
 
 	public void genTerrainLate(IDimension dim, IChunkGenerator gen, World world, int cx, int cz) {
+		fixInitialization(dim, world, gen);
 		TerrainGeneration tg = dim.getSettings(TerrainGeneration.class, false);
 		if (tg == null || chunksGenerated) return;
 		if (!logged) {
@@ -56,7 +57,6 @@ public class DebugInfo implements IDimensionSettings {
 			Main.LOG.warn("Switching to inefficient terrain generation during chunk population.");
 			logged = true;
 		}
-		fixInitialization(dim, world, gen);
 		tg.generate(gen, PostGenChunkBuffer.wrap(world.getChunkFromChunkCoords(cx, cz)), cx, cz);
 	}
 

@@ -19,7 +19,7 @@ public class PostGenChunkBuffer extends ChunkPrimer {
 	}
 
 	private Chunk chunk;
-	private MutableBlockPos pos;
+	private MutableBlockPos pos = new MutableBlockPos();
 
 	@Override
 	public IBlockState getBlockState(int x, int y, int z) {
@@ -29,7 +29,7 @@ public class PostGenChunkBuffer extends ChunkPrimer {
 	@Override
 	public void setBlockState(int x, int y, int z, IBlockState state) {
 		Chunk chunk = this.chunk;
-		chunk.setBlockState(pos.setPos(x + chunk.x << 4, y, z + chunk.z << 4), state);
+		chunk.setBlockState(pos.setPos(x + (chunk.x << 4), y, z + (chunk.z << 4)), state);
 	}
 
 }
