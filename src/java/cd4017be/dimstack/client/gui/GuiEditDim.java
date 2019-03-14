@@ -37,7 +37,7 @@ public class GuiEditDim extends GuiMenuBase implements GuiResponder {
 	@Override
 	public void initGui() {
 		super.initGui();
-		title = translate("gui.dimstack.edit") + " [§e" + dim + "§r]";
+		title = translate("gui.dimstack.edit") + " [\u00a7e" + dim + "\u00a7r]";
 		
 		boolean hasCeil = dim.up() != null;
 		int n = entries.size();

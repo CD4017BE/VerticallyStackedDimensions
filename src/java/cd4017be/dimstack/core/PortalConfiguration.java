@@ -205,7 +205,7 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 		try {
 			name = DimensionManager.getProviderType(dimId).getName();
 		} catch (IllegalArgumentException e) {
-			name = "§oundefined§r";
+			name = "\u00a7oundefined\u00a7r";
 		}
 		return "id " + Integer.toString(dimId) + ": " + name;
 	}

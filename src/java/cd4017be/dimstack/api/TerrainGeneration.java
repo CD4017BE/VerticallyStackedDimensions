@@ -54,8 +54,6 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 	public int offsetY;
 	/** dimension id */
 	public int dimId;
-	
-	public boolean initialized = false;
 
 	@Override
 	public void deserializeNBT(NBTBase nbt) {
@@ -121,7 +119,6 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 		}
 		for (ITerrainGenerator g : entries)
 			g.initNoise(this);
-		initialized = true;
 	}
 
 	public void generate(IChunkGenerator gen, ChunkPrimer cp, int cx, int cz) {
