@@ -1,6 +1,7 @@
 package cd4017be.dimstack;
 
 import cd4017be.dimstack.block.Portal;
+import cd4017be.dimstack.block.ProgressionBarrier;
 import cd4017be.dimstack.item.ItemPortalAugment;
 import cd4017be.dimstack.tileentity.DimensionalPipe;
 import cd4017be.lib.block.AdvancedBlock;
@@ -31,10 +32,12 @@ public class Objects {
 	//Blocks
 	public static final Portal PORTAL = null;
 	public static final AdvancedBlock DIM_PIPE = null;
+	public static final ProgressionBarrier BEDROCK = new ProgressionBarrier("bedrock", Material.ROCK); //required before init
 
 	//ItemBlocks
 	public static final BaseItemBlock portal = null;
 	public static final ItemPortalAugment dim_pipe = null;
+	public static final BaseItemBlock bedrock = null;
 
 	//Items
 
@@ -47,7 +50,8 @@ public class Objects {
 		TooltipUtil.CURRENT_DOMAIN = Main.ID;
 		ev.getRegistry().registerAll(
 			new Portal("portal", M_PORTAL).setCreativeTab(tabDimStack),
-			new AdvancedBlock("dim_pipe", M_PORTAL, SoundType.METAL, 0, DimensionalPipe.class).setBlockUnbreakable().setResistance(Float.POSITIVE_INFINITY).setCreativeTab(tabDimStack)
+			new AdvancedBlock("dim_pipe", M_PORTAL, SoundType.METAL, 0, DimensionalPipe.class).setBlockUnbreakable().setResistance(Float.POSITIVE_INFINITY).setCreativeTab(tabDimStack),
+			BEDROCK.setCreativeTab(tabDimStack)
 		);
 	}
 
@@ -56,7 +60,8 @@ public class Objects {
 		TooltipUtil.CURRENT_DOMAIN = Main.ID;
 		ev.getRegistry().registerAll(
 			new BaseItemBlock(PORTAL),
-			new ItemPortalAugment(DIM_PIPE)
+			new ItemPortalAugment(DIM_PIPE),
+			new BaseItemBlock(BEDROCK)
 		);
 	}
 

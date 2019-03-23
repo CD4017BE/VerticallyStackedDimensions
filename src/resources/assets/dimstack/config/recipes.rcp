@@ -58,6 +58,11 @@ INIT() {
 	!add("shaped", <result>, <pattern>, <ingredients>...);
 	add("shaped", it("tile.dim_pipe", 1), "010/020/010", "obsidian", "gemQuartz", it("minecraft:hopper"));
 	
+	!custom barrier block properties
+	!there are 16 (ids 0 ... 15) different blocks available for use in progression barrier layers
+	!barrier_block:<id> = [[<breakingTools>...], <harvestLvl>, <hardness>, <expResistance>, <WhitherProof>];
+	barrier_block:0 = [[it("minecraft:dragon_egg"), it("minecraft:nether_star")], "pickaxe:3", 8.0, /0, true]; !example
+	
 	!remove the '!' in the following line to enable top half nether generation
 	!netherTop();
 }

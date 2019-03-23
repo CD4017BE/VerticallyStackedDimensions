@@ -2,6 +2,7 @@ package cd4017be.dimstack;
 
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
+import cd4017be.dimstack.block.ProgressionBarrier;
 import cd4017be.dimstack.core.ChunkLoader;
 import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.worldgen.BlockReplacer;
@@ -38,6 +39,7 @@ public class CommonProxy {
 		worldgenTerrain.initConfig(cfg);
 		worldgenOres.initConfig(cfg);
 		worldgenPortal.initConfig(cfg);
+		cfg.get("barrier_block", ProgressionBarrier.class, Objects.BEDROCK);
 	}
 
 	public void registerRenderers() {
