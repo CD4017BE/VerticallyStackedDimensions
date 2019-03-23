@@ -75,9 +75,9 @@ public class PortalGen implements IWorldGenerator {
 		MutableBlockPos pos = new MutableBlockPos();
 		World world = chunk.getWorld();
 		do {
-			World worldO = DimensionManager.getWorld(neighb.dimId);
-			if (worldO == null) break;
-			Chunk chunk_ = worldO.getChunkProvider().getLoadedChunk(chunk.x, chunk.z);
+			World world_ = DimensionManager.getWorld(neighb.dimId);
+			if (world_ == null) break;
+			Chunk chunk_ = world_.getChunkProvider().getLoadedChunk(chunk.x, chunk.z);
 			if (chunk_ == null) break;
 			int Y = y == 0 ? neighb.ceilY : 0;
 			if (!genImmediate && chunk_.getTopFilledSegment() < Y - 15) break;
@@ -109,8 +109,8 @@ public class PortalGen implements IWorldGenerator {
 					chunk.setBlockState(pos.setPos(x, y, z), state);
 					if (update) world.notifyBlockUpdate(pos, olds, state, 2);
 					if ((olds = chunk_.getBlockState(x, Y, z)) != state_) {
-						chunk.setBlockState(pos.setPos(x, Y, z), state_);
-						world.notifyBlockUpdate(pos, olds, state_, 2);
+						chunk_.setBlockState(pos.setPos(x, Y, z), state_);
+						world_.notifyBlockUpdate(pos, olds, state_, 2);
 					}
 				}
 			return;
