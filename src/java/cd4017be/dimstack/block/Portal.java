@@ -238,7 +238,6 @@ public class Portal extends BaseBlock {
 	@Override
 	public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity) {
 		if (world instanceof WorldServer && !state.getValue(solidOther1)) {
-			if (MathHelper.floor(entity.posX) != pos.getX() || MathHelper.floor(entity.posZ) != pos.getZ()) return;
 			AxisAlignedBB box = entity.getEntityBoundingBox();
 			if (box.maxY - box.minY > 1.0 && state.getValue(solidOther2)) return;
 			int y = pos.getY();
@@ -255,6 +254,7 @@ public class Portal extends BaseBlock {
 				if (box.minY < (double)y) py -= box.minY - (double)y;
 			}
 			syncStates(posO, posT);
+			if (MathHelper.floor(entity.posX) != pos.getX() || MathHelper.floor(entity.posZ) != pos.getZ() || world.getBlockState(pos).getValue(solidOther1)) return;
 			int dim = posO.dimId;
 			double nx = entity.posX, ny = py, nz = entity.posZ;
 			TickRegistry.instance.updates.add(()-> {
