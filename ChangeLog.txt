@@ -1,3 +1,16 @@
+v0.1.3
+Changes:
+- fixed random portal blocks floating in the sky where they don't belong
+- tweaked entity teleportation behavior:
+    - no teleport if portal appears solid after synchronization
+    - already teleport when standing on top block (no jumping needed anymore)
+- add customizable barrier blocks for progression gating
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.3.4
+
 v0.1.2
 Changes:
 - fixed problems with other mods replacing the Create New World screen
