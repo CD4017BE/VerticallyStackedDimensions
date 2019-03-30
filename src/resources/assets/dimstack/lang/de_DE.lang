@@ -1,8 +1,33 @@
+#PARSE_ESCAPES
+dimstack.toollvl.pickaxe=Spitzhacke level %d oder besser
+dimstack.toollvl.axe=Axt level %d oder besser
+dimstack.toollvl.shovel=Shaufel level %d oder besser
+
 #Blöcke
 tile.dimstack.dim_pipe.tip=Erlaubt es Geräten, durch das Portal hindurch auf benachbarte Inventare, Flüssigkeitstanks und Energiespeicher zuzugreifen.\n§aInteragiere geduckt§7 gegen ein Portal zum anbringen.\n§aInteragiere geduckt§7 mit §aleerer Hand§7 zum wieder entfernen.
 tile.dimstack.portal.name=Übergangsportal
 tile.dimstack.portal.tip=§4Nicht herstellbar, wird automatisch in die Welt generiert!\\nSpringe oder falle in's Portal um zur anderen Seite zu gelangen.\\nBeim Versuch das Portal abzubauen oder Blöcke hinein zu platzeren werden stattdessen auf der anderen Seite Blocke abgebaut / plaziert.\n§8§oWelche Dimensionen miteinander verbunden werden, ist in der Konfigurationsdatei der mod festgelegt.
 tile.dimstack.dim_pipe.name=Interdimensionales Rohr
+tile.dimstack.bedrock\:0.name=Barriere §4Alpha
+tile.dimstack.bedrock\:1.name=Barriere §6Beta
+tile.dimstack.bedrock\:2.name=Barriere §eGamma
+tile.dimstack.bedrock\:3.name=Barriere §2Delta
+tile.dimstack.bedrock\:4.name=Barriere §3Epsilon
+tile.dimstack.bedrock\:5.name=Barriere §1Zeta
+tile.dimstack.bedrock\:6.name=Barriere §5Eta
+tile.dimstack.bedrock\:7.name=Barriere §8Theta
+tile.dimstack.bedrock\:8.name=Kristall Grundgestein
+tile.dimstack.bedrock\:9.name=Felsiges Grundgestein
+tile.dimstack.bedrock\:10.name=Wässriges Grundgestein
+tile.dimstack.bedrock\:11.name=Frost Grundgestein
+tile.dimstack.bedrock\:12.name=Inferno Grundgestein
+tile.dimstack.bedrock\:13.name=Natur Grundgestein
+tile.dimstack.bedrock\:14.name=Magie Grundgestein
+tile.dimstack.bedrock\:15.name=Void Grundgestein
+tile.dimstack.bedrock\:i.tip=Du kannst diese Blöcke nur abbauen, wenn du ein spezifisches "Schlüssel-Item" ausgerüstet hast. (funktioniert sowohl in Haupt- als auch Nebenhand)
+tile.dimstack.bedrock.tools=§eZerstörbar mit\:
+tile.dimstack.bedrock.expl=§eExplosionssicher\:§7 %s
+tile.dimstack.bedrock.mob=§eWither-sicher\:§7 %s
 
 #Gui
 gui.dimstack.cfg=Gestapelte Dimensionen

@@ -46,6 +46,7 @@ public class ClientProxy extends CommonProxy {
 		
 		BlockItemRegistry.registerRender(PORTAL);
 		BlockItemRegistry.registerRender(DIM_PIPE);
+		BlockItemRegistry.registerRenderBS(BEDROCK, 0, 15);
 	}
 
 }

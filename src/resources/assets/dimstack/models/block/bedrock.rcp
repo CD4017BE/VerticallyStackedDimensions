@@ -1,0 +1,14 @@
+{
+	textures = [];
+	for (i:16) {
+		textures = textures + $"dimstack:block/bedrock%.0f" i;
+	}
+}
+
+m(t) {
+	particle = t;
+	Loc Q = [0,0,0,16,16,16]#, T = [0,0,16,16]#;
+	for(F:["u-vB","u+vT","UV-N","UV+S","-VUW","+VUE"]) {
+		add(rect(Q, T, F, t));
+	}
+}

@@ -1,7 +1,10 @@
 package cd4017be.dimstack.block;
 
-import java.util.Arrays;
+import static cd4017be.lib.util.TooltipUtil.format;
+import static cd4017be.lib.util.TooltipUtil.translate;
 
+import java.util.Arrays;
+import java.util.List;
 import cd4017be.api.recipes.ItemOperand;
 import cd4017be.lib.block.BaseBlock;
 import cd4017be.lib.script.obj.Array;
@@ -14,11 +17,14 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockAccess;
@@ -42,6 +48,35 @@ public class ProgressionBarrier extends BaseBlock implements IOperand {
 	}
 
 	@Override
+	public void addInformation(ItemStack stack, World player, List<String> list, ITooltipFlag advanced) {
+		String name = getUnlocalizedName();
+		list.add(translate(name + ".tools"));
+		int i = stack.getMetadata();
+		ItemStack[] tools = requiredTools[i];
+		if (tools == null) {
+			IBlockState state = getStateFromMeta(i);
+			String tool = getHarvestTool(state);
+			if (tool != null)
+				list.add(format("dimstack.toollvl." + tool, getHarvestLevel(state)));
+		} else for (ItemStack tool : tools)
+			list.add("- " + tool.getDisplayName());
+		list.add(format(name + ".expl", resistance[i] > 1e6F));
+		list.add(format(name + ".mob", (witherProof >> i & 1) != 0));
+		super.addInformation(stack, player, list, advanced);
+	}
+
+	@Override
+	public void getSubBlocks(CreativeTabs itemIn, NonNullList<ItemStack> items) {
+		for (int i = 0; i < 16; i++)
+			items.add(new ItemStack(this, 1, i));
+	}
+
+	@Override
+	public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
+		drops.add(new ItemStack(this, 1, state.getValue(variant)));
+	}
+
+	@Override
 	public float getPlayerRelativeBlockHardness(IBlockState state, EntityPlayer player, World world, BlockPos pos) {
 		if (!canBreak(state, player.getHeldItemMainhand()) && !canBreak(state, player.getHeldItemOffhand())) return 0;
 		return ForgeHooks.blockStrength(state, player, world, pos);
@@ -57,6 +92,11 @@ public class ProgressionBarrier extends BaseBlock implements IOperand {
 			if (r != null && stack.isItemEqualIgnoreDurability(r))
 				return true;
 		return false;
+	}
+
+	@Override
+	public boolean canHarvestBlock(IBlockAccess world, BlockPos pos, EntityPlayer player) {
+		return getHarvestTool(world.getBlockState(pos)) == null || super.canHarvestBlock(world, pos, player);
 	}
 
 	@Override

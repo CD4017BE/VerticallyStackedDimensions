@@ -6,10 +6,12 @@ import cd4017be.dimstack.item.ItemPortalAugment;
 import cd4017be.dimstack.tileentity.DimensionalPipe;
 import cd4017be.lib.block.AdvancedBlock;
 import cd4017be.lib.item.BaseItemBlock;
+import cd4017be.lib.item.ItemVariantBlock;
 import cd4017be.lib.templates.TabMaterials;
 import cd4017be.lib.util.TooltipUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
+import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -27,19 +29,31 @@ import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 public class Objects {
 
 	public static TabMaterials tabDimStack = new TabMaterials(Main.ID);
-	public static Material M_PORTAL = Material.PORTAL;
+	public static Material M_PORTAL;
+	public static Material M_BEDROCK;
 
 	//Blocks
 	public static final Portal PORTAL = null;
 	public static final AdvancedBlock DIM_PIPE = null;
-	public static final ProgressionBarrier BEDROCK = new ProgressionBarrier("bedrock", Material.ROCK); //required before init
+	public static final ProgressionBarrier BEDROCK;
 
 	//ItemBlocks
 	public static final BaseItemBlock portal = null;
 	public static final ItemPortalAugment dim_pipe = null;
-	public static final BaseItemBlock bedrock = null;
+	public static final ItemVariantBlock bedrock = null;
 
 	//Items
+
+	//required before init
+	static {
+		M_PORTAL = Material.PORTAL;
+		M_BEDROCK = new Material(MapColor.BLACK) {{
+			setRequiresTool();
+			setImmovableMobility();
+		}};
+		TooltipUtil.CURRENT_DOMAIN = Main.ID;
+		BEDROCK = new ProgressionBarrier("bedrock", M_BEDROCK);
+	}
 
 	static void init() {
 		tabDimStack.item = new ItemStack(portal);
@@ -61,7 +75,7 @@ public class Objects {
 		ev.getRegistry().registerAll(
 			new BaseItemBlock(PORTAL),
 			new ItemPortalAugment(DIM_PIPE),
-			new BaseItemBlock(BEDROCK)
+			new ItemVariantBlock(BEDROCK)
 		);
 	}
 

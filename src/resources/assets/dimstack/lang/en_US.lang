@@ -1,10 +1,35 @@
+#PARSE_ESCAPES
 itemGroup.dimstack=Vertically Stacked Dimensions
+
+dimstack.toollvl.pickaxe=lvl %d Pickaxe or better
+dimstack.toollvl.axe=lvl %d Axe or better
+dimstack.toollvl.shovel=lvl %d Shovel or better
 
 #Blocks
 tile.dimstack.portal.name=Transition Portal
 tile.dimstack.portal.tip=§4Not craftable, automatically generated in the world!\\nFalling or jumping into it will teleport you to the other side.\\nHitting this block with a tool or right-clicking it with a block in hand will break / place blocks on the other side.\n§8§oWhich dimensions being connected is defined in this mod's configuration file.
 tile.dimstack.dim_pipe.name=Interdimensional Pipe
 tile.dimstack.dim_pipe.tip=Allows adjacent inventories, fluid tanks and energy devices to be accessed through the portal.\n§asneak-right-click§7 on portal to attach.\n§asneak-right-click§7 with §aempty hand§7 to detach again.
+tile.dimstack.bedrock\:0.name=Barrier §4Alpha
+tile.dimstack.bedrock\:1.name=Barrier §6Beta
+tile.dimstack.bedrock\:2.name=Barrier §eGamma
+tile.dimstack.bedrock\:3.name=Barrier §2Delta
+tile.dimstack.bedrock\:4.name=Barrier §3Epsilon
+tile.dimstack.bedrock\:5.name=Barrier §1Zeta
+tile.dimstack.bedrock\:6.name=Barrier §5Eta
+tile.dimstack.bedrock\:7.name=Barrier §8Theta
+tile.dimstack.bedrock\:8.name=Crystalline Bedrock
+tile.dimstack.bedrock\:9.name=Rocky Bedrock
+tile.dimstack.bedrock\:10.name=Aquatic Bedrock
+tile.dimstack.bedrock\:11.name=Frozen Bedrock
+tile.dimstack.bedrock\:12.name=Fiery Bedrock
+tile.dimstack.bedrock\:13.name=Organic Bedrock
+tile.dimstack.bedrock\:14.name=Magical Bedrock
+tile.dimstack.bedrock\:15.name=Void Bedrock
+tile.dimstack.bedrock\:i.tip=You need a specific key item equiped to be able to break these blocks.\n(works in both main hand and offhand)
+tile.dimstack.bedrock.tools=§eBreakable with\:
+tile.dimstack.bedrock.expl=§eExplosion proof\:§7 %s
+tile.dimstack.bedrock.mob=§eWither proof\:§7 %s
 
 #Gui
 gui.dimstack.cfg=Dimension Stack
@@ -31,4 +56,4 @@ gui.dimstack.trans=Terrain transitions
 gui.dimstack.trans.topblock=Expected block at top
 gui.dimstack.trans.topsize=Ceiling transition size
 gui.dimstack.trans.botblock=Expected block at bottom
-gui.dimstack.trans.botsize=Floor transition size 
+gui.dimstack.trans.botsize=Floor transition size
