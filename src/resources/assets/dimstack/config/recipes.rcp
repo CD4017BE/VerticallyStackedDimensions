@@ -58,10 +58,16 @@ INIT() {
 	!add("shaped", <result>, <pattern>, <ingredients>...);
 	add("shaped", it("tile.dim_pipe", 1), "010/020/010", "obsidian", "gemQuartz", it("minecraft:hopper"));
 	
-	!custom barrier block properties
+	!custom barrier block properties (block id is "dimstack:bedrock@<id>")
 	!there are 16 (ids 0 ... 15) different blocks available for use in progression barrier layers
 	!barrier_block:<id> = [[<breakingTools>...], <harvestLvl>, <hardness>, <expResistance>, <WhitherProof>];
 	barrier_block:0 = [[it("minecraft:dragon_egg"), it("minecraft:nether_star")], "pickaxe:3", 8.0, /0, true]; !example
+	barrier_block:13 = [it("minecraft:diamond_hoe"), "axe:3", 1.5, /0, true]; !another example (makes the diamond hoe usefull)
+	barrier_block:12 = [it("minecraft:obsidian"), "pickaxe:3", 8.0, /0, true]; !fiery bedrock as nether progression gate
+	
+	!custom block layers
+	!add("basicLayer", <dimId>, <blockstate>, [<startY>, <minY>, <maxY>, <endY>]#);
+	add("basicLayer", -1, "dimstack:bedrock@12", [118, 120, 121, 123]#); !put our fiery bedrock at nether celing just below the portal
 	
 	!remove the '!' in the following line to enable top half nether generation
 	!netherTop();
