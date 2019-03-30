@@ -242,7 +242,7 @@ public class Portal extends BaseBlock {
 			if (box.maxY - box.minY > 1.0 && state.getValue(solidOther2)) return;
 			int y = pos.getY();
 			double py = entity.motionY;
-			if (y == 0 ? box.maxY + py >= 1.0 : box.minY + py <= y) return;
+			if (y == 0 ? box.maxY + py > 1.0 : box.minY + py < y) return;
 			DimPos posT = new DimPos(pos, world);
 			DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 			if (posO == null) return;
