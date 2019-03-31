@@ -21,7 +21,10 @@ public class CorePlugin implements IFMLLoadingPlugin {
 
 	@Override
 	public String[] getASMTransformerClass() {
-		return new String[]{"cd4017be.dimstack.asm.ChunkPrimerTransformer"};
+		return new String[]{
+				"cd4017be.dimstack.asm.ChunkPrimerTransformer",
+				"cd4017be.dimstack.asm.BlockPortalTransformer"
+			};
 	}
 
 	@Override

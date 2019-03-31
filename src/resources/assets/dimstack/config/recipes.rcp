@@ -9,6 +9,9 @@ chunk_load_time = 30.0;
 !This is to prevent players from buiding exploit contraptions to keep chunks loaded indefinitely
 cont_load_time = 300.0;
 
+!set to true to disable creation of nether portals (through obsidian ignition)
+disable_nether_portal = true;
+
 !set these to true to disable vanilla ore-generation in overworld and nether. 
 disable_coal = false;
 disable_diamond = false;
