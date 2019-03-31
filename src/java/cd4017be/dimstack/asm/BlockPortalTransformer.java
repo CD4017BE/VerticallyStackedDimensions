@@ -40,7 +40,7 @@ public class BlockPortalTransformer implements IClassTransformer {
 		
 		c_BlockPortal = type("net.minecraft.block.BlockPortal", "asq");
 		n_BlockPortal = name(c_BlockPortal);
-		m_trySpawnPortal = "trySpawnPortal";
+		m_trySpawnPortal = method("trySpawnPortal", "b");
 		md_trySpawnPortal = m_desc(BOOL, c_World, c_BlockPos);
 		
 		c_DisabledPortals = type("cd4017be.dimstack.api.DisabledPortals");
