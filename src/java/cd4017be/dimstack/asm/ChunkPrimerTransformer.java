@@ -1,7 +1,5 @@
 package cd4017be.dimstack.asm;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -16,8 +14,9 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 import net.minecraft.launchwrapper.IClassTransformer;
-import net.minecraft.launchwrapper.Launch;
 import static org.objectweb.asm.Opcodes.*;
+import static cd4017be.dimstack.asm.CorePlugin.LOG;
+import static cd4017be.dimstack.asm.Name.*;
 
 import java.util.Arrays;
 
@@ -28,46 +27,34 @@ import java.util.Arrays;
  */
 public class ChunkPrimerTransformer implements IClassTransformer {
 
-	final Logger LOG;
-	final String cn_ChunkPrimer, jc_ChunkPrimer;
-	String cn_IBlockState, jc_IBlockState;
-	final String cn_BlockPredicate;
-	final String mn_setBlockState, md_setBlockState;
-	final String mn_disableBlock, md_disableBlock;
-	final String fn_exclude, fd_exclude;
+	final String c_IBlockState;
+	final String c_ChunkPrimer, n_ChunkPrimer;
+	final String m_setBlockState, md_setBlockState;
+	final String f_exclude, fd_exclude;
+	final String n_BlockPredicate;
+	final String m_disableBlock, md_disableBlock;
 
 	public ChunkPrimerTransformer() {
-		this.LOG = LogManager.getLogger("VSD ASM");
-		boolean obf;
-		try {obf = Launch.classLoader.getClassBytes("net.minecraft.world.chunk.ChunkPrimer") == null;}
-		catch (Exception e) {obf = true;}
+		this.c_IBlockState = type("net.minecraft.block.state.IBlockState", "awt");
 		
-		if (obf) {
-			LOG.debug("running in obfuscated environment");
-			this.cn_ChunkPrimer = "ayw";
-			this.cn_IBlockState = "awt";
-			this.mn_setBlockState = "a";
-		} else {
-			LOG.debug("running in deobfuscated environment");
-			this.cn_ChunkPrimer = "net.minecraft.world.chunk.ChunkPrimer";
-			this.cn_IBlockState = "net.minecraft.block.state.IBlockState";
-			this.mn_setBlockState = "setBlockState";
-		}
-		this.jc_ChunkPrimer = cn_ChunkPrimer.replace('.', '/');
-		this.jc_IBlockState = cn_IBlockState.replace('.', '/');
-		this.cn_BlockPredicate = "cd4017be.dimstack.api.util.BlockPredicate";
-		this.md_setBlockState = "(IIIL" + jc_IBlockState + ";)V";
-		this.mn_disableBlock = "disableBlock";
-		this.md_disableBlock = "(Lnet/minecraft/world/chunk/ChunkPrimer;Lnet/minecraft/block/state/IBlockState;)V";
-		this.fn_exclude = "ingnoredBlock";
-		this.fd_exclude = "L" + jc_IBlockState + ";";
+		this.c_ChunkPrimer = type("net.minecraft.world.chunk.ChunkPrimer", "ayw");
+		this.n_ChunkPrimer = name(c_ChunkPrimer);
+		this.m_setBlockState = method("setBlockState", "a");
+		this.md_setBlockState = m_desc(VOID, INT, INT, INT, c_IBlockState);
+		this.f_exclude = "ingnoredBlock";
+		this.fd_exclude = f_desc(c_IBlockState);
+		
+		this.n_BlockPredicate = "cd4017be.dimstack.api.util.BlockPredicate";
+		this.m_disableBlock = "disableBlock";
+		this.md_disableBlock = m_desc(VOID, "net.minecraft.world.chunk.ChunkPrimer", "net.minecraft.block.state.IBlockState");
+		
 	}
 
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
-		if (name.equals(cn_ChunkPrimer))
+		if (name.equals(n_ChunkPrimer))
 			return transformCP(basicClass);
-		if (name.equals(cn_BlockPredicate))
+		if (name.equals(n_BlockPredicate))
 			return transformAcc(basicClass);
 		return basicClass;
 	}
@@ -80,7 +67,7 @@ public class ChunkPrimerTransformer implements IClassTransformer {
 		LOG.debug("patching ChunkPrimer as {} ...", cn.name);
 		boolean found = false;
 		for (MethodNode mn : cn.methods) {
-			if (mn.desc.equals(md_setBlockState) && mn_setBlockState.contains(mn.name)) {
+			if (mn.desc.equals(md_setBlockState) && m_setBlockState.contains(mn.name)) {
 				LOG.debug("patching method setBlockState() as {}{}", mn.name, mn.desc);
 				InsnList inj = new InsnList();
 				
@@ -89,13 +76,13 @@ public class ChunkPrimerTransformer implements IClassTransformer {
 				inj.add(new JumpInsnNode(IFNULL, end));
 				
 				inj.add(new VarInsnNode(ALOAD, 0));
-				inj.add(new FieldInsnNode(GETFIELD, jc_ChunkPrimer, fn_exclude, fd_exclude));
+				inj.add(new FieldInsnNode(GETFIELD, c_ChunkPrimer, f_exclude, fd_exclude));
 				inj.add(new VarInsnNode(ALOAD, 4));
 				inj.add(new JumpInsnNode(IF_ACMPNE, end));
 				
 				inj.add(new InsnNode(RETURN));
 				inj.add(end);
-				inj.add(new FrameNode(F_SAME, 5, new Object[] {jc_ChunkPrimer, INTEGER, INTEGER, INTEGER, jc_IBlockState}, 0, new Object[0]));
+				inj.add(new FrameNode(F_SAME, 5, new Object[] {c_ChunkPrimer, INTEGER, INTEGER, INTEGER, c_IBlockState}, 0, new Object[0]));
 				
 				mn.instructions.insert(inj);
 				found = true;
@@ -106,11 +93,11 @@ public class ChunkPrimerTransformer implements IClassTransformer {
 			for (int i = 0; i < names.length; i++)
 				names[i] = cn.methods.get(i).name;
 			LOG.error("can't find ChunkPrimer.setBlockState() in {}", Arrays.toString(names));
-			LOG.info("method name = {}, descriptor = {}", mn_setBlockState, md_setBlockState);
+			LOG.info("method name = {}, descriptor = {}", m_setBlockState, md_setBlockState);
 		}
 		
 		LOG.debug("adding field ingnoredBlock");
-		cn.fields.add(new FieldNode(ACC_PUBLIC, fn_exclude, fd_exclude, null, null));
+		cn.fields.add(new FieldNode(ACC_PUBLIC, f_exclude, fd_exclude, null, null));
 		
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		cn.accept(cw);
@@ -124,13 +111,13 @@ public class ChunkPrimerTransformer implements IClassTransformer {
 		
 		LOG.debug("patching BlockPredicate ...");
 		for (MethodNode mn : cn.methods)
-			if (mn.name.equals(mn_disableBlock) && mn.desc.equals(md_disableBlock)) {
+			if (mn.name.equals(m_disableBlock) && mn.desc.equals(md_disableBlock)) {
 				LOG.debug("patching method disableBlock() as {}{}", mn.name, mn.desc);
 				InsnList inj = new InsnList();
 				
 				inj.add(new VarInsnNode(ALOAD, 0));
 				inj.add(new VarInsnNode(ALOAD, 1));
-				inj.add(new FieldInsnNode(PUTFIELD, jc_ChunkPrimer, fn_exclude, fd_exclude));
+				inj.add(new FieldInsnNode(PUTFIELD, c_ChunkPrimer, f_exclude, fd_exclude));
 				inj.add(new InsnNode(RETURN));
 				
 				mn.instructions = inj;

@@ -2,6 +2,9 @@ package cd4017be.dimstack.asm;
 
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
 
@@ -13,6 +16,8 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 @IFMLLoadingPlugin.MCVersion(value = "1.12.2")
 @IFMLLoadingPlugin.Name(value = "Vertically Stacked Dimensions ASM")
 public class CorePlugin implements IFMLLoadingPlugin {
+
+	public static final Logger LOG = LogManager.getLogger("VSD ASM");
 
 	@Override
 	public String[] getASMTransformerClass() {
