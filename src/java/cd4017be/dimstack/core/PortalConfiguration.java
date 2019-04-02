@@ -315,16 +315,15 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	 * @return the destination position and world the given portal leads to (or null if there is none or it can't be / isn't loaded)
 	 */
 	public static DimPos getAdjacentPos(DimPos pos, boolean forceLoad) {
-		PortalConfiguration pc0 = get(pos.dimId), pc1 = null;
+		PortalConfiguration pc0 = get(pos.dimId), pc1;
 		int y = pos.getY();
 		if (y == 0) {
-			pc1 = pc0.neighbourDown;
+			if ((pc1 = pc0.neighbourDown) == null) return null;
 			y = pc1.ceilY;
 		} else if (y == pc0.ceilY) {
-			pc1 = pc0.neighbourUp;
+			if ((pc1 = pc0.neighbourUp) == null) return null;
 			y = 0;
-		}
-		if (pc1 == null) return null;
+		} else return null;
 		WorldServer world = pos.getWorldServer();
 		if (pc1 != pc0) {
 			int d = pc1.dimId;

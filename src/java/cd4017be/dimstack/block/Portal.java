@@ -245,7 +245,14 @@ public class Portal extends BaseBlock {
 			if (y == 0 ? box.maxY + py > 1.0 : box.minY + py < y) return;
 			DimPos posT = new DimPos(pos, world);
 			DimPos posO = PortalConfiguration.getAdjacentPos(posT);
-			if (posO == null) return;
+			if (posO == null) {
+				if (entity instanceof EntityPlayerMP) {
+					((EntityPlayerMP)entity).sendMessage(new TextComponentString("\u00a74ERROR: target dimension doesn't exist!"));
+					entity.motionY = 0;
+					entity.setPositionAndUpdate(entity.posX, entity.posY + (y == 0 ? 1.0 - box.minY : y - box.maxY), entity.posZ);
+				}
+				return;
+			}
 			if (y == 0) {
 				py = entity.posY + (double)posO.getY() - 1.0;
 				if (box.maxY > 1.0) py -= box.maxY - 1.0;
