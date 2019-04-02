@@ -2,21 +2,10 @@ package cd4017be.dimstack.client.gui;
 
 import java.util.ArrayList;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
-
 import cd4017be.dimstack.api.util.BlockPredicate;
 import cd4017be.dimstack.client.RenderUtil;
-import cd4017be.dimstack.client.RenderUtil.BlockWrapper;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.math.BlockPos;
 
 
 /**
@@ -38,23 +27,8 @@ public class GuiBlockSel extends GuiTextField {
 	@Override
 	public void drawTextBox() {
 		super.drawTextBox();
-		if (getVisible()) {
-			int x = this.x + width - height, y = this.y, w = height;
-			IBlockState state = BlockPredicate.parse(getText());
-			GlStateManager.pushMatrix();
-			float h = (float)w / 2F, s = (float)w * 0.71F;
-			GlStateManager.translate(x + h, y + h, zLevel);
-			GlStateManager.scale(s, -s, s);
-			GlStateManager.rotate(15, 1, 1, 0);
-			GlStateManager.translate(-0.5F, -0.5F, -0.5F);
-			BlockWrapper world = new BlockWrapper(state);
-			BufferBuilder bb = Tessellator.getInstance().getBuffer();
-			bb.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
-			RenderUtil.renderBlock(world, BlockPos.ORIGIN, bb);
-			Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-			Tessellator.getInstance().draw();
-			GlStateManager.popMatrix();
-		}
+		if (getVisible())
+			RenderUtil.drawPortrait(BlockPredicate.parse(getText()), x + width - height, y, zLevel, height);
 	}
 
 	public void drawOverlay() {

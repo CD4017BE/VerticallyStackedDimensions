@@ -1,9 +1,15 @@
 package cd4017be.dimstack.client;
 
+import org.lwjgl.opengl.GL11;
+
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.init.Biomes;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
@@ -26,6 +32,22 @@ public class RenderUtil {
 		BlockRendererDispatcher render = Minecraft.getMinecraft().getBlockRendererDispatcher();
 		IBlockState state = world.getBlockState(pos);
 		render.renderBlock(state, pos, world, bb);
+	}
+
+	public static void drawPortrait(IBlockState state, int x, int y, float z, int h) {
+		GlStateManager.pushMatrix();
+		float w = (float)h / 2F, s = (float)h * 0.71F;
+		GlStateManager.translate(x + w, y + w, z);
+		GlStateManager.scale(s, -s, s);
+		GlStateManager.rotate(15, 1, 1, 0);
+		GlStateManager.translate(-0.5F, -0.5F, -0.5F);
+		BlockWrapper world = new BlockWrapper(state);
+		BufferBuilder bb = Tessellator.getInstance().getBuffer();
+		bb.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
+		RenderUtil.renderBlock(world, BlockPos.ORIGIN, bb);
+		Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+		Tessellator.getInstance().draw();
+		GlStateManager.popMatrix();
 	}
 
 	public static class BlockWrapper implements IBlockAccess {
