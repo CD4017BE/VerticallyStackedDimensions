@@ -16,6 +16,7 @@ public class GuiBlockSel extends GuiTextField {
 
 	private final BlockStateCompletion complete;
 	private final FontRenderer fontRenderer;
+	private boolean isList = false;
 	private int sel;
 
 	public GuiBlockSel(int id, FontRenderer fontrenderer, BlockStateCompletion compl, int x, int y, int w, int h) {
@@ -24,11 +25,23 @@ public class GuiBlockSel extends GuiTextField {
 		this.fontRenderer = fontrenderer;
 	}
 
+	public GuiBlockSel enableList() {
+		this.isList = true;
+		this.setMaxStringLength(128);
+		return this;
+	}
+
 	@Override
 	public void drawTextBox() {
 		super.drawTextBox();
-		if (getVisible())
-			RenderUtil.drawPortrait(BlockPredicate.parse(getText()), x + width - height, y, zLevel, height);
+		if (getVisible()) {
+			String s = getText();
+			if (isList) {
+				int p = getCursorPosition(), q = s.indexOf(',', p);
+				s = s.substring(s.lastIndexOf(',', p - 1) + 1, q < 0 ? s.length() : q).trim();
+			}
+			RenderUtil.drawPortrait(BlockPredicate.parse(s), x + width - height, y, zLevel, height);
+		}
 	}
 
 	public void drawOverlay() {
@@ -69,9 +82,18 @@ public class GuiBlockSel extends GuiTextField {
 			if (sel < entries.length) {
 				String s = entries[sel];
 				if (s != null) {
+					int p;
+					if (isList) {
+						p = getCursorPosition();
+						String s0 = getText();
+						int p0 = s0.lastIndexOf(',', p - 1) + 1, p1 = s0.indexOf(',', p);
+						if (p1 < 0) p1 = s0.length();
+						p = p0 + s.length();
+						s = s0.substring(0, p0) + s + s0.substring(p1);
+					} else p = s.length();
 					setText(s);
 					setResponderEntryValue(getId(), s);
-					setCursorPosition(s.length());
+					setCursorPosition(p);
 					updateCompletion();
 				}
 			}
@@ -102,8 +124,10 @@ public class GuiBlockSel extends GuiTextField {
 
 	private void updateCompletion() {
 		String text = getText();
-		int i = getCursorPosition();
-		complete.updateText(text.substring(0, i));
+		int p = getCursorPosition();
+		int q = isList ? text.lastIndexOf(',', p - 1) + 1 : 0;
+		text = text.substring(q, p);
+		complete.updateText(isList ? text.trim() : text);
 	}
 
 }
