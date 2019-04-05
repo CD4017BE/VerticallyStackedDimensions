@@ -108,7 +108,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 			
 			int c = d.ceilHeight();
 			d.getSettings(TerrainGeneration.class, true).entries
-				.add(new TransitionGen(block, c - n, c + 1, n + cfg1.sizeBot, true));
+				.add(0, new TransitionGen(block, c - n, c + 1, n + cfg1.sizeBot, true));
 		} while(false);
 		do {
 			int n = cfg.sizeBot;
@@ -124,7 +124,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 			if (block == null || block == cfg.blockBot) break;
 			
 			d.getSettings(TerrainGeneration.class, true).entries
-				.add(new TransitionGen(block, 0, n + 1, n + cfg1.sizeTop, false));
+				.add(0, new TransitionGen(block, 0, n + 1, n + cfg1.sizeTop, false));
 		} while(false);
 	}
 
