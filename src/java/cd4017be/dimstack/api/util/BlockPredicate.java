@@ -72,7 +72,7 @@ public class BlockPredicate implements Predicate<IBlockState> {
 		for (Predicate<IBlockState> p : matchers)
 			if (p.test(arg0))
 				return true;
-		return false;
+		return matchers.length == 0;
 	}
 
 	public static BlockPredicate parse(Object param) {
@@ -81,8 +81,10 @@ public class BlockPredicate implements Predicate<IBlockState> {
 		if (param instanceof Object[]) {
 			Object[] arr = (Object[])param;
 			return new BlockPredicate(Arrays.copyOf(arr, arr.length, String[].class));
-		}
-		throw new IllegalArgumentException("expected String or Array of Strings");
+		} else if (param == null)
+			return new BlockPredicate();
+		else
+			throw new IllegalArgumentException("expected String or Array of Strings");
 	}
 
 	@SuppressWarnings("deprecation")
