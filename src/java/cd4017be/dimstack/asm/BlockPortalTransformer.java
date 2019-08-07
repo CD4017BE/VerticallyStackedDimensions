@@ -35,12 +35,12 @@ public class BlockPortalTransformer implements IClassTransformer {
 	final String m_allowNetherPortal, md_allowNetherPortal;
 
 	public BlockPortalTransformer() {
-		c_World = type("net.minecraft.world.World", "amu");
-		c_BlockPos = type("net.minecraft.util.math.BlockPos", "et");
+		c_World = type("net.minecraft.world.World");//"amu"
+		c_BlockPos = type("net.minecraft.util.math.BlockPos");//"et"
 		
-		c_BlockPortal = type("net.minecraft.block.BlockPortal", "ass");
+		c_BlockPortal = type("net.minecraft.block.BlockPortal");//"ass"
 		n_BlockPortal = name(c_BlockPortal);
-		m_trySpawnPortal = method("trySpawnPortal", "b");
+		m_trySpawnPortal = method("trySpawnPortal", "func_176548_d");//"b"
 		md_trySpawnPortal = m_desc(BOOL, c_World, c_BlockPos);
 		
 		c_DisabledPortals = type("cd4017be.dimstack.api.DisabledPortals");
@@ -50,7 +50,7 @@ public class BlockPortalTransformer implements IClassTransformer {
 
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
-		if (name.equals(n_BlockPortal))
+		if (transformedName.equals(n_BlockPortal))
 			return transformBP(basicClass);
 		return basicClass;
 	}

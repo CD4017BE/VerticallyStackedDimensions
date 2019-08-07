@@ -15,6 +15,7 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 @IFMLLoadingPlugin.TransformerExclusions(value = {"cd4017be.dimstack.asm"})
 @IFMLLoadingPlugin.MCVersion(value = "1.12.2")
 @IFMLLoadingPlugin.Name(value = "Vertically Stacked Dimensions ASM")
+@IFMLLoadingPlugin.SortingIndex(value = 2000)
 public class CorePlugin implements IFMLLoadingPlugin {
 
 	public static final Logger LOG = LogManager.getLogger("VSD ASM");

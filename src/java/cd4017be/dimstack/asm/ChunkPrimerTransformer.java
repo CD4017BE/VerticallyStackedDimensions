@@ -35,11 +35,11 @@ public class ChunkPrimerTransformer implements IClassTransformer {
 	final String m_disableBlock, md_disableBlock;
 
 	public ChunkPrimerTransformer() {
-		this.c_IBlockState = type("net.minecraft.block.state.IBlockState", "awt");
+		this.c_IBlockState = type("net.minecraft.block.state.IBlockState");//"awt"
 		
-		this.c_ChunkPrimer = type("net.minecraft.world.chunk.ChunkPrimer", "ayw");
+		this.c_ChunkPrimer = type("net.minecraft.world.chunk.ChunkPrimer");//"ayw"
 		this.n_ChunkPrimer = name(c_ChunkPrimer);
-		this.m_setBlockState = method("setBlockState", "a");
+		this.m_setBlockState = method("setBlockState", "func_177855_a");//"a"
 		this.md_setBlockState = m_desc(VOID, INT, INT, INT, c_IBlockState);
 		this.f_exclude = "ingnoredBlock";
 		this.fd_exclude = f_desc(c_IBlockState);
@@ -52,9 +52,9 @@ public class ChunkPrimerTransformer implements IClassTransformer {
 
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
-		if (name.equals(n_ChunkPrimer))
+		if (transformedName.equals(n_ChunkPrimer))
 			return transformCP(basicClass);
-		if (name.equals(n_BlockPredicate))
+		if (transformedName.equals(n_BlockPredicate))
 			return transformAcc(basicClass);
 		return basicClass;
 	}
