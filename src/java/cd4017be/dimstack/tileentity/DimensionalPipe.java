@@ -78,14 +78,16 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 	}
 
 	@Override
-	protected void setupData() {
+	public void onLoad() {
+		super.onLoad();
 		updateLink = updateCon = true;
 		if (!world.isRemote) TickRegistry.instance.updates.add(this);
 		side = pos.getY() == 0 ? EnumFacing.UP : EnumFacing.DOWN;
 	}
 
 	@Override
-	protected void clearData() {
+	protected void onUnload() {
+		super.onUnload();
 		if (linkTile != null && linkTile.linkTile == this) linkTile.link(null);
 		linkTile = null;
 	}
@@ -157,15 +159,13 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		super.readFromNBT(nbt);
-		conBlock = Block.getStateById(nbt.getShort("con"));
+	protected void storeState(NBTTagCompound nbt, int mode) {
+		nbt.setShort("con", (short) Block.getStateId(conBlock));
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt.setShort("con", (short) Block.getStateId(conBlock));
-		return super.writeToNBT(nbt);
+	protected void loadState(NBTTagCompound nbt, int mode) {
+		conBlock = Block.getStateById(nbt.getShort("con"));
 	}
 
 }
