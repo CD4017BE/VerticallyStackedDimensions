@@ -1,3 +1,12 @@
+v0.1.5
+Changes:
+- fixed #15 incompatibility with Not Enough IDs
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.4.9
+
 v0.1.4
 Changes:
 - added disable nether portal feature
