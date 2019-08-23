@@ -145,6 +145,7 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 	@Override
 	public boolean onActivated(EntityPlayer player, EnumHand hand, ItemStack item, EnumFacing s, float X, float Y, float Z) {
 		if (!player.isSneaking() || !item.isEmpty()) return false;
+		if (world.isRemote) return true;
 		DimPos posT = new DimPos(this), posO = PortalConfiguration.getAdjacentPos(posT);
 		if (posO != null) {
 			posO.setBlock(Objects.PORTAL.getDefaultState());
