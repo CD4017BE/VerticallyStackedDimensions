@@ -10,7 +10,7 @@ chunk_load_time = 30.0;
 cont_load_time = 300.0;
 
 !set to true to disable creation of nether portals (through obsidian ignition)
-disable_nether_portal = true;
+disable_nether_portal = false;
 
 !set these to true to disable vanilla ore-generation in overworld and nether. 
 disable_coal = false;
@@ -35,7 +35,7 @@ dim_ceiling = 255; !default height at which ceiling portals are generated
 PRE_INIT() {
 	!stacking dimensions on top of each other so they get connected via portals (order bottom to top):
 	!add("dimstack", [<dimId>...]#);
-	add("dimstack", [-1, 0]#); !overworld on top of nether
+	!add("dimstack", [-1, 0]#); !overworld on top of nether (rem '!' to enable)
 	
 	!dimension data for automatic transition layer generation:
 	!dim_transitions:<dimId> = [<botMaterial>, <botLayerSize>, <topMaterial>, <topLayerSize>];
@@ -47,8 +47,8 @@ PRE_INIT() {
 	dim_ceiling:-1 = 127;
 	
 	!prevent bedrock from being generated in ...
-	rem_block_gen:0 = "minecraft:bedrock"; !the Overworld
-	rem_block_gen:-1 = "minecraft:bedrock"; !the Nether
+	!rem_block_gen:0 = "minecraft:bedrock"; !the Overworld (rem '!' to enable)
+	!rem_block_gen:-1 = "minecraft:bedrock"; !the Nether (rem '!' to enable)
 	
 	!register a new noise field
 	!add("noiseField", <name>, <genIdx>, <horGrid>, <vertGrid>, <horScale>, <vertScale>);
@@ -70,7 +70,7 @@ INIT() {
 	
 	!custom block layers
 	!add("basicLayer", <dimId>, <blockstate>, [<startY>, <minY>, <maxY>, <endY>]#);
-	add("basicLayer", -1, "dimstack:bedrock@12", [118, 120, 121, 123]#); !put our fiery bedrock at nether celing just below the portal
+	!add("basicLayer", -1, "dimstack:bedrock@12", [118, 120, 121, 123]#); !put our fiery bedrock at nether celing just below the portal (rem '!' to enable)
 	
 	!remove the '!' in the following line to enable top half nether generation
 	!netherTop();
