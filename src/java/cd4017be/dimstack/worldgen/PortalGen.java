@@ -27,7 +27,7 @@ public class PortalGen implements IWorldGenerator {
 
 	public PortalGen() {
 		//this generator should run rather late to ensure the portal states won't need to change much later on.
-		GameRegistry.registerWorldGenerator(this, 10);
+		GameRegistry.registerWorldGenerator(this, Integer.MAX_VALUE);
 	}
 
 	@Override
