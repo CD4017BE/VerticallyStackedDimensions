@@ -234,6 +234,32 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	}
 
 	/**
+	 * initialize the default configuration from a preset file
+	 * @param file preset
+	 * @return success
+	 */
+	public boolean loadPreset(File file) {
+		if (!file.exists()) {
+			Main.LOG.error("Given preset dimension stack configuration file {} doesn't exist!", file);
+			return false;
+		}
+		try {
+			NBTTagCompound nbt = CompressedStreamTools.read(file);
+			int v = nbt.getByte("version") & 0xff;
+			if (v < FILE_VERSION) {
+				Main.LOG.warn("Preset dimension stack configuration file has outdated format!");
+				return false;
+			}
+			load(nbt);
+			Main.LOG.info("Preset dimension stack configuration file sucessfully loaded.");
+			return true;
+		} catch(IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	/**
 	 * resets the current dimension configuration to default
 	 */
 	public void reset() {
