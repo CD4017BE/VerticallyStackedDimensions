@@ -9,6 +9,9 @@ chunk_load_time = 30.0;
 !This is to prevent players from buiding exploit contraptions to keep chunks loaded indefinitely
 cont_load_time = 300.0;
 
+!Whether the "Dimension Stack" button should be enabled during world creation. (disable for modpacks where you don't want players messing with the configuration)
+dimstack_editor = true;
+
 !set to true to disable creation of nether portals (through obsidian ignition)
 disable_nether_portal = false;
 

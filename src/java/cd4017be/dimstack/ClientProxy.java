@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import static cd4017be.dimstack.Objects.*;
 
 import java.util.ArrayList;
-
+import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.api.util.ICfgButtonHandler;
 import cd4017be.dimstack.client.CfgButtonHandler;
 import cd4017be.dimstack.client.MenuHook;
@@ -37,9 +37,10 @@ public class ClientProxy extends CommonProxy {
 	}
 
 	@Override
-	public void registerRenderers() {
-		super.registerRenderers();
-		MinecraftForge.EVENT_BUS.register(menuHook);
+	protected void setConfig(ConfigConstants cfg) {
+		super.setConfig(cfg);
+		if (cfg.getNumber("dimstack_editor", 1.0) > 0.0)
+			MinecraftForge.EVENT_BUS.register(menuHook);
 	}
 
 	@SubscribeEvent

@@ -30,11 +30,10 @@ public class CommonProxy {
 		worldgenPortal = new PortalGen();
 		worldgenBedrock = new BlockReplacer();
 		worldgenOres = new OreGenHandler();
-		setConfig();
+		setConfig(new ConfigConstants(RecipeScriptContext.instance.modules.get(Main.ConfigName)));
 	}
 
-	private void setConfig() {
-		ConfigConstants cfg = new ConfigConstants(RecipeScriptContext.instance.modules.get(Main.ConfigName));
+	protected void setConfig(ConfigConstants cfg) {
 		Dimensionstack.initConfig(cfg);
 		ChunkLoader.initConfig(cfg);
 		worldgenTerrain.initConfig(cfg);
