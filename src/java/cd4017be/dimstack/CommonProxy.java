@@ -1,5 +1,6 @@
 package cd4017be.dimstack;
 
+import java.io.File;
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.api.DisabledPortals;
@@ -11,6 +12,7 @@ import cd4017be.dimstack.worldgen.OreGenHandler;
 import cd4017be.dimstack.worldgen.PortalGen;
 import cd4017be.dimstack.worldgen.TerrainGenHandler;
 import cd4017be.lib.TickRegistry;
+import cd4017be.lib.util.FileUtil;
 
 /**
  * 
@@ -34,10 +36,15 @@ public class CommonProxy {
 	}
 
 	protected void setConfig(ConfigConstants cfg) {
-		Dimensionstack.initConfig(cfg);
+		String override = cfg.get("override_default", String.class, null);
+		if (override != null && Main.dimstack.loadPreset(new File(FileUtil.configDir, override)))
+			Main.LOG.info("Dimension stack default configuration initialized from preset file. Config settings will be ignored!");
+		else {
+			Dimensionstack.initConfig(cfg);
+			worldgenTerrain.initConfig(cfg);
+			worldgenOres.initConfig(cfg);
+		}
 		ChunkLoader.initConfig(cfg);
-		worldgenTerrain.initConfig(cfg);
-		worldgenOres.initConfig(cfg);
 		worldgenPortal.initConfig(cfg);
 		cfg.get("barrier_block", ProgressionBarrier.class, Objects.BEDROCK);
 		if (cfg.getNumber("disable_nether_portal", 0) != 0)

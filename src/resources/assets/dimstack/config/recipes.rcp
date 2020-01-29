@@ -15,6 +15,13 @@ dimstack_editor = true;
 !set to true to disable creation of nether portals (through obsidian ignition)
 disable_nether_portal = false;
 
+!whether to generate ceiling portals in open sky dimensions only when & where needed. (It's highly recommended to leave this at default true for performance reasons)
+ceil_on_demand = true; 
+
+!Uncomment the following command to ignore all config options related to world generation and dimension stack structure and instead use the given file in "config/cd4017be/" as preset for creating new worlds.
+!The file can be obtained either from the save directory of an already created world or via the "export" button in the in-game Dimension Stack Editor.
+!override_default = "dimensionstack.dat";
+
 !set these to true to disable vanilla ore-generation in overworld and nether. 
 disable_coal = false;
 disable_diamond = false;
@@ -30,10 +37,7 @@ disable_quartz = false;
 	custom_noise_octaves = [4]#;
 }
 
-ceil_on_demand = true; !whether to generate ceiling portals in open sky dimensions only when & where needed. (It's highly recommended to leave this at default true)
-
 dim_ceiling = 255; !default height at which ceiling portals are generated
-
 
 PRE_INIT() {
 	!stacking dimensions on top of each other so they get connected via portals (order bottom to top):
