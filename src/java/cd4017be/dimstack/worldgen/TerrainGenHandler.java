@@ -175,6 +175,8 @@ public class TerrainGenHandler implements IRecipeHandler {
 				y1 = (int)vec[2];
 				eb = y0 - (int)vec[0];
 				et = (int)vec[3] - y1;
+				if (eb < 0) eb = 0;
+				if (et < 0) et = 0;
 			} else throw new IllegalArgumentException("expected 2 or 4 height values @ " + 3);
 			gen = new SimpleLayerGen(BlockPredicate.parse(param.get(2, String.class)), y0, y1, eb, et);
 		} else if (key.equals(NoiseLayerGen.ID)) {

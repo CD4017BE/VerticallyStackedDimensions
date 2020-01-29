@@ -62,12 +62,12 @@ public class SimpleLayerGen implements ITerrainGenerator {
 			for (int z = 0; z < 16; z++) {
 				for (int y = y0; y <= y1; y++)
 					cp.setBlockState(x, y, z, block);
-				for (int d = 1; d < eb; d++)
+				for (int d = 1, y = y0 - 1; d < eb && y >= 0; d++, y--)
 					if (d <= rand.nextInt(eb))
-						cp.setBlockState(x, y0 - d, z, block);
-				for (int d = 1; d < et; d++)
+						cp.setBlockState(x, y, z, block);
+				for (int d = 1, y = y1 + 1; d < et && y < 256; d++, y++)
 					if (d <= rand.nextInt(et))
-						cp.setBlockState(x, y1 + d, z, block);
+						cp.setBlockState(x, y, z, block);
 			}
 	}
 
