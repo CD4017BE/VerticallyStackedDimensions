@@ -1,3 +1,16 @@
+v0.1.6
+Changes:
+- fixed #21 attempt access WorldServer on client side
+- ensured no modded ore generation overrides portals
+- added config option to disable Dimension Stack Editor (#26)
+- added option to initialize from preset dimensionstack.dat (#22)
+- set default configuration to "do nothing" (only affects fresh installs of the mod)
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.4.9
+
 v0.1.5
 Changes:
 - fixed #15 incompatibility with Not Enough IDs
