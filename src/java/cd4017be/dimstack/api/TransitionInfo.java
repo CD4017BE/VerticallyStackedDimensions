@@ -20,8 +20,8 @@ public class TransitionInfo implements IDimensionSettings {
 	@Override
 	public NBTBase serializeNBT() {
 		NBTTagCompound nbt = new NBTTagCompound();
-		nbt.setByte("sB", (byte)sizeBot);
-		nbt.setByte("sT", (byte)sizeTop);
+		nbt.setShort("sB", (short)sizeBot);
+		nbt.setShort("sT", (short)sizeTop);
 		if (blockBot != null) nbt.setString("bB", BlockPredicate.serialize(blockBot));
 		if (blockTop != null) nbt.setString("bT", BlockPredicate.serialize(blockTop));
 		return nbt;
@@ -30,8 +30,8 @@ public class TransitionInfo implements IDimensionSettings {
 	@Override
 	public void deserializeNBT(NBTBase nbt) {
 		NBTTagCompound ctag = (NBTTagCompound)nbt;
-		sizeBot = ctag.getByte("sB") & 0xff;
-		sizeTop = ctag.getByte("sT") & 0xff;
+		sizeBot = ctag.getShort("sB");
+		sizeTop = ctag.getShort("sT");
 		blockBot = ctag.hasKey("bB", NBT.TAG_STRING) ? BlockPredicate.parse(ctag.getString("bB")) : null;
 		blockTop = ctag.hasKey("bT", NBT.TAG_STRING) ? BlockPredicate.parse(ctag.getString("bT")) : null;
 	}
