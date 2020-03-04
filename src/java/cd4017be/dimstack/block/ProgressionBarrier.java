@@ -72,8 +72,8 @@ public class ProgressionBarrier extends BaseBlock implements IOperand {
 	}
 
 	@Override
-	public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
-		drops.add(new ItemStack(this, 1, state.getValue(variant)));
+	public int damageDropped(IBlockState state) {
+		return state.getValue(variant);
 	}
 
 	@Override
