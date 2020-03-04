@@ -24,6 +24,11 @@ public interface IDimension {
 	int ceilHeight();
 
 	/**
+	 * @return whether floor and ceiling portals are swapped in this dimension.
+	 */
+	boolean upsideDown();
+
+	/**
 	 * @return the destination when traversing up (null for regular world border)
 	 */
 	IDimension up();
@@ -32,6 +37,16 @@ public interface IDimension {
 	 * @return the destination when traversing down (null for regular world border)
 	 */
 	IDimension down();
+
+	/**
+	 * @return the destination when traversing up spatially, taking upside-down dimensions into account 
+	 */
+	IDimension nextCeil();
+
+	/**
+	 * @return the destination when traversing down spatially, taking upside-down dimensions into account 
+	 */
+	IDimension nextFloor();
 
 	/**
 	 * @param n number of dimension to move up (negative to move down)

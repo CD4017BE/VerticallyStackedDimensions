@@ -93,38 +93,40 @@ public class TerrainGenHandler implements IRecipeHandler {
 	}
 
 	private void initTransitions(TransitionInfo cfg, IDimension d) {
-		do {
+		genTop: {
 			int n = cfg.sizeTop;
-			if (n < 0) break;
+			if (n < 0) break genTop;
 			
-			IDimension d1 = d.up();
-			if (d1 == null) break;
+			IDimension d1 = d.nextCeil();
+			if (d1 == null) break genTop;
 			
 			TransitionInfo cfg1 = d1.getSettings(TransitionInfo.class, false);
-			if (cfg1 == null) break;
+			if (cfg1 == null) break genTop;
 			
-			IBlockState block = cfg1.blockBot;
-			if (block == null || block == cfg.blockTop) break;
+			boolean flip = d.upsideDown() ^ d1.upsideDown();
+			IBlockState block = flip ? cfg1.blockTop : cfg1.blockBot;
+			if (block == null || block == cfg.blockTop) break genTop;
 			
 			int c = d.ceilHeight();
 			d.getSettings(TerrainGeneration.class, true).entries
-				.add(0, new TransitionGen(block, c - n, c + 1, n + cfg1.sizeBot, true));
-		} while(false);
+				.add(0, new TransitionGen(block, c - n, c + 1, n + (flip ? cfg1.sizeTop : cfg1.sizeBot), true));
+		}
 		do {
 			int n = cfg.sizeBot;
 			if (n < 0) break;
 			
-			IDimension d1 = d.down();
+			IDimension d1 = d.nextFloor();
 			if (d1 == null) break;
 			
 			TransitionInfo cfg1 = d1.getSettings(TransitionInfo.class, false);
 			if (cfg1 == null) break;
 			
-			IBlockState block = cfg1.blockTop;
+			boolean flip = d.upsideDown() ^ d1.upsideDown();
+			IBlockState block = flip ? cfg1.blockBot : cfg1.blockTop;
 			if (block == null || block == cfg.blockBot) break;
 			
 			d.getSettings(TerrainGeneration.class, true).entries
-				.add(0, new TransitionGen(block, 0, n + 1, n + cfg1.sizeTop, false));
+				.add(0, new TransitionGen(block, 0, n + 1, n + (flip ? cfg1.sizeBot : cfg1.sizeTop), false));
 		} while(false);
 	}
 

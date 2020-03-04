@@ -115,7 +115,7 @@ public class Portal extends BaseBlock {
 				DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 				if (posO == null) return false;
 				syncStates(posO, posT);
-				int ceil = pos.getY() == 0 ? -1 : 1;
+				int ceil = posO.getY() == 0 ? 1 : -1;
 				posO = posO.add(0, solid || posT.getBlock().getValue(solidOther2) ? ceil : ceil<<1, 0);
 				tryPlaceBlock(posO, player, item, hand, facing, hitX, hitY, hitZ);
 				player.addExhaustion(4.0F);
@@ -169,7 +169,7 @@ public class Portal extends BaseBlock {
 			DimPos posO = PortalConfiguration.getAdjacentPos(posT);
 			if (posO == null) return;
 			syncStates(posO, posT);
-			boolean ceil = pos.getY() == 0;
+			boolean ceil = posO.getY() != 0;
 			IBlockState state = posT.getBlock();
 			if (state.getValue(solidOther1))
 				posO = posO.add(0, ceil ? -1 : 1, 0);
@@ -255,13 +255,26 @@ public class Portal extends BaseBlock {
 				}
 				return;
 			}
-			if (y == 0) {
-				py = entity.posY + (double)posO.getY() - 1.0;
-				if (box.maxY > 1.0) py -= box.maxY - 1.0;
-			} else {
-				py = entity.posY - (double)y + 1.0;
-				if (box.minY < (double)y) py -= box.minY - (double)y;
-			}
+			boolean flip;
+			int yO = posO.getY();
+			if (y == 0)
+				if (yO != 0) {
+					py = entity.posY + (double)yO - 1.0;
+					if (box.maxY > 1.0) py -= box.maxY - 1.0;
+					flip = false;
+				} else {
+					py = entity.posY - box.minY + 1.0 + Math.max(1.0 - box.maxY, 0);
+					flip = true;
+				}
+			else
+				if (yO == 0) {
+					py = entity.posY - (double)y + 1.0;
+					if (box.minY < (double)y) py -= box.minY - (double)y;
+					flip = false;
+				} else {
+					py = entity.posY - box.maxY + yO + Math.min(y - box.minY, 0);
+					flip = true;
+				}
 			syncStates(posO, posT);
 			if (MathHelper.floor(entity.posX) != pos.getX() || MathHelper.floor(entity.posZ) != pos.getZ() || world.getBlockState(pos).getValue(solidOther1)) return;
 			int dim = posO.dimId;
@@ -269,6 +282,10 @@ public class Portal extends BaseBlock {
 			TickRegistry.instance.updates.add(()-> {
 				//only teleport if not already at destination (to avoid duplicate events)
 				if (entity.dimension != dim || Math.abs(entity.posY - ny) > entity.height + 4.0) {
+					if (flip) {
+						entity.motionY = -entity.motionY;
+						entity.fallDistance = 0;
+					}
 					MovedBlock.moveEntity(entity, dim, nx, ny, nz);
 					if (CREATE_PLATTFORM > 0 && entity instanceof EntityPlayer && posO.getY() == 0)
 						createPlattform(posO.getWorldServer(), (int)Math.floor(nx), (int)Math.floor(nz));
@@ -325,8 +342,8 @@ public class Portal extends BaseBlock {
 		PortalConfiguration pc = PortalConfiguration.get(world);
 		int y = pos.getY();
 		if (!(placer instanceof EntityPlayer && ((EntityPlayer)placer).isCreative())
-				|| !(y == 0 && pc.down() != null)
-				|| !(y == pc.ceilHeight() && pc.up() != null)) {
+				|| !(y == 0 && pc.nextFloor() != null)
+				|| !(y == pc.ceilHeight() && pc.nextCeil() != null)) {
 			placer.sendMessage(new TextComponentString("This block is meant to be auto generated as part of the bottom and/or top portal layer of this world!"));
 			world.setBlockToAir(pos);
 			return;
@@ -349,9 +366,10 @@ public class Portal extends BaseBlock {
 		if (posO == null) return;
 		IBlockState stateO = posO.getBlock();
 		if (stateO.getMaterial() != Objects.M_PORTAL) stateO = getDefaultState().withProperty(onCeiling, posO.getY() != 0);
-		int ceil = posO.getY() != 0 ? -1 : 1;
-		boolean this1 = isSolid(((DimPos)posT.down(ceil)).getBlock()), this2 = isSolid(((DimPos)posT.down(ceil<<1)).getBlock());
-		boolean other1 = isSolid(((DimPos)posO.up(ceil)).getBlock()), other2 = isSolid(((DimPos)posO.up(ceil<<1)).getBlock());
+		int ceilO = posO.getY() != 0 ? -1 : 1,
+			ceilT = posT.getY() != 0 ? -1 : 1;
+		boolean this1 = isSolid(((DimPos)posT.up(ceilT)).getBlock()), this2 = isSolid(((DimPos)posT.up(ceilT<<1)).getBlock());
+		boolean other1 = isSolid(((DimPos)posO.up(ceilO)).getBlock()), other2 = isSolid(((DimPos)posO.up(ceilO<<1)).getBlock());
 		posT.setBlock(stateT.withProperty(solidThis1, this1).withProperty(solidThis2, this2).withProperty(solidOther1, other1).withProperty(solidOther2, other2));
 		posO.setBlock(stateO.withProperty(solidThis1, other1).withProperty(solidThis2, other2).withProperty(solidOther1, this1).withProperty(solidOther2, this2));
 	}

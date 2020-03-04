@@ -91,6 +91,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 			PortalConfiguration pc = (PortalConfiguration)sp;
 			int y = cfg.getByte("ceil") & 0xff;
 			pc.ceilY = y > 0 ? y : 255;
+			pc.flipped = cfg.getBoolean("flip");
 		}
 		for (String key : cfg.getKeySet())
 			if (key.indexOf('.') >= 0) try {
@@ -110,6 +111,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		if (sp instanceof PortalConfiguration) {
 			PortalConfiguration pc = (PortalConfiguration)sp;
 			cfg.setByte("ceil", (byte)pc.ceilY);
+			cfg.setBoolean("flip", pc.flipped);
 		}
 		for (IDimensionSettings s : sp.getAllSettings()) {
 			NBTBase tag = s.serializeNBT();
@@ -302,11 +304,15 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		@Override
 		public void put(IOperand idx, IOperand val) {
 			int y = val.asIndex();
+			boolean flip = y < 0;
+			y = Math.abs(y);
 			if (y <= 0 || y >= 256) {
 				Lib.LOG.error(RecipeScriptContext.ERROR, "script attempted to set portal ceiling height to an invalid value {}", y);
 				return;
 			}
-			PortalConfiguration.get(idx.asIndex()).ceilY = val.asIndex();
+			PortalConfiguration pc = PortalConfiguration.get(idx.asIndex());
+			pc.ceilY = y;
+			pc.flipped = flip;
 		}
 
 	}

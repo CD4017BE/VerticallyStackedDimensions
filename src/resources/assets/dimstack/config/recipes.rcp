@@ -55,6 +55,7 @@ PRE_INIT() {
 	
 	!lower the portal ceiling height in the nether
 	dim_ceiling:-1 = 127;
+	!Note: setting dim_ceiling to negative values will flip the dimension upside down, meaning that floor and ceiling portals are swapped.
 	
 	!prevent bedrock from being generated in ...
 	!rem_block_gen:0 = "minecraft:bedrock"; !the Overworld (rem '!' to enable)

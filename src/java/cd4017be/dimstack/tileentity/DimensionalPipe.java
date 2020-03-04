@@ -114,7 +114,7 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 			cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY ? FLUID : 0;
 		if (linkTile != null && !linkTile.unloaded) {
 			TileEntity te = linkTile.getCon();
-			if (te != null && te.hasCapability(cap, facing)) {
+			if (te != null && te.hasCapability(cap, linkTile.side.getOpposite())) {
 				hasCap |= type;
 				return true;
 			} else {
@@ -132,7 +132,7 @@ public class DimensionalPipe extends BaseTileEntity implements INeighborAwareTil
 			cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY ? FLUID : 0;
 		if (linkTile != null && !linkTile.unloaded) {
 			TileEntity te = linkTile.getCon();
-			T c = te != null ? te.getCapability(cap, facing) : null;
+			T c = te != null ? te.getCapability(cap, linkTile.side.getOpposite()) : null;
 			if (c != null) hasCap |= type;
 			else hasCap &= ~type;
 			return c;

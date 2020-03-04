@@ -42,6 +42,8 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	public int ceilY = defaultCeilY;
 	/** this dimension has chunks with missing portal top layer */
 	boolean topOpen = false;
+	/** this dimension has upside down portal configuration */
+	public boolean flipped = false;
 	/** the dimension height level */
 	private int height = Integer.MIN_VALUE;
 
@@ -58,10 +60,19 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	public int id() {return dimId;}
 
 	@Override
+	public boolean upsideDown() {return flipped;}
+
+	@Override
 	public PortalConfiguration up() {return neighbourUp;}
 
 	@Override
 	public PortalConfiguration down() {return neighbourDown;}
+
+	@Override
+	public PortalConfiguration nextCeil() {return flipped ? neighbourDown : neighbourUp;}
+
+	@Override
+	public PortalConfiguration nextFloor() {return flipped ? neighbourUp : neighbourDown;}
 
 	@Override
 	public PortalConfiguration bottom() {
@@ -214,7 +225,7 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	 * states that this dimension has chunks with missing portal top layer
 	 */
 	public void setTopOpen() {
-		if (topOpen || neighbourUp == null) return;
+		if (topOpen || nextCeil() == null) return;
 		topOpen = true;
 		Dimensionstack.markDirty();
 	}
@@ -223,8 +234,10 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	public void notifyBlockUpdate(World world, BlockPos pos, IBlockState oldState, IBlockState newState, int flags) {
 		if ((flags & 1) == 0) return;
 		int y = pos.getY(), yc = ceilY;
-		if (y >= yc - 4 && topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR)
-			PortalGen.fixCeil(world, pos, yc, neighbourUp);
+		if (y >= yc - 4 && topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR) {
+			PortalConfiguration neigb = nextCeil();
+			PortalGen.fixCeil(world, pos, yc, neigb, flipped ^ neigb.flipped ? neigb.ceilY : 0);
+		}
 		if (y == 2) {
 			BlockPos posP = pos.down(2);
 			IBlockState stateP = world.getBlockState(posP);
@@ -318,12 +331,13 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 		PortalConfiguration pc0 = get(pos.dimId), pc1;
 		int y = pos.getY();
 		if (y == 0) {
-			if ((pc1 = pc0.neighbourDown) == null) return null;
+			if ((pc1 = pc0.nextFloor()) == null) return null;
 			y = pc1.ceilY;
 		} else if (y == pc0.ceilY) {
-			if ((pc1 = pc0.neighbourUp) == null) return null;
+			if ((pc1 = pc0.nextCeil()) == null) return null;
 			y = 0;
 		} else return null;
+		if (pc0.flipped ^ pc1.flipped) y = pc1.ceilY - y;
 		WorldServer world = pos.getWorldServer();
 		if (pc1 != pc0) {
 			int d = pc1.dimId;
