@@ -4,6 +4,7 @@ import java.io.File;
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.api.DisabledPortals;
+import cd4017be.dimstack.block.Portal;
 import cd4017be.dimstack.block.ProgressionBarrier;
 import cd4017be.dimstack.core.ChunkLoader;
 import cd4017be.dimstack.core.Dimensionstack;
@@ -49,6 +50,7 @@ public class CommonProxy {
 		cfg.get("barrier_block", ProgressionBarrier.class, Objects.BEDROCK);
 		if (cfg.getNumber("disable_nether_portal", 0) != 0)
 			Main.dimstack.getSettings(DisabledPortals.class, true).add("nether");
+		Portal.CREATE_PLATTFORM = (int)cfg.getNumber("create_plattform", Portal.CREATE_PLATTFORM);
 	}
 
 	public void registerRenderers() {

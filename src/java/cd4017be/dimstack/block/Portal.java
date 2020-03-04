@@ -62,6 +62,8 @@ public class Portal extends BaseBlock {
 		halfFloor = new AxisAlignedBB(0, -1, 0, 1, 0, 1),
 		emptyFloor = new AxisAlignedBB(0, -1, 0, 1, -0.9375, 1);
 
+	public static int CREATE_PLATTFORM = 25;
+
 	public Portal(String id, Material m) {
 		super(id, m);
 		this.setBlockUnbreakable();
@@ -268,9 +270,28 @@ public class Portal extends BaseBlock {
 				//only teleport if not already at destination (to avoid duplicate events)
 				if (entity.dimension != dim || Math.abs(entity.posY - ny) > entity.height + 4.0) {
 					MovedBlock.moveEntity(entity, dim, nx, ny, nz);
+					if (CREATE_PLATTFORM > 0 && entity instanceof EntityPlayer && posO.getY() == 0)
+						createPlattform(posO.getWorldServer(), (int)Math.floor(nx), (int)Math.floor(nz));
 				}
 			});
 		}
+	}
+
+	private static void createPlattform(WorldServer world, int x, int z) {
+		DimPos pos = new DimPos(x, 0, z, world);
+		IBlockState state = pos.getBlock();
+		if (state.getMaterial() != Objects.M_PORTAL) return;
+		if (state.getValue(solidOther1)) return;
+		pos.setBlock(state.withProperty(solidOther1, true));
+		pos.getWorld().scheduleBlockUpdate(pos, state.getBlock(), CREATE_PLATTFORM, 0);
+	}
+
+	@Override
+	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {
+		if (world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(pos.up())).isEmpty())
+			syncStates(new DimPos(pos, world), state);
+		else if (CREATE_PLATTFORM > 0)
+			world.scheduleBlockUpdate(pos, this, CREATE_PLATTFORM, 0);
 	}
 
 	@Override

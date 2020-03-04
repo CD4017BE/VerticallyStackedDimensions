@@ -18,6 +18,9 @@ disable_nether_portal = false;
 !whether to generate ceiling portals in open sky dimensions only when & where needed. (It's highly recommended to leave this at default true for performance reasons)
 ceil_on_demand = true; 
 
+!number > 0 makes floor portals become solid if a player gets teleported upwards onto it to prevent falling back and specifies the interval in ticks to check if the player is still there before resynchronizing the portal.
+create_plattform = 25;
+
 !Uncomment the following command to ignore all config options related to world generation and dimension stack structure and instead use the given file in "config/cd4017be/" as preset for creating new worlds.
 !The file can be obtained either from the save directory of an already created world or via the "export" button in the in-game Dimension Stack Editor.
 !override_default = "dimensionstack.dat";
