@@ -46,7 +46,7 @@ public class GuiBlockLayers extends GuiMenuBase implements GuiResponder {
 	@Override
 	public void initGui() {
 		super.initGui();
-		this.complete = BlockStateCompletion.get();
+		this.complete = AutoCompletions.blockstates();
 		title = translate("gui.dimstack.layer");
 		int h = 4*28 - 8, x = (width - 308) / 2, y = (height - h) / 2;
 		

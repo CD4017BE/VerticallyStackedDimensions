@@ -49,7 +49,7 @@ public class GuiCustomOres extends GuiMenuBase implements GuiResponder {
 	@Override
 	public void initGui() {
 		super.initGui();
-		this.complete = BlockStateCompletion.get();
+		this.complete = AutoCompletions.blockstates();
 		title = translate("gui.dimstack.newOre");
 		int x = (width - WIDTH) / 2, y = (height - HEIGHT) / 2;
 		

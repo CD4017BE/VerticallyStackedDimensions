@@ -23,7 +23,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class GuiMenuBase extends GuiScreen {
 	static final boolean DEBUG = true;
 
-	private final GuiScreen parent;
+	protected final GuiScreen parent;
 	protected GuiButton b_close;
 	protected String title;
 	protected List<GuiTextField> textFields = Lists.newArrayList();

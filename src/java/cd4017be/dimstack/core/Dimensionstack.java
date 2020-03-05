@@ -10,6 +10,7 @@ import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.ClientProxy;
 import cd4017be.dimstack.Main;
+import cd4017be.dimstack.Objects;
 import cd4017be.dimstack.api.API;
 import cd4017be.dimstack.api.IDimension;
 import cd4017be.dimstack.api.IDimensionSettings;
@@ -28,11 +29,12 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.world.DimensionType;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-
 import static cd4017be.dimstack.core.PortalConfiguration.*;
 
 /**
@@ -86,12 +88,35 @@ public class Dimensionstack extends API implements IRecipeHandler {
 			}
 	}
 
+	public static boolean canCreateDim(int id) {
+		return !DimensionManager.isDimensionRegistered(id) || DimensionManager.getProviderType(id) == Objects.CUSTOM_DIM_TYPE;
+	}
+
+	public static boolean isDimCreated(int id) {
+		return DimensionManager.isDimensionRegistered(id) && DimensionManager.getProviderType(id) == Objects.CUSTOM_DIM_TYPE;
+	}
+
+	public static void setDimCreation(int id, boolean create) {
+		if (!DimensionManager.isDimensionRegistered(id)) {
+			if (create)
+				DimensionManager.registerDimension(id, Objects.CUSTOM_DIM_TYPE);
+			return;
+		}
+		DimensionType registered = DimensionManager.getProviderType(id);
+		if (registered == Objects.CUSTOM_DIM_TYPE) {
+			if (!create)
+				DimensionManager.unregisterDimension(id);
+		} else if (create)
+			Main.LOG.fatal("Can't register custom WorldProvider for dimension {} because this id is already occupied by {}", id, registered.getName());
+	}
+
 	private static void loadSettings(SettingProvider sp, NBTTagCompound cfg) {
 		if (sp instanceof PortalConfiguration) {
 			PortalConfiguration pc = (PortalConfiguration)sp;
 			int y = cfg.getByte("ceil") & 0xff;
 			pc.ceilY = y > 0 ? y : 255;
 			pc.flipped = cfg.getBoolean("flip");
+			setDimCreation(pc.dimId, cfg.getBoolean("create"));
 		}
 		for (String key : cfg.getKeySet())
 			if (key.indexOf('.') >= 0) try {
@@ -104,6 +129,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 			} catch (ClassNotFoundException e) {
 				Main.LOG.warn("Can't load entry for dimension {}: Class {} not found!", sp, key);
 			}
+		
 	}
 
 	private static NBTTagCompound saveSettings(SettingProvider sp) {
@@ -112,6 +138,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 			PortalConfiguration pc = (PortalConfiguration)sp;
 			cfg.setByte("ceil", (byte)pc.ceilY);
 			cfg.setBoolean("flip", pc.flipped);
+			cfg.setBoolean("create", isDimCreated(pc.dimId));
 		}
 		for (IDimensionSettings s : sp.getAllSettings()) {
 			NBTBase tag = s.serializeNBT();

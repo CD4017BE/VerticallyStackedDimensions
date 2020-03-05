@@ -2,6 +2,7 @@ package cd4017be.dimstack;
 
 import cd4017be.dimstack.block.Portal;
 import cd4017be.dimstack.block.ProgressionBarrier;
+import cd4017be.dimstack.core.WorldProviderCustom;
 import cd4017be.dimstack.item.ItemPortalAugment;
 import cd4017be.dimstack.tileentity.DimensionalPipe;
 import cd4017be.lib.block.AdvancedBlock;
@@ -15,6 +16,7 @@ import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.DimensionType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -28,6 +30,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 @ObjectHolder(value = Main.ID)
 public class Objects {
 
+	public static DimensionType CUSTOM_DIM_TYPE;
 	public static TabMaterials tabDimStack = new TabMaterials(Main.ID);
 	public static Material M_PORTAL;
 	public static Material M_BEDROCK;
@@ -56,6 +59,7 @@ public class Objects {
 	}
 
 	static void init() {
+		CUSTOM_DIM_TYPE = DimensionType.register("dimstack_custom", "_custom", 2, WorldProviderCustom.class, false);
 		tabDimStack.item = new ItemStack(portal);
 	}
 

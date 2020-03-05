@@ -14,12 +14,12 @@ import net.minecraft.client.gui.GuiTextField;
  */
 public class GuiBlockSel extends GuiTextField {
 
-	private final BlockStateCompletion complete;
+	private final AutoCompletion<?> complete;
 	private final FontRenderer fontRenderer;
 	private boolean isList = false;
 	private int sel;
 
-	public GuiBlockSel(int id, FontRenderer fontrenderer, BlockStateCompletion compl, int x, int y, int w, int h) {
+	public GuiBlockSel(int id, FontRenderer fontrenderer, AutoCompletion<?> compl, int x, int y, int w, int h) {
 		super(id, fontrenderer, x, y, w, h);
 		this.complete = compl;
 		this.fontRenderer = fontrenderer;
@@ -34,7 +34,7 @@ public class GuiBlockSel extends GuiTextField {
 	@Override
 	public void drawTextBox() {
 		super.drawTextBox();
-		if (getVisible()) {
+		if (getVisible() && complete instanceof BlockStateCompletion) {
 			String s = getText();
 			if (isList) {
 				int p = getCursorPosition(), q = s.indexOf(',', p);
@@ -69,7 +69,7 @@ public class GuiBlockSel extends GuiTextField {
 
 	@Override
 	public int getWidth() {
-		return super.getWidth() - height;
+		return complete instanceof BlockStateCompletion ? super.getWidth() - height : super.getWidth();
 	}
 
 	@Override

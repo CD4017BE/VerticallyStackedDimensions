@@ -29,7 +29,7 @@ public class GuiTransition extends GuiMenuBase implements GuiResponder {
 	@Override
 	public void initGui() {
 		super.initGui();
-		this.complete = BlockStateCompletion.get();
+		this.complete = AutoCompletions.blockstates();
 		title = translate("gui.dimstack.trans");
 		int y = (height - 28 * 4 - 10 * 2 + 8) / 2, x = (width - 200) / 2;
 		GuiLabel l = new GuiLabel(fontRenderer, 0, x, y, 200, 10, 0xffffff);

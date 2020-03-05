@@ -13,6 +13,7 @@ import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.api.util.ICfgButtonHandler;
 import cd4017be.dimstack.client.CfgButtonHandler;
 import cd4017be.dimstack.client.MenuHook;
+import cd4017be.dimstack.client.WorldProviderHandler;
 import cd4017be.dimstack.client.gui.GuiBlockLayers;
 import cd4017be.dimstack.client.gui.GuiCustomOres;
 import cd4017be.dimstack.client.gui.GuiDefOres;
@@ -34,6 +35,7 @@ public class ClientProxy extends CommonProxy {
 		cfgButtons.add(new CfgButtonHandler("gui.dimstack.defOre", GuiDefOres::new));
 		cfgButtons.add(new CfgButtonHandler("gui.dimstack.newOre", GuiCustomOres::new));
 		cfgButtons.add(new CfgButtonHandler("gui.dimstack.layer", GuiBlockLayers::new));
+		cfgButtons.add(new WorldProviderHandler("gui.dimstack.world_provider"));
 	}
 
 	@Override

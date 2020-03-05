@@ -6,6 +6,7 @@ import cd4017be.dimstack.ClientProxy;
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.api.DisabledBlockGen;
 import cd4017be.dimstack.api.util.ICfgButtonHandler;
+import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.core.PortalConfiguration;
 
 import static cd4017be.lib.util.TooltipUtil.translate;
@@ -48,6 +49,10 @@ public class GuiEditDim extends GuiMenuBase implements GuiResponder {
 		addButton(new GuiListButton(this, 3, x, y, "gui.dimstack.bedrock", cfg != null && cfg.disabledBlock == Blocks.BEDROCK.getDefaultState()));
 		for (int i = 1; i <= n; i++)
 			addButton(new GuiButton(3 + i, x + (i&1) * 166, y + (i>>1) * 28, 150, 20, entries.get(i - 1).getButtonName(dim)));
+		if (Dimensionstack.canCreateDim(dim.dimId)) {
+			addButton(new GuiListButton(this, -1, x, height - 28, "gui.dimstack.create", Dimensionstack.isDimCreated(dim.dimId)));
+			b_close.x = x + 166;
+		}
 	}
 
 	@Override
@@ -70,6 +75,10 @@ public class GuiEditDim extends GuiMenuBase implements GuiResponder {
 			DisabledBlockGen cfg = dim.getSettings(DisabledBlockGen.class, true);
 			cfg.disabledBlock = value ? Blocks.BEDROCK.getDefaultState() : null;
 		}	break;
+		case -1:
+			Dimensionstack.setDimCreation(dim.dimId, value);
+			mc.displayGuiScreen(new GuiEditDim(parent, dim));
+			break;
 		}
 	}
 
