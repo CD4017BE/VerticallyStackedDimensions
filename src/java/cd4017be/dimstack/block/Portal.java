@@ -10,7 +10,9 @@ import cd4017be.lib.util.DimPos;
 import cd4017be.lib.util.MovedBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCommandBlock;
+import net.minecraft.block.BlockRailBase;
 import net.minecraft.block.BlockStructure;
+import net.minecraft.block.BlockRailBase.EnumRailDirection;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -354,11 +356,13 @@ public class Portal extends BaseBlock {
 	@Override
 	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos) {
 		if (!(world instanceof WorldServer)) return;
-		if (fromPos.getX() == pos.getX() && fromPos.getZ() == pos.getZ()) {
-			int dy = fromPos.getY() - pos.getY();
-			if (isSolid(world.getBlockState(fromPos)) ^ state.getValue(dy >= -1 && dy <= 1 ? solidThis1 : solidThis2))
-				syncStates(new DimPos(pos, world), state);
-		}
+		if (fromPos.getX() != pos.getX() || fromPos.getZ() != pos.getZ()) return;
+		int dy = fromPos.getY() - pos.getY();
+		IBlockState stateSrc = world.getBlockState(fromPos);
+		if (isSolid(stateSrc) ^ state.getValue(dy >= -1 && dy <= 1 ? solidThis1 : solidThis2))
+			syncStates(new DimPos(pos, world), state);
+		if (dy == -1 && stateSrc.getBlock() instanceof BlockRailBase)
+			makeRailsConnect(state, world, pos, stateSrc, fromPos);
 	}
 
 	public void syncStates(DimPos posT, IBlockState stateT) {
@@ -462,6 +466,37 @@ public class Portal extends BaseBlock {
 		double y = by == 0 ? 1.0 : (double)by;
 		double z = (double)pos.getZ() + rand.nextFloat();
 		world.spawnParticle(EnumParticleTypes.TOWN_AURA, x, y, z, 0, 0, 0);
+	}
+
+	private void makeRailsConnect(IBlockState state, World world, BlockPos pos, IBlockState railState, BlockPos railPos) {
+		BlockRailBase rail = (BlockRailBase)railState.getBlock();
+		if (!rail.canMakeSlopes(world, railPos)) return;
+		EnumRailDirection dir = railState.getValue(rail.getShapeProperty());
+		switch(dir) {
+		case EAST_WEST:
+			boolean east = canRailAscent(world, railPos.east());
+			boolean west = canRailAscent(world, railPos.west());
+			if (!east ^ west) return;
+			dir = east ? EnumRailDirection.ASCENDING_EAST : EnumRailDirection.ASCENDING_WEST;
+			break;
+		case NORTH_SOUTH:
+			boolean north = canRailAscent(world, railPos.north());
+			boolean south = canRailAscent(world, railPos.south());
+			if (!north ^ south) return;
+			dir = north ? EnumRailDirection.ASCENDING_NORTH : EnumRailDirection.ASCENDING_SOUTH;
+			break;
+		default: return;
+		}
+		world.setBlockState(railPos, railState.withProperty(rail.getShapeProperty(), dir));
+	}
+
+	private boolean canRailAscent(World world, BlockPos pos) {
+		if (!world.getBlockState(pos).isSideSolid(world, pos, EnumFacing.UP)) return false;
+		IBlockState state = world.getBlockState(pos = pos.up());
+		if (state.getMaterial() != Objects.M_PORTAL || state.getValue(solidOther1)) return false;
+		DimPos posO = PortalConfiguration.getAdjacentPos(new DimPos(pos, world));
+		if (posO == null) return false;
+		return BlockRailBase.isRailBlock(posO.getWorld(), posO.getY() == 0 ? posO.up() : posO.down());
 	}
 
 }
