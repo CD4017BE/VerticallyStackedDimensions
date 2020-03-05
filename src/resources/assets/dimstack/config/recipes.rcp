@@ -42,7 +42,11 @@ disable_quartz = false;
 
 dim_ceiling = 255; !default height at which ceiling portals are generated
 
-PRE_INIT() {
+INIT() {
+	!crafting recipe for Dimensional Pipe:
+	!add("shaped", <result>, <pattern>, <ingredients>...);
+	add("shaped", it("tile.dim_pipe", 1), "010/020/010", "obsidian", "gemQuartz", it("minecraft:hopper"));
+	
 	!stacking dimensions on top of each other so they get connected via portals (order bottom to top):
 	!add("dimstack", [<dimId>...]#);
 	!add("dimstack", [-1, 0]#); !overworld on top of nether (rem '!' to enable)
@@ -64,13 +68,6 @@ PRE_INIT() {
 	!register a new noise field
 	!add("noiseField", <name>, <genIdx>, <horGrid>, <vertGrid>, <horScale>, <vertScale>);
 	add("noiseField", "main", 0, 4, 4, 1.0, 1.0); !"main" is used internally for dimension transition layers
-	
-}
-
-INIT() {
-	!shaped crafting recipes
-	!add("shaped", <result>, <pattern>, <ingredients>...);
-	add("shaped", it("tile.dim_pipe", 1), "010/020/010", "obsidian", "gemQuartz", it("minecraft:hopper"));
 	
 	!custom barrier block properties (block id is "dimstack:bedrock@<id>")
 	!there are 16 (ids 0 ... 15) different blocks available for use in progression barrier layers
