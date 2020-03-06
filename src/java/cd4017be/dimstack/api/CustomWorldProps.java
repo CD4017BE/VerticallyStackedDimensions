@@ -36,4 +36,9 @@ public class CustomWorldProps implements IDimensionSettings {
 		chunkGen = nbt.getByte("gen") & 0xff;
 	}
 
+	@Override
+	public boolean isClientRelevant() {
+		return true;
+	}
+
 }

@@ -248,7 +248,7 @@ public class GuiDimStack extends GuiMenuBase {
 		}
 		try {
 			NBTTagCompound nbt = new NBTTagCompound();
-			Dimensionstack.save(nbt);
+			Dimensionstack.save(nbt, false);
 			file.createNewFile();
 			CompressedStreamTools.write(nbt, file);
 			Main.LOG.info("Dimension stack configuration sucessfully exported to {}", file);

@@ -30,7 +30,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 @ObjectHolder(value = Main.ID)
 public class Objects {
 
-	public static DimensionType CUSTOM_DIM_TYPE;
+	public static DimensionType CUSTOM_DIM_TYPE = DimensionType.register("dimstack_custom", "_custom", 2, WorldProviderCustom.class, false);
 	public static TabMaterials tabDimStack = new TabMaterials(Main.ID);
 	public static Material M_PORTAL;
 	public static Material M_BEDROCK;
@@ -59,7 +59,6 @@ public class Objects {
 	}
 
 	static void init() {
-		CUSTOM_DIM_TYPE = DimensionType.register("dimstack_custom", "_custom", 2, WorldProviderCustom.class, false);
 		tabDimStack.item = new ItemStack(portal);
 	}
 

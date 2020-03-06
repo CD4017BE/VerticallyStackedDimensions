@@ -10,4 +10,11 @@ import net.minecraftforge.common.util.INBTSerializable;
  * @see IDimension#getSettings(Class, boolean)
  * @author CD4017BE
  */
-public interface IDimensionSettings extends INBTSerializable<NBTBase> {}
+public interface IDimensionSettings extends INBTSerializable<NBTBase> {
+	
+	/**@return whether this needs synchronizing with clients in multiplayer */
+	default boolean isClientRelevant() {
+		return false;
+	}
+
+}

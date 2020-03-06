@@ -22,6 +22,7 @@ import cd4017be.lib.script.Parameters;
 import cd4017be.lib.script.obj.Error;
 import cd4017be.lib.script.obj.IOperand;
 import cd4017be.lib.script.obj.Number;
+import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -29,10 +30,20 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.NetHandlerPlayServer;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.DimensionType;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.Constants.NBT;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.FMLEventChannel;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.internal.FMLProxyPacket;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.CustomNetworkEvent;
+import net.minecraftforge.fml.common.network.NetworkHandshakeEstablished;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import static cd4017be.dimstack.core.PortalConfiguration.*;
@@ -43,15 +54,19 @@ import static cd4017be.dimstack.core.PortalConfiguration.*;
  */
 public class Dimensionstack extends API implements IRecipeHandler {
 
-	private static String DIMENSION_STACK = "dimstack";
+	private static String DIMENSION_STACK = "dimstack", CHANNEL = "dimstack";
 	public static final int FILE_VERSION = 4;
 	private NBTTagCompound defaultCfg;
 	private File cfgFile;
 	private static boolean cfgModified;
+	private final FMLEventChannel networkChannel;
 
 	public Dimensionstack() {
 		API.INSTANCE = this;
 		RecipeAPI.Handlers.put(DIMENSION_STACK, this);
+		networkChannel = NetworkRegistry.INSTANCE.newEventDrivenChannel(CHANNEL);
+		networkChannel.register(this);
+		MinecraftForge.EVENT_BUS.register(this);
 	}
 
 	@Override
@@ -79,7 +94,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		if (cfgModified && cfgFile != null)
 			try {
 				NBTTagCompound data = CompressedStreamTools.read(cfgFile);
-				save(data);
+				save(data, false);
 				data.setIntArray("topOpen", open.toIntArray());
 				CompressedStreamTools.write(data, cfgFile);
 				Main.LOG.info("updated dimension stack configuration file");
@@ -132,7 +147,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		
 	}
 
-	private static NBTTagCompound saveSettings(SettingProvider sp) {
+	private static NBTTagCompound saveSettings(SettingProvider sp, boolean client) {
 		NBTTagCompound cfg = new NBTTagCompound();
 		if (sp instanceof PortalConfiguration) {
 			PortalConfiguration pc = (PortalConfiguration)sp;
@@ -141,6 +156,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 			cfg.setBoolean("create", isDimCreated(pc.dimId));
 		}
 		for (IDimensionSettings s : sp.getAllSettings()) {
+			if (client && !s.isClientRelevant()) continue;
 			NBTBase tag = s.serializeNBT();
 			if (tag != null && !tag.hasNoTags())
 				cfg.setTag(s.getClass().getName(), tag);
@@ -176,13 +192,17 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	 * save all dimension stack info and settings
 	 * @param nbt data to save in
 	 */
-	public static void save(NBTTagCompound nbt) {
-		NBTTagCompound cfg = saveSettings(INSTANCE);
+	public static void save(NBTTagCompound nbt, boolean client) {
+		NBTTagCompound cfg = saveSettings(INSTANCE, client);
 		if (!cfg.hasNoTags())
 			nbt.setTag("global", cfg);
-		for (PortalConfiguration pc : dimensions.values())
-			if (!(cfg = saveSettings(pc)).hasNoTags())
+		IntArrayList open = new IntArrayList();
+		for (PortalConfiguration pc : dimensions.values()) {
+			if (!(cfg = saveSettings(pc, client)).hasNoTags())
 				nbt.setTag(Integer.toString(pc.dimId), cfg);
+			if (pc.topOpen) open.add(pc.dimId);
+		}
+		nbt.setIntArray("topOpen", open.toIntArray());
 		NBTTagList stacks = new NBTTagList();
 		for (int[] stack : getStacks())
 			stacks.appendTag(new NBTTagIntArray(stack));
@@ -233,9 +253,10 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		boolean reload = true;
 		if (defaultCfg == null) {
 			defaultCfg = new NBTTagCompound();
-			save(defaultCfg);
+			save(defaultCfg, false);
 			reload = false;
 		}
+		dir.mkdirs();
 		File file = new File(dir, "dimensionstack.dat");
 		try { 
 			do {
@@ -269,7 +290,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	 */
 	public boolean loadPreset(File file) {
 		if (!file.exists()) {
-			Main.LOG.error("Given preset dimension stack configuration file {} doesn't exist!", file);
+			Main.LOG.error("Given preset dimension stack configuration file {} doesn't exist: loading config normally", file);
 			return false;
 		}
 		try {
@@ -348,6 +369,32 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	@SideOnly(Side.CLIENT)
 	public void registerConfigGui(ICfgButtonHandler handler) {
 		((ClientProxy)Main.proxy).cfgButtons.add(handler);
+	}
+
+	//synchronize to configuration to client
+
+	@SubscribeEvent
+	public void handShakeComplete(CustomNetworkEvent event) {
+		if (!(event.getWrappedEvent() instanceof NetworkHandshakeEstablished)) return;
+		NetworkHandshakeEstablished nhse = (NetworkHandshakeEstablished)event.getWrappedEvent();
+		if (nhse.side != Side.SERVER) return;
+		
+		Main.LOG.info("Sending dimension stack configuration packet to {}", ((NetHandlerPlayServer)nhse.netHandler).player.getName());
+		NBTTagCompound nbt = new NBTTagCompound();
+		save(nbt, true);
+		nhse.dispatcher.sendProxy(new FMLProxyPacket(new PacketBuffer(Unpooled.buffer()).writeCompoundTag(nbt), CHANNEL));
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent
+	public void onPacketFromServer(ClientCustomPacketEvent event) {
+		try {
+			NBTTagCompound nbt = ((PacketBuffer)event.getPacket().payload()).readCompoundTag();
+			load(nbt);
+			Main.LOG.info("Dimension stack configuration from server sucessfully synchronized!");
+		} catch(IOException e) {
+			Main.LOG.error("Failed to decode dimension stack configuration packet from server:", e);
+		}
 	}
 
 }

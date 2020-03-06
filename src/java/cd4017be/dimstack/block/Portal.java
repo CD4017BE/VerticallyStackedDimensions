@@ -1,5 +1,6 @@
 package cd4017be.dimstack.block;
 
+import java.util.List;
 import java.util.Random;
 
 import cd4017be.dimstack.Objects;
@@ -18,6 +19,7 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -70,6 +72,22 @@ public class Portal extends BaseBlock {
 		super(id, m);
 		this.setBlockUnbreakable();
 		this.setResistance(Float.POSITIVE_INFINITY);
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag advanced) {
+		if (world != null) {
+			PortalConfiguration pc = PortalConfiguration.get(world), pc1;
+			if ((pc1 = pc.nextCeil()) != null)
+				tooltip.add("\u00a7ey = " + pc.ceilY + "\u00a77 -> \u00a7f" + pc1);
+			else tooltip.add("\u00a7e----");
+			tooltip.add("|  \u00a7f" + pc);
+			if ((pc1 = pc.nextFloor()) != null)
+				tooltip.add("\u00a7ey = 0\u00a77 -> \u00a7f" + pc1);
+			else tooltip.add("\u00a7e----");
+		}
+		super.addInformation(stack, world, tooltip, advanced);
 	}
 
 	@Override
