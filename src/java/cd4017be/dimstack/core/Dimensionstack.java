@@ -411,8 +411,12 @@ public class Dimensionstack extends API implements IRecipeHandler {
 		if (!(event.getWrappedEvent() instanceof NetworkHandshakeEstablished)) return;
 		NetworkHandshakeEstablished nhse = (NetworkHandshakeEstablished)event.getWrappedEvent();
 		if (nhse.side != Side.SERVER) return;
-		
-		Main.LOG.info("Sending dimension stack configuration packet to {}", ((NetHandlerPlayServer)nhse.netHandler).player.getName());
+		String player = ((NetHandlerPlayServer)nhse.netHandler).player.getName();
+		if (nhse.dispatcher.manager.isLocalChannel()) {
+			Main.LOG.info("Skipping dimension stack synchronization for integrated server owner {}", player);
+			return;
+		}
+		Main.LOG.info("Sending dimension stack configuration packet to {}", player);
 		NBTTagCompound nbt = new NBTTagCompound();
 		save(nbt, true);
 		nhse.dispatcher.sendProxy(new FMLProxyPacket(new PacketBuffer(Unpooled.buffer()).writeCompoundTag(nbt), CHANNEL));
@@ -421,6 +425,10 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public void onPacketFromServer(ClientCustomPacketEvent event) {
+		if (event.getManager().isLocalChannel()) {
+			Main.LOG.warn("Ignoring dimension stack configuration packet for singleplayer ... which shouldn't have been send actually!");
+			return;
+		}
 		try {
 			NBTTagCompound nbt = ((PacketBuffer)event.getPacket().payload()).readCompoundTag();
 			load(nbt);
