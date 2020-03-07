@@ -6,34 +6,37 @@ import net.minecraft.nbt.NBTTagCompound;
 /** @author CD4017BE */
 public class CustomWorldProps implements IDimensionSettings {
 
-	public boolean skylight;
-	public boolean noWater;
-	public boolean netherlike;
-	public boolean visibleSky;
+	public static final int F_SKYLIGHT = 1, F_WATEREVAP = 2, F_NETHER = 4, F_SKYBOX = 8, F_FOG = 16;
+
+	public int flags;
 	public String biomeGen = "";
 	public int chunkGen = 0;
+	//client:
+	public float horizonHeight = 64;
+	public float cloudHeight = 120;
+	public int fogColor = 0x08c0d9ff;
 
 	@Override
 	public NBTTagCompound serializeNBT() {
 		NBTTagCompound nbt = new NBTTagCompound();
-		nbt.setBoolean("skyl", skylight);
-		nbt.setBoolean("skyv", visibleSky);
-		nbt.setBoolean("evap", noWater);
-		nbt.setBoolean("nether", netherlike);
+		nbt.setByte("flags", (byte)flags);
 		nbt.setString("biome", biomeGen);
 		nbt.setByte("gen", (byte)chunkGen);
+		nbt.setInteger("fog", fogColor);
+		nbt.setFloat("horizon", horizonHeight);
+		nbt.setFloat("clouds", cloudHeight);
 		return nbt;
 	}
 
 	@Override
 	public void deserializeNBT(NBTBase tag) {
 		NBTTagCompound nbt = (NBTTagCompound)tag;
-		skylight = nbt.getBoolean("skyl");
-		visibleSky = nbt.getBoolean("skyv");
-		noWater = nbt.getBoolean("evap");
-		netherlike = nbt.getBoolean("nether");
+		flags = nbt.getByte("flags");
 		biomeGen = nbt.getString("biome");
 		chunkGen = nbt.getByte("gen") & 0xff;
+		fogColor = nbt.getInteger("fog");
+		horizonHeight = nbt.getFloat("horizon");
+		cloudHeight = nbt.getFloat("clouds");
 	}
 
 	@Override
