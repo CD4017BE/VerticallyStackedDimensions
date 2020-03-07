@@ -1,18 +1,23 @@
 package cd4017be.dimstack.client.gui;
 
-import java.awt.FileDialog;
-import java.awt.Frame;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
+import org.lwjgl.input.Mouse;
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.dimstack.core.PortalConfiguration;
+import cd4017be.lib.Gui.ModularGui;
+import cd4017be.lib.Gui.comp.FileBrowser;
+import cd4017be.lib.Gui.comp.GuiFrame;
+import cd4017be.lib.util.FileUtil;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-
+import static cd4017be.lib.Gui.comp.IGuiComp.A_DOWN;
+import static cd4017be.lib.Gui.comp.IGuiComp.A_UP;
+import static cd4017be.lib.Gui.comp.IGuiComp.A_HOLD;
+import static cd4017be.lib.Gui.comp.IGuiComp.A_SCROLL;
 import static cd4017be.lib.util.TooltipUtil.*;
 
 import net.minecraft.client.Minecraft;
@@ -36,17 +41,20 @@ public class GuiDimStack extends GuiMenuBase {
 	private GuiButton b_edit, b_sel, b_add, b_rem, b_cut;
 	private PortalConfiguration selStack;
 	private File file;
+	private final GuiFrame frame;
 
 	/**
 	 * @param parent
 	 */
 	public GuiDimStack(GuiScreen parent) {
 		super(parent);
+		this.frame = new GuiFrame((ModularGui)null, 0, 0, 1);
 	}
 
 	@Override
 	public void initGui() {
 		super.initGui();
+		frame.init(width, height, zLevel, fontRenderer);
 		title = translate("gui.dimstack.cfg");
 		
 		int bw = 70, w = (width - 32 - bw) / 2;
@@ -194,37 +202,33 @@ public class GuiDimStack extends GuiMenuBase {
 			}
 			break;
 		case 10: {
-			FileDialog fd = new FileDialog((Frame)null, translate("gui.dimstack.import"), FileDialog.LOAD);
-			fd.setDirectory(FMLCommonHandler.instance().getSavesDirectory().getAbsolutePath());
-			fd.setFile("dimensionstack.dat");
-			fd.setVisible(true);
-			File[] files = fd.getFiles();
-			if (files.length > 0) {
-				file = files[0];
-				load();
-			}
+			GuiFrame f = new FileBrowser(frame, this::load, null)
+				.setFile(new File(FMLCommonHandler.instance().getSavesDirectory().getAbsolutePath(), "dimensionstack.dat").getAbsoluteFile())
+				.title("gui.dimstack.import", 0.5F);
+			f.init(width, height, zLevel, fontRenderer);
+			f.position(8, 8);
 		}	break;
-		case 11:
-			FileDialog fd = new FileDialog((Frame)null, translate("gui.dimstack.export"), FileDialog.SAVE);
-			fd.setDirectory((file != null ? file.getParentFile() : FMLCommonHandler.instance().getSavesDirectory()).getAbsolutePath());
-			fd.setFile("dimensionstack.dat");
-			fd.setVisible(true);
-			File[] files = fd.getFiles();
-			if (files.length > 0) {
-				file = files[0];
+		case 11: {
+			GuiFrame f = new FileBrowser(frame, (fb)-> {
+				fb.close();
+				file = fb.getFile();
 				File dir = file.getParentFile();
-				if (dir != null && new File(dir, "level.dat").exists()) {
+				if (dir != null && new File(dir, "level.dat").exists())
 					mc.displayGuiScreen(new GuiYesNo(this, translate("gui.dimstack.warnsave1"), translate("gui.dimstack.warnsave2"), 11));
-					return;
-				}
-				save();
-			}
-			break;
+				else save();
+			}, null)
+				.setFile(new File((file != null ? file.getParentFile() : FileUtil.configDir), "dimensionstack.dat").getAbsoluteFile())
+				.title("gui.dimstack.export", 0.5F);
+			f.init(width, height, zLevel, fontRenderer);
+			f.position(8, 8);
+		}	break;
 		default: super.actionPerformed(b);
 		}
 	}
 
-	private void load() {
+	private void load(FileBrowser fb) {
+		fb.close();
+		file = fb.getFile();
 		if (file == null || !file.exists() || !file.getName().endsWith(".dat")) {
 			Main.LOG.info("import cancled: invalid file supplied!");
 			return;
@@ -290,6 +294,52 @@ public class GuiDimStack extends GuiMenuBase {
 			return PortalConfiguration.get(id);
 		}
 
+	}
+
+	//make GuiFrame work:
+
+	@Override
+	protected void keyTyped(char c, int k) throws IOException {
+		if (!frame.keyIn(c, k, A_DOWN))
+			super.keyTyped(c, k);
+	}
+
+	@Override
+	protected void mouseClicked(int mx, int my, int mb) throws IOException {
+		if (!frame.mouseIn(mx, my, mb, A_DOWN))
+			super.mouseClicked(mx, my, mb);
+	}
+
+	@Override
+	protected void mouseReleased(int mx, int my, int mb) {
+		if (!frame.mouseIn(mx, my, mb, A_UP))
+			super.mouseReleased(mx, my, mb);
+	}
+
+	@Override
+	protected void mouseClickMove(int mx, int my, int mb, long t) {
+		if (!frame.mouseIn(mx, my, mb, A_HOLD))
+			super.mouseClickMove(mx, my, mb, t);
+	}
+	
+	@Override
+	public void handleMouseInput() throws IOException {
+		int z = Mouse.getEventDWheel();
+		if (z != 0) {
+			if (z > 1) z = 1;
+			else if (z < -1) z = -1;
+			int x = Mouse.getEventX() * width / mc.displayWidth;
+			int y = height - Mouse.getEventY() * height / mc.displayHeight - 1;
+			frame.mouseIn(x, y, z, A_SCROLL);
+		}
+		super.handleMouseInput();
+	}
+
+	@Override
+	public void drawScreen(int mx, int my, float t) {
+		super.drawScreen(mx, my, t);
+		frame.drawBackground(mx, my, t);
+		frame.drawOverlay(mx, my);
 	}
 
 }
