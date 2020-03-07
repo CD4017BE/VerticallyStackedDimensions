@@ -51,6 +51,11 @@ INIT() {
 	!add("dimstack", [<dimId>...]#);
 	!add("dimstack", [-1, 0]#); !overworld on top of nether (rem '!' to enable)
 	
+	!creating new dimensions for the game:
+	!add("dimension", <id>, <generator>, <biome>, <horizonHeight>, <cloudHeight>, <hasSkylight>, <waterEvaporates>, <isNetherlike>, <hasSky&Clouds>, <hasFog>, [<voidFogY>, <fogRed>, <fogGreen>, <fogBlue>]#);
+	!add("dimension", 2, "void", nil, 0.0, 16.0, true, false, false, true, false, [256, 0.753, 0.847, 1.0]#); !example for standard sky dimension to be put above the overworld (with matching biomes)
+	!add("dimension", -2, "void", "minecraft:extreme_hills", 256, NaN, false, false, false, false, true, [32, 0.6, 0.5, 0.4]#); !example for underground/cave dimension. Blocks/terrain must still be added via "basic_layer", "nether", etc.  
+	
 	!dimension data for automatic transition layer generation:
 	!dim_transitions:<dimId> = [<botMaterial>, <botLayerSize>, <topMaterial>, <topLayerSize>];
 	dim_transitions:0 = ["minecraft:stone", 4, "minecraft:air", 0]; !Overworld has stone at floor and air at ceiling

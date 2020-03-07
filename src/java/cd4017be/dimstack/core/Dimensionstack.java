@@ -12,6 +12,7 @@ import cd4017be.dimstack.ClientProxy;
 import cd4017be.dimstack.Main;
 import cd4017be.dimstack.Objects;
 import cd4017be.dimstack.api.API;
+import cd4017be.dimstack.api.CustomWorldProps;
 import cd4017be.dimstack.api.IDimension;
 import cd4017be.dimstack.api.IDimensionSettings;
 import cd4017be.dimstack.api.util.ICfgButtonHandler;
@@ -21,6 +22,7 @@ import cd4017be.lib.Lib;
 import cd4017be.lib.script.Parameters;
 import cd4017be.lib.script.obj.Error;
 import cd4017be.lib.script.obj.IOperand;
+import cd4017be.lib.script.obj.Nil;
 import cd4017be.lib.script.obj.Number;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -32,6 +34,7 @@ import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.DimensionType;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -54,7 +57,7 @@ import static cd4017be.dimstack.core.PortalConfiguration.*;
  */
 public class Dimensionstack extends API implements IRecipeHandler {
 
-	private static String DIMENSION_STACK = "dimstack", CHANNEL = "dimstack";
+	private static String DIMENSION_STACK = "dimstack", DIMENSION = "dimension", CHANNEL = "dimstack";
 	public static final int FILE_VERSION = 4;
 	private NBTTagCompound defaultCfg;
 	private File cfgFile;
@@ -64,6 +67,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	public Dimensionstack() {
 		API.INSTANCE = this;
 		RecipeAPI.Handlers.put(DIMENSION_STACK, this);
+		RecipeAPI.Handlers.put(DIMENSION, this);
 		networkChannel = NetworkRegistry.INSTANCE.newEventDrivenChannel(CHANNEL);
 		networkChannel.register(this);
 		MinecraftForge.EVENT_BUS.register(this);
@@ -325,11 +329,40 @@ public class Dimensionstack extends API implements IRecipeHandler {
 
 	@Override
 	public void addRecipe(Parameters param) {
-		double[] vec = param.getVectorOrAll(1);
-		int[] stack = new int[vec.length];
-		for (int i = 0; i < vec.length; i++)
-			stack[i] = (int)vec[i];
-		PortalConfiguration.link(stack);
+		String rcp = param.getString(0);
+		if (rcp.equals(DIMENSION_STACK)) {
+			double[] vec = param.getVectorOrAll(1);
+			int[] stack = new int[vec.length];
+			for (int i = 0; i < vec.length; i++)
+				stack[i] = (int)vec[i];
+			PortalConfiguration.link(stack);
+		} else if (rcp.equals(DIMENSION)) {
+			int id = param.getIndex(1);
+			setDimCreation(id, true);
+			if (param.has(3)) {
+				CustomWorldProps props = PortalConfiguration.get(id).getSettings(CustomWorldProps.class, true);
+				switch(param.getString(2)) {
+				case "worldtype": props.chunkGen = 1; break;
+				case "overworld": props.chunkGen = 2; break;
+				case "nether": props.chunkGen = 3; break;
+				}
+				props.biomeGen = param.param[3] == Nil.NIL ? "" : param.getString(3);
+				if (param.has(10)) {
+					props.horizonHeight = (float)param.getNumber(4);
+					props.cloudHeight = (float)param.getNumber(5);
+					for (int i = 0; i < 5; i++) {
+						if (param.getBool(i + 6))
+							props.flags |= 1 << i;
+					}
+					double[] vec = param.getVectorOrAll(11);
+					if (vec.length == 4)
+						props.fogColor = MathHelper.clamp((int)vec[0], 0, 255) << 24
+							| MathHelper.clamp((int)(vec[1] * 255D), 0, 255) << 16
+							| MathHelper.clamp((int)(vec[2] * 255D), 0, 255) << 8
+							| MathHelper.clamp((int)(vec[3] * 255D), 0, 255);
+				}
+			}
+		}
 	}
 
 	public static void initConfig(ConfigConstants cfg) {

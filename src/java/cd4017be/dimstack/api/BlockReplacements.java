@@ -55,11 +55,11 @@ public class BlockReplacements implements IDimensionSettings {
 	public static class Replacement {
 
 		/** Block to search for */
-		public final BlockPredicate target;
+		public BlockPredicate target;
 		/** BlockState to replace with */
-		public final IBlockState repl;
+		public IBlockState repl;
 		/** where to search */
-		public final int minY, maxY;
+		public int minY, maxY;
 
 		public Replacement(BlockPredicate target, IBlockState repl, int minY, int maxY) {
 			this.target = target;

@@ -15,6 +15,7 @@ import cd4017be.dimstack.client.CfgButtonHandler;
 import cd4017be.dimstack.client.MenuHook;
 import cd4017be.dimstack.client.WorldProviderHandler;
 import cd4017be.dimstack.client.gui.GuiBlockLayers;
+import cd4017be.dimstack.client.gui.GuiBlockReplacement;
 import cd4017be.dimstack.client.gui.GuiCustomOres;
 import cd4017be.dimstack.client.gui.GuiDefOres;
 import cd4017be.dimstack.client.gui.GuiTransition;
@@ -35,6 +36,7 @@ public class ClientProxy extends CommonProxy {
 		cfgButtons.add(new CfgButtonHandler("gui.dimstack.defOre", GuiDefOres::new));
 		cfgButtons.add(new CfgButtonHandler("gui.dimstack.newOre", GuiCustomOres::new));
 		cfgButtons.add(new CfgButtonHandler("gui.dimstack.layer", GuiBlockLayers::new));
+		cfgButtons.add(new CfgButtonHandler("gui.dimstack.replace", GuiBlockReplacement::new));
 		cfgButtons.add(new WorldProviderHandler("gui.dimstack.world_provider"));
 	}
 

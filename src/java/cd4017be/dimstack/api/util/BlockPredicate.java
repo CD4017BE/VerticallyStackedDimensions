@@ -75,6 +75,11 @@ public class BlockPredicate implements Predicate<IBlockState> {
 		return matchers.length == 0;
 	}
 
+	@Override
+	public String toString() {
+		return Arrays.toString(cfg);
+	}
+
 	public static BlockPredicate parse(Object param) {
 		if (param instanceof String)
 			return new BlockPredicate((String)param);
