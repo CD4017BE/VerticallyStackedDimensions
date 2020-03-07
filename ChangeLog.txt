@@ -1,3 +1,20 @@
+v0.1.7
+Changes:
+- replaced laggy java.awt.FileDialog with FileBrowser from CD4017BE_lib
+- added block replacement editor menu
+- added custom dimension creation feature
+- fixed #23 by moving config to init phase (you need to update your config for that)
+- made rails connect upwards through portals
+- added support for upside down dimensions
+- made floor portals become solid temporarily when a player spawns on them to prevent falling back down
+- fixed pick block result for Progression Barriers always giving alpha
+- fixed transition layer data corruption for negative thickness
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.0.2512 (or newer)
+- CD4017BE_lib-6.4.17
+
 v0.1.6
 Changes:
 - fixed #21 attempt access WorldServer on client side
