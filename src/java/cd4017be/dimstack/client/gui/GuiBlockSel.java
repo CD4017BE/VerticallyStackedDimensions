@@ -23,11 +23,12 @@ public class GuiBlockSel extends GuiTextField {
 		super(id, fontrenderer, x, y, w, h);
 		this.complete = compl;
 		this.fontRenderer = fontrenderer;
+		this.setMaxStringLength(256);
 	}
 
 	public GuiBlockSel enableList() {
 		this.isList = true;
-		this.setMaxStringLength(128);
+		this.setMaxStringLength(1024);
 		return this;
 	}
 
