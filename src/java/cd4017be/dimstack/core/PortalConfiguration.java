@@ -234,9 +234,15 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	public void notifyBlockUpdate(World world, BlockPos pos, IBlockState oldState, IBlockState newState, int flags) {
 		if ((flags & 1) == 0) return;
 		int y = pos.getY(), yc = ceilY;
-		if (y >= yc - 4 && topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR) {
+		if (y <= 4 && retrogen && (oldState.getMaterial() == Material.AIR ^ newState.getMaterial() == Material.AIR)) {
+			PortalConfiguration neigb = nextFloor();
+			if (neigb != null)
+				PortalGen.fixCeil(world, pos, 0, neigb, flipped ^ neigb.flipped ? 0 : neigb.ceilY);
+		}
+		if (y >= yc - 4 && (retrogen ? oldState.getMaterial() == Material.AIR ^ newState.getMaterial() == Material.AIR : topOpen && oldState.getMaterial() == Material.AIR && newState.getMaterial() != Material.AIR)) {
 			PortalConfiguration neigb = nextCeil();
-			PortalGen.fixCeil(world, pos, yc, neigb, flipped ^ neigb.flipped ? neigb.ceilY : 0);
+			if (neigb != null)
+				PortalGen.fixCeil(world, pos, yc, neigb, flipped ^ neigb.flipped ? neigb.ceilY : 0);
 		}
 		if (y == 2) {
 			BlockPos posP = pos.down(2);
@@ -277,6 +283,7 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 	//static features:
 	static final Int2ObjectOpenHashMap<PortalConfiguration> dimensions = new Int2ObjectOpenHashMap<>();
 	static int defaultCeilY = 255;
+	static boolean retrogen = false;
 
 	/**
 	 * @param world current world

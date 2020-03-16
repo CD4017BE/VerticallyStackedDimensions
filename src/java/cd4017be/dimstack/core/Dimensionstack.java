@@ -366,6 +366,7 @@ public class Dimensionstack extends API implements IRecipeHandler {
 	}
 
 	public static void initConfig(ConfigConstants cfg) {
+		retrogen = cfg.getNumber("retrogen_portals", 0) >= 1.0;
 		defaultCeilY = (int)cfg.getNumber("dim_ceiling", defaultCeilY);
 		cfg.get("dim_ceiling", CeilingInfo.class, new CeilingInfo());
 	}

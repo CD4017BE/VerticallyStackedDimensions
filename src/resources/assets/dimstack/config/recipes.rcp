@@ -16,7 +16,10 @@ dimstack_editor = true;
 disable_nether_portal = false;
 
 !whether to generate ceiling portals in open sky dimensions only when & where needed. (It's highly recommended to leave this at default true for performance reasons)
-ceil_on_demand = true; 
+ceil_on_demand = true;
+
+!this lets you retroactively generate portals into a world that was originally created without this mod. The generation in old chunks works similar to "ceiling on demand".
+retrogen_portals = false;
 
 !number > 0 makes floor portals become solid if a player gets teleported upwards onto it to prevent falling back and specifies the interval in ticks to check if the player is still there before resynchronizing the portal.
 create_plattform = 25;
