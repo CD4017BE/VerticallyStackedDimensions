@@ -353,8 +353,13 @@ public class PortalConfiguration extends SettingProvider implements IDimension, 
 				ChunkPos chunk = new ChunkPos(pos);
 				LoadingInfo ti = pc1.loadedChunks.get(chunk);
 				if (ti != null) ti.onRequest(pos);
-				else if (pc1.loadingTicket != null || (pc1.loadingTicket = ForgeChunkManager.requestTicket(Main.instance, pc1.getWorld(), Type.NORMAL)) != null)
-					pc1.loadedChunks.put(chunk, new LoadingInfo(pc1, pos));
+				else {
+					World world1 = pc1.getWorld();
+					if (pc1.loadingTicket == null || pc1.loadingTicket.world != world1)
+						pc1.loadingTicket = ForgeChunkManager.requestTicket(Main.instance, world1, Type.NORMAL);
+					if (pc1.loadingTicket != null)
+						pc1.loadedChunks.put(chunk, new LoadingInfo(pc1, pos));
+				}
 			}
 		}
 		return new DimPos(pos.getX(), y, pos.getZ(), world);

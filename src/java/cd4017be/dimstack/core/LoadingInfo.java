@@ -52,7 +52,6 @@ public class LoadingInfo {
 
 	public boolean checkExpired(long t) {
 		if (lastReqB < t && lastReqT < t) {
-			ForgeChunkManager.unforceChunk(pc.loadingTicket, chunk);
 			Main.LOG.debug("unforced chunk {} in {} after {}", chunk, pc.dimId, String.format("%.2fs", (float)(t - startTime + ChunkLoader.EXPIRE_TIME) / 1000F));
 			return true;
 		} else return false;
@@ -70,6 +69,16 @@ public class LoadingInfo {
 		if ((rt = lastReqT) >= s)
 			f += ref / (float)(t - rt) - 1F;
 		return Math.max(1F - 1F / f, 0);
+	}
+
+	public void remove() {
+		pc.loadedChunks.remove(chunk);
+		if (pc.loadingTicket == null) return;
+		ForgeChunkManager.unforceChunk(pc.loadingTicket, chunk);
+		if (pc.loadedChunks.isEmpty()) {
+			ForgeChunkManager.releaseTicket(pc.loadingTicket);
+			pc.loadingTicket = null;
+		}
 	}
 
 }

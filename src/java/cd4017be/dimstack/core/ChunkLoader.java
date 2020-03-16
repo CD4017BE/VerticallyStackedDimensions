@@ -76,37 +76,37 @@ public class ChunkLoader implements OrderedLoadingCallback {
 		if (pc == null || pc.loadingTicket == null) return;
 		LoadingInfo ti;
 		ChunkPos pos = event.getChunk().getPos();
-		if ((pc1 = pc.up()) != null && (ti = pc1.loadedChunks.get(pos)) != null &&
-				ti.onUnload(false).checkExpired(System.currentTimeMillis() - EXPIRE_TIME))
-			pc1.loadedChunks.remove(pos);
-		if ((pc1 = pc.down()) != null && (ti = pc1.loadedChunks.get(pos)) != null &&
-				ti.onUnload(true).checkExpired(System.currentTimeMillis() - EXPIRE_TIME))
-			pc1.loadedChunks.remove(pos);
+		if (
+			(pc1 = pc.up()) != null && (ti = pc1.loadedChunks.get(pos)) != null
+			&& ti.onUnload(false).checkExpired(System.currentTimeMillis() - EXPIRE_TIME)
+		) ti.remove();
+		if (
+			(pc1 = pc.down()) != null && (ti = pc1.loadedChunks.get(pos)) != null
+			&& ti.onUnload(true).checkExpired(System.currentTimeMillis() - EXPIRE_TIME)
+		) ti.remove();
 	}
 
 	@SubscribeEvent
 	public void onTick(TickEvent.ServerTickEvent event) {
-		if (event.phase == TickEvent.Phase.START && --timer <= 0) {
-			timer = CHECK_INTERVAL;
-			long t = System.currentTimeMillis() - EXPIRE_TIME;
-			for (PortalConfiguration pc : PortalConfiguration.dimensions.values())
-				if (pc.loadingTicket != null) {
-					PortalConfiguration up = pc.up(), down = pc.down();
-					for (Iterator<LoadingInfo> it = pc.loadedChunks.values().iterator(); it.hasNext();) {
-						LoadingInfo li = it.next();
-						if (t > li.startTime) {
-							if (li.lastReqT > t && up != null && !isChunkExternallyForced(up.dimId, li.chunk))
-								li.onUnload(true);
-							if (li.lastReqB > t && down != null && !isChunkExternallyForced(down.dimId, li.chunk))
-								li.onUnload(false);
-						}
-						if (li.checkExpired(t)) it.remove();
-					}
-					if (pc.loadedChunks.isEmpty()) {
-						ForgeChunkManager.releaseTicket(pc.loadingTicket);
-						pc.loadingTicket = null;
-					}
+		if (event.phase != TickEvent.Phase.START || --timer > 0) return;
+		timer = CHECK_INTERVAL;
+		long t = System.currentTimeMillis() - EXPIRE_TIME;
+		for (PortalConfiguration pc : PortalConfiguration.dimensions.values()) {
+			if (pc.loadingTicket == null) continue;
+			PortalConfiguration up = pc.up(), down = pc.down();
+			for (Iterator<LoadingInfo> it = pc.loadedChunks.values().iterator(); it.hasNext();) {
+				LoadingInfo li = it.next();
+				if (t > li.startTime) {
+					if (li.lastReqT > t && up != null && !isChunkExternallyForced(up.dimId, li.chunk))
+						li.onUnload(true);
+					if (li.lastReqB > t && down != null && !isChunkExternallyForced(down.dimId, li.chunk))
+						li.onUnload(false);
 				}
+				if (li.checkExpired(t)) {
+					it.remove(); //remove via iterator first to avoid concurrent modification
+					li.remove();
+				}
+			}
 		}
 	}
 
