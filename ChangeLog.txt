@@ -1,3 +1,14 @@
+v0.1.8
+Changes:
+- added option for retroactive portal generation (#28)
+- increased BlockState edit character limit by factor 8 (solve #29)
+- fixed crash from chunk-loading tickets with invalid world instances (#30)
+
+Dependencies:
+- for MC-1.12.2
+- forge-14.23.5.2768 (or newer)
+- CD4017BE_lib-6.4.17
+
 v0.1.7
 Changes:
 - replaced laggy java.awt.FileDialog with FileBrowser from CD4017BE_lib
