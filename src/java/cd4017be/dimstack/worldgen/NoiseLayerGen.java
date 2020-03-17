@@ -8,8 +8,8 @@ import cd4017be.dimstack.api.util.BlockPredicate;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraftforge.common.util.Constants.NBT;
 
 
@@ -88,7 +88,7 @@ public class NoiseLayerGen implements ITerrainGenerator {
 	}
 
 	@Override
-	public void generate(IChunkGenerator gen, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg) {
+	public void generate(World world, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg) {
 		final IBlockState[] blocks = this.blocks;
 		final float[] levels = this.levels;
 		final float a = gradient, b = 1F / (float)(maxY - minY);

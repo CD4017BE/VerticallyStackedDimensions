@@ -7,8 +7,8 @@ import cd4017be.dimstack.api.gen.ITerrainGenerator;
 import cd4017be.dimstack.api.util.BlockPredicate;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.IChunkGenerator;
 
 
 /**
@@ -54,7 +54,7 @@ public class SimpleLayerGen implements ITerrainGenerator {
 	}
 
 	@Override
-	public void generate(IChunkGenerator gen, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg) {
+	public void generate(World world, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg) {
 		Random rand = cfg.rand;
 		int eb = extB + 1, et = extT + 1,
 			y0 = minY, y1 = maxY;

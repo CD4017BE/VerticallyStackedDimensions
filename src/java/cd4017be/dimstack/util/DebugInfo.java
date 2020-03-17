@@ -57,7 +57,7 @@ public class DebugInfo implements IDimensionSettings {
 			Main.LOG.warn("Switching to inefficient terrain generation during chunk population.");
 			logged = true;
 		}
-		tg.generate(gen, PostGenChunkBuffer.wrap(world.getChunkFromChunkCoords(cx, cz)), cx, cz);
+		tg.generate(world, gen, PostGenChunkBuffer.wrap(world.getChunkFromChunkCoords(cx, cz)), cx, cz);
 	}
 
 	public void fixInitialization(IDimension dim, World world, IChunkGenerator gen) {

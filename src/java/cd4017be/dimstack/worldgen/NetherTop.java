@@ -10,8 +10,8 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.IChunkGenerator;
 
 public class NetherTop implements ITerrainGenerator {
 
@@ -96,7 +96,7 @@ public class NetherTop implements ITerrainGenerator {
 	}
 
 	@Override
-	public void generate(IChunkGenerator gen, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg) {
+	public void generate(World world, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg) {
 		this.buffer = getHeights(this.buffer, cx * 4, fieldOfs, cz * 4, 5, fieldSize, 5, cfg);
 		final IBlockState main = this.main, liquid = this.liquid;
 		final int msl = this.lakeLvl;

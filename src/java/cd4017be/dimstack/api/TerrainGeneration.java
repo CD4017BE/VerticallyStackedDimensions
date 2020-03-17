@@ -10,6 +10,7 @@ import cd4017be.dimstack.api.util.NoiseField;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.NoiseGenerator;
@@ -121,11 +122,11 @@ public class TerrainGeneration extends CfgList<ITerrainGenerator> {
 			g.initNoise(this);
 	}
 
-	public void generate(IChunkGenerator gen, ChunkPrimer cp, int cx, int cz) {
+	public void generate(World world, IChunkGenerator gen, ChunkPrimer cp, int cx, int cz) {
 		for (NoiseField f : noiseFields)
 			f.prepareFor(cx, cz);
 		for (ITerrainGenerator tg : entries)
-			tg.generate(gen, cp, cx, cz, this);
+			tg.generate(world, cp, cx, cz, this);
 	}
 
 }

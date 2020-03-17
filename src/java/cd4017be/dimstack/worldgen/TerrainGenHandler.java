@@ -27,6 +27,7 @@ import cd4017be.lib.script.obj.Text;
 import cd4017be.lib.script.obj.Number;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.event.terraingen.InitNoiseGensEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -50,10 +51,12 @@ public class TerrainGenHandler implements IRecipeHandler {
 		RecipeAPI.Handlers.put(SimpleLayerGen.ID, this);
 		RecipeAPI.Handlers.put(NoiseLayerGen.ID, this);
 		RecipeAPI.Handlers.put(NetherTop.ID, this);
+		RecipeAPI.Handlers.put(CaveGen.ID, this);
 		
 		TerrainGeneration.REGISTRY.put(SimpleLayerGen.ID, SimpleLayerGen::new);
 		TerrainGeneration.REGISTRY.put(NoiseLayerGen.ID, NoiseLayerGen::new);
 		TerrainGeneration.REGISTRY.put(NetherTop.ID, NetherTop::new);
+		TerrainGeneration.REGISTRY.put(CaveGen.ID, (nbt)-> new CaveGen().readNBT(nbt));
 	}
 
 	@SubscribeEvent
@@ -83,7 +86,7 @@ public class TerrainGenHandler implements IRecipeHandler {
 		
 		TerrainGeneration tg = pc.getSettings(TerrainGeneration.class, false);
 		if (tg != null)
-			tg.generate(event.getGenerator(), event.getPrimer(), event.getX(), event.getZ());
+			tg.generate(event.getWorld(), event.getGenerator(), event.getPrimer(), event.getX(), event.getZ());
 		
 		DisabledBlockGen dbg = pc.getSettings(DisabledBlockGen.class, false);
 		if (dbg != null)
@@ -216,6 +219,34 @@ public class TerrainGenHandler implements IRecipeHandler {
 					blocks[0], hasLake || hasSand ? blocks[1] : null,
 					hasSand ? blocks[2] : null, hasSand ? blocks[3] : null,
 					hasSand ? blocks[4] : null, hasSand ? blocks[5] : null);
+		} else if (key.equals(CaveGen.ID)) {
+			CaveGen cg = new CaveGen();
+			cg.replace = BlockPredicate.parse(param.get(2));
+			cg.setBlock = BlockPredicate.parse(param.getString(3));
+			if (param.get(4) == null) {
+				cg.setFluid = cg.setBlock;
+				cg.fillY = 0;
+			} else cg.setFluid = BlockPredicate.parse(param.getString(4));
+			double[] vec = param.getVector(5);
+			int l = vec.length;
+			if (l < 4) throw new IllegalArgumentException("expected min 4 values @ " + 5);
+			cg.count = (int)vec[0];
+			cg.genChance = MathHelper.clamp((int)(vec[1] * 256D), 1, 256);
+			cg.minY = MathHelper.clamp((int)vec[2], 0, 255);
+			cg.maxY = MathHelper.clamp((int)vec[3], 1, 256);
+			if (l > 2) cg.fillY = MathHelper.clamp((int)vec[2], 0, 255);
+			if (param.has(6)) {
+				vec = param.getVectorOrAll(6);
+				if ((l = vec.length) < 3) throw new IllegalArgumentException("expected min 3 values @ " + 6);
+				cg.thickness = (float)vec[0];
+				cg.vertShape = (float)vec[1];
+				cg.roomSize = (float)vec[2];
+				if (l == 5) {
+					cg.bigChance = MathHelper.clamp((int)(vec[3] * 256D), 1, 256);
+					cg.bigScale = (float)vec[4] - 1F;
+				} else cg.bigScale = 0;
+			}
+			gen = cg;
 		} else return;
 		TerrainGeneration cfg = PortalConfiguration.get(param.getIndex(1)).getSettings(TerrainGeneration.class, true);
 		cfg.entries.add(gen);

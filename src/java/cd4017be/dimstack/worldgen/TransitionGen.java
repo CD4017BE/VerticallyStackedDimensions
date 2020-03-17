@@ -6,8 +6,8 @@ import cd4017be.dimstack.api.util.BlockPlacer;
 import cd4017be.dimstack.api.util.NoiseField;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.gen.IChunkGenerator;
 
 
 /**
@@ -50,7 +50,7 @@ public class TransitionGen implements ITerrainGenerator, BlockPlacer {
 	}
 
 	@Override
-	public void generate(IChunkGenerator gen, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg) {
+	public void generate(World world, ChunkPrimer cp, int cx, int cz, TerrainGeneration cfg) {
 		this.cp = cp;
 		cfg.noiseFields[0].generate(minY, maxY, this);
 		this.cp = null;
