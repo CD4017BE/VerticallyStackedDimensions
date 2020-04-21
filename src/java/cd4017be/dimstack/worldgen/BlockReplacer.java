@@ -7,6 +7,7 @@ import cd4017be.api.recipes.RecipeAPI.IRecipeHandler;
 import cd4017be.dimstack.api.BlockReplacements;
 import cd4017be.dimstack.api.BlockReplacements.Replacement;
 import cd4017be.dimstack.api.util.BlockPredicate;
+import cd4017be.dimstack.command.Regen;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.dimstack.util.DebugInfo;
 import cd4017be.lib.script.Parameters;
@@ -31,6 +32,7 @@ public class BlockReplacer implements IWorldGenerator, IRecipeHandler {
 		RecipeAPI.Handlers.put(BLOCK_REPL, this);
 		//mods commonly use 0 for their ore-gen, so this runs just before.
 		GameRegistry.registerWorldGenerator(this, -1000);
+		Regen.generators.put(BLOCK_REPL, this);
 	}
 
 	@Override
@@ -52,7 +54,7 @@ public class BlockReplacer implements IWorldGenerator, IRecipeHandler {
 	@Override
 	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator gen, IChunkProvider chunkProvider) {
 		PortalConfiguration pc = PortalConfiguration.get(world);
-		if (gen != null && chunkProvider != null)
+		if (gen != null)
 			pc.getSettings(DebugInfo.class, true).genTerrainLate(pc, gen, world, chunkX, chunkZ);
 		
 		BlockReplacements repl = pc.getSettings(BlockReplacements.class, false);

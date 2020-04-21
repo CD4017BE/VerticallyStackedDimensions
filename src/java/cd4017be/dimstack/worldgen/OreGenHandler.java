@@ -10,6 +10,7 @@ import cd4017be.dimstack.api.DisableVanillaOres;
 import cd4017be.dimstack.api.OreGeneration;
 import cd4017be.dimstack.api.gen.IOreGenerator;
 import cd4017be.dimstack.api.util.BlockPredicate;
+import cd4017be.dimstack.command.Regen;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.lib.script.Parameters;
 import cd4017be.lib.script.obj.Error;
@@ -49,6 +50,7 @@ public class OreGenHandler implements IWorldGenerator, IRecipeHandler {
 		OreGeneration.REGISTRY.put("even", OreGenEven::new);
 		OreGeneration.REGISTRY.put("center", OreGenCentered::new);
 		OreGeneration.REGISTRY.put("gauss", OreGenGaussian::new);
+		Regen.generators.put("ores", this);
 	}
 
 	@SubscribeEvent

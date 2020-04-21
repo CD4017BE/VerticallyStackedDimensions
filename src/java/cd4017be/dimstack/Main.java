@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 
 import cd4017be.api.recipes.RecipeScriptContext;
 import cd4017be.dimstack.asm.Test;
+import cd4017be.dimstack.command.Regen;
 import cd4017be.dimstack.core.Dimensionstack;
 import cd4017be.lib.script.ScriptFiles.Version;
 import net.minecraftforge.common.MinecraftForge;
@@ -17,6 +18,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 
 /**
@@ -67,6 +69,11 @@ public class Main {
 		dimstack.loadWorldSettings(
 			new File(FMLCommonHandler.instance().getSavesDirectory(), event.getServer().getFolderName())
 		);
+	}
+
+	@Mod.EventHandler
+	public void registerCommands(FMLServerStartingEvent event) {
+		event.registerServerCommand(new Regen());
 	}
 
 	@Mod.EventHandler

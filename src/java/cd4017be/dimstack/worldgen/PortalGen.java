@@ -5,6 +5,7 @@ import java.util.Random;
 import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.Objects;
 import cd4017be.dimstack.block.Portal;
+import cd4017be.dimstack.command.Regen;
 import cd4017be.dimstack.core.PortalConfiguration;
 import cd4017be.dimstack.Main;
 import net.minecraft.block.state.IBlockState;
@@ -29,6 +30,7 @@ public class PortalGen implements IWorldGenerator {
 	public PortalGen() {
 		//this generator should run rather late to ensure the portal states won't need to change much later on.
 		GameRegistry.registerWorldGenerator(this, Integer.MAX_VALUE);
+		Regen.generators.put("portals", this);
 	}
 
 	@Override

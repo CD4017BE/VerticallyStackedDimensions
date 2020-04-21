@@ -5,6 +5,15 @@ dimstack.toollvl.pickaxe=lvl %d Pickaxe or better
 dimstack.toollvl.axe=lvl %d Axe or better
 dimstack.toollvl.shovel=lvl %d Shovel or better
 
+#Command
+commands.ds_regen.usage=/ds_regen <cancel|help> OR /ds_regen <dim> <x0> <z0> <x1> <z1> <generators...> OR /ds_regen <dim> loaded <generators...>
+commands.ds_regen.info=Manually regenerates dimension stack features for already generated chunks within a given block region or for all currently loaded chunks in a dimension. Available generators: %s (multiple can run in the same command).
+commands.ds_regen.cancel=Manual dimension post generation canceled with %s / %s chunks processed!
+commands.ds_regen.progress=%s / %s chunks processed: %s%%
+commands.ds_regen.complete=Manual dimension post generation completed!
+commands.ds_regen.inprogress=Command execution still in progress! Use "/ds_regen cancel"
+commands.ds_regen.invalid_dim=Dimension doesn't exist!
+
 #Blocks
 tile.dimstack.portal.name=Transition Portal
 tile.dimstack.portal.tip=§4Not craftable, automatically generated in the world!\\nFalling or jumping into it will teleport you to the other side.\\nHitting this block with a tool or right-clicking it with a block in hand will break / place blocks on the other side.\n§8§oWhich dimensions being connected is defined in this mod's configuration file.

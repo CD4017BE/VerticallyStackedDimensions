@@ -3,6 +3,15 @@ dimstack.toollvl.pickaxe=Spitzhacke level %d oder besser
 dimstack.toollvl.axe=Axt level %d oder besser
 dimstack.toollvl.shovel=Shaufel level %d oder besser
 
+#Befehle
+commands.ds_regen.usage=/ds_regen <cancel|help> OR /ds_regen <dim> <x0> <z0> <x1> <z1> <Generatoren...> OR /ds_regen <dim> loaded <Generatoren...>
+commands.ds_regen.info=Manuelle Dimensionsnachgenerierung, entweder für bereits generierte Chunks innerhalb eines bestimmten Gebietes oder für alle derzeit in der Dimension geladenen Chunks. Verfügbaren Generatoren: %s (es können mehrere im gleichen Befehl ausgeführt werden).
+commands.ds_regen.cancel=Manuelle Dimensionsnachgenerierung abgebrochen mit %s / %s verarbeiteten Chunks!
+commands.ds_regen.progress=%s / %s Chunks verarbeitet: %s%%
+commands.ds_regen.complete=Manuelle Dimensionsnachgenerierung abgeschlossen!
+commands.ds_regen.inprogress=Befehl wird bereits ausgeführt! Verwende "/ds_regen cancel"
+commands.ds_regen.invalid_dim=Angegebene Dimension existiert nicht!
+
 #Blöcke
 tile.dimstack.dim_pipe.tip=Erlaubt es Geräten, durch das Portal hindurch auf benachbarte Inventare, Flüssigkeitstanks und Energiespeicher zuzugreifen.\n§aInteragiere geduckt§7 gegen ein Portal zum anbringen.\n§aInteragiere geduckt§7 mit §aleerer Hand§7 zum wieder entfernen.
 tile.dimstack.portal.name=Übergangsportal
