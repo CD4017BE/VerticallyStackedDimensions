@@ -6,6 +6,7 @@ import cd4017be.api.recipes.RecipeScriptContext.ConfigConstants;
 import cd4017be.dimstack.Objects;
 import cd4017be.dimstack.block.Portal;
 import cd4017be.dimstack.core.PortalConfiguration;
+import cd4017be.dimstack.Main;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
@@ -64,6 +65,7 @@ public class PortalGen implements IWorldGenerator {
 	}
 
 	public static void placePortals(Chunk chunk, int y, boolean update, PortalConfiguration neighb, int Y) {
+		if (update && PortalConfiguration.retrogen > 1) retrogenBedrock(chunk);
 		IBlockState state = Objects.PORTAL.getDefaultState(), olds;
 		boolean s0 = state.getValue(Portal.solidOther1),
 				s_ = state.getValue(Portal.solidOther2),
@@ -80,6 +82,7 @@ public class PortalGen implements IWorldGenerator {
 			Chunk chunk_ = world_.getChunkProvider().getLoadedChunk(chunk.x, chunk.z);
 			if (chunk_ == null) break sync;
 			if (!genImmediate && chunk_.getTopFilledSegment() < Y - 15) break sync;
+			if (update && PortalConfiguration.retrogen > 1) retrogenBedrock(chunk_);
 			IBlockState state_ = state
 					.withProperty(Portal.solidOther1, s1)
 					.withProperty(Portal.solidOther2, s2)
@@ -126,6 +129,10 @@ public class PortalGen implements IWorldGenerator {
 				chunk.setBlockState(pos.setPos(x, y, z), state);
 				if (update) world.notifyBlockUpdate(pos, olds, state, 2);
 			}
+	}
+
+	public static void retrogenBedrock(Chunk chunk) {
+		Main.proxy.worldgenBedrock.generate(null, chunk.x, chunk.z, chunk.getWorld(), null, null);
 	}
 
 	public void initConfig(ConfigConstants cfg) {

@@ -19,6 +19,7 @@ disable_nether_portal = false;
 ceil_on_demand = true;
 
 !this lets you retroactively generate portals into a world that was originally created without this mod. The generation in old chunks works similar to "ceiling on demand".
+!Setting this to 2 (instead of true) will also re run any "bedrockRepl" or "blockRepl" settings for that chunk.
 retrogen_portals = false;
 
 !number > 0 makes floor portals become solid if a player gets teleported upwards onto it to prevent falling back and specifies the interval in ticks to check if the player is still there before resynchronizing the portal.

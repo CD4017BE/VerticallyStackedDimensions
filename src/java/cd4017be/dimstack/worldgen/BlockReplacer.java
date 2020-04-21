@@ -52,7 +52,8 @@ public class BlockReplacer implements IWorldGenerator, IRecipeHandler {
 	@Override
 	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator gen, IChunkProvider chunkProvider) {
 		PortalConfiguration pc = PortalConfiguration.get(world);
-		pc.getSettings(DebugInfo.class, true).genTerrainLate(pc, gen, world, chunkX, chunkZ);
+		if (gen != null && chunkProvider != null)
+			pc.getSettings(DebugInfo.class, true).genTerrainLate(pc, gen, world, chunkX, chunkZ);
 		
 		BlockReplacements repl = pc.getSettings(BlockReplacements.class, false);
 		if (repl != null)
