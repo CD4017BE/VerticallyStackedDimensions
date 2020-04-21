@@ -1,3 +1,9 @@
+v0.1.9
+Changes:
+- added option for retroactive block replacements (#31)
+- added cave generator
+- added command for manual regeneration in already generated chunks
+
 v0.1.8
 Changes:
 - added option for retroactive portal generation (#28)
